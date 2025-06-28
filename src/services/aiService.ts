@@ -72,8 +72,8 @@ class AIService {
           id: crypto.randomUUID(),
           platform: 'claude',
           content,
-          confidence: this.calculateConfidence(content) / 100, // Convert to 0-1 range
-          responseTime: responseTime / 1000, // Convert to seconds
+          confidence: this.calculateConfidence(content) / 100,
+          responseTime: responseTime / 1000,
           wordCount: content.split(' ').length,
           loading: false,
           timestamp: Date.now()
@@ -91,7 +91,6 @@ class AIService {
           responseTime: (Date.now() - startTime) / 1000,
           wordCount: 0,
           loading: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
           timestamp: Date.now()
         }
       };
@@ -135,8 +134,8 @@ class AIService {
           id: crypto.randomUUID(),
           platform: 'grok',
           content,
-          confidence: this.calculateConfidence(content) / 100, // Convert to 0-1 range
-          responseTime: responseTime / 1000, // Convert to seconds
+          confidence: this.calculateConfidence(content) / 100,
+          responseTime: responseTime / 1000,
           wordCount: content.split(' ').length,
           loading: false,
           timestamp: Date.now()
@@ -154,7 +153,6 @@ class AIService {
           responseTime: (Date.now() - startTime) / 1000,
           wordCount: 0,
           loading: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
           timestamp: Date.now()
         }
       };
@@ -201,8 +199,8 @@ class AIService {
           id: crypto.randomUUID(),
           platform: 'gemini',
           content,
-          confidence: this.calculateConfidence(content) / 100, // Convert to 0-1 range
-          responseTime: responseTime / 1000, // Convert to seconds
+          confidence: this.calculateConfidence(content) / 100,
+          responseTime: responseTime / 1000,
           wordCount: content.split(' ').length,
           loading: false,
           timestamp: Date.now()
@@ -220,7 +218,6 @@ class AIService {
           responseTime: (Date.now() - startTime) / 1000,
           wordCount: 0,
           loading: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
           timestamp: Date.now()
         }
       };
