@@ -66,6 +66,12 @@ export interface FusionResult {
   keyInsights: string[];
 }
 
+export interface AIResult {
+  success: boolean;
+  error?: string;
+  data: AIResponse;
+}
+
 export interface ConversationTurn {
   id: string;
   prompt: string;

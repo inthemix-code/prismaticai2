@@ -3,18 +3,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, Eye, EyeOff, Settings } from 'lucide-react';
-import { apiService } from '../services/apiService';
+import { aiService } from '../services/aiService';
 
 export function ApiStatusIndicator() {
   const [isVisible, setIsVisible] = React.useState(false);
   
-  const apiStatus = apiService.getApiKeyStatus();
-  const isMockMode = apiService.isMockMode();
+  const apiStatus = aiService.getApiKeyStatus();
+  const hasValidKeys = aiService.hasValidKeys();
   
-  const toggleMockMode = () => {
-    apiService.toggleMockMode();
-    window.location.reload(); // Reload to apply changes
-  };
 
   if (!isVisible) {
     return (
@@ -49,17 +45,9 @@ export function ApiStatusIndicator() {
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-300">Data Source:</span>
           <div className="flex items-center gap-2">
-            <Badge variant={isMockMode ? "secondary" : "default"} className="text-xs">
-              {isMockMode ? "Mock Data" : "Real APIs"}
+            <Badge variant={hasValidKeys ? "default" : "secondary"} className="text-xs">
+              {hasValidKeys ? "Real APIs" : "No API Keys"}
             </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleMockMode}
-              className="h-6 px-2 text-xs"
-            >
-              Toggle
-            </Button>
           </div>
         </div>
 
@@ -85,12 +73,10 @@ export function ApiStatusIndicator() {
 
         {/* Instructions */}
         <div className="text-xs text-gray-500 pt-2 border-t border-gray-700">
-          {isMockMode ? (
-            "Currently using mock data. Toggle to use real APIs."
-          ) : !apiService.hasValidKeys() ? (
+          {!hasValidKeys ? (
             "Add API keys to your .env file to use real data."
           ) : (
-            "Using real API calls. Check console for any errors."
+            "Ready to use real API calls."
           )}
         </div>
       </CardContent>

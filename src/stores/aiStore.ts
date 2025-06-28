@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { AIResponse, AnalysisData, FusionResult, ConversationTurn, Conversation } from '../types';
 import { generateMockAnalysisData, generateMockFusionResult } from '../data/mockData';
 import { validateSearchRequest } from '../utils/validation';
-import { apiService } from '../services/apiService';
+import { aiService } from '../services/aiService';
 
 interface AIStore {
   // State
@@ -190,8 +190,9 @@ export const useAIStore = create<AIStore>((set, get) => ({
     }
     
     try {
-      // Use the frontend API service to get responses
-      const responses = await apiService.queryAllModels(prompt, selectedModels);
+      // Use the new AI service to get responses
+      const results = await aiService.queryMultiple(prompt, selectedModels);
+      const responses = results.map(result => result.data);
       const mockAnalysisData = generateMockAnalysisData();
       const mockFusionResult = generateMockFusionResult();
       
