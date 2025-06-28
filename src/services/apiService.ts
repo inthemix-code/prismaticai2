@@ -39,6 +39,12 @@ class PersonalAPIService {
       localStorage.setItem('useMockData', this.useMockData.toString());
     }
     
+    // Force mock mode if no valid API keys are available, regardless of saved preference
+    if (!this.hasValidKeys() && import.meta.env.VITE_ENABLE_MOCK_DATA !== 'false') {
+      this.useMockData = true;
+      localStorage.setItem('useMockData', 'true');
+    }
+    
     // Debug logging
     if (this.debugMode) {
       console.log('🔧 API Service initialized:', {
@@ -60,6 +66,14 @@ class PersonalAPIService {
     prompt: string
   ): Promise<AIResponse> {
     
+    // Always check if we should use mock data before making API calls
+    if (this.useMockData || !this.hasValidKeys()) {
+      if (this.debugMode) {
+        console.log(`📝 Using mock data for ${model} (useMockData: ${this.useMockData}, hasValidKeys: ${this.hasValidKeys()})`);
+      }
+      return this.generateMockResponse(model, prompt);
+    }
+    
     if (this.debugMode) {
       console.log(`🚀 Querying ${model}:`, {
         prompt: prompt.substring(0, 100) + '...',
@@ -68,12 +82,6 @@ class PersonalAPIService {
       });
     }
     
-    if (this.useMockData) {
-      if (this.debugMode) {
-        console.log(`📝 Using mock data for ${model}`);
-      }
-      return this.generateMockResponse(model, prompt);
-    }
 
     switch (model) {
       case 'claude':
@@ -537,6 +545,7 @@ The trajectory indicates continued evolution with increasing sophistication in b
     return !!(key && 
       key.startsWith('sk-ant-api') && 
       !key.includes('your-claude-key-here') && 
+      !key.includes('sk-ant-your-claude-key-here') &&
       key.length > 20);
   }
 
@@ -544,6 +553,7 @@ The trajectory indicates continued evolution with increasing sophistication in b
     return !!(key && 
       key.startsWith('xai-') && 
       !key.includes('your-grok-key-here') && 
+      !key.includes('xai-your-grok-key-here') &&
       key.length > 10);
   }
 
@@ -551,6 +561,7 @@ The trajectory indicates continued evolution with increasing sophistication in b
     return !!(key && 
       (key.startsWith('AIzaSy') || key.startsWith('AIza')) && 
       !key.includes('your-gemini-key-here') && 
+      !key.includes('AIza-your-gemini-key-here') &&
       key.length > 30);
   }
 }
