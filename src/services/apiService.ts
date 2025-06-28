@@ -534,15 +534,24 @@ The trajectory indicates continued evolution with increasing sophistication in b
   }
 
   private isValidClaudeKey(key: string): boolean {
-    return !!(key && key.startsWith('sk-ant-api'));
+    return !!(key && 
+      key.startsWith('sk-ant-api') && 
+      !key.includes('your-claude-key-here') && 
+      key.length > 20);
   }
 
   private isValidGrokKey(key: string): boolean {
-    return !!(key && key.startsWith('xai-'));
+    return !!(key && 
+      key.startsWith('xai-') && 
+      !key.includes('your-grok-key-here') && 
+      key.length > 10);
   }
 
   private isValidGeminiKey(key: string): boolean {
-    return !!(key && key.startsWith('AIzaSy'));
+    return !!(key && 
+      (key.startsWith('AIzaSy') || key.startsWith('AIza')) && 
+      !key.includes('your-gemini-key-here') && 
+      key.length > 30);
   }
 }
 
