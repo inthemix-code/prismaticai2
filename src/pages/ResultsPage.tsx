@@ -28,12 +28,8 @@ export function ResultsPage() {
   const latestTurnRef = useRef<HTMLDivElement>(null);
   const turnRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Remove the useEffect that auto-populates searchQuery to prevent re-population
-
   const handlePromptSubmit = async (prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => {
-    // Use the selected models from the search input
     await continueConversation(prompt, selectedModels);
-    // Clear the searchQuery state after submission
     setSearchQuery('');
   };
 
@@ -196,90 +192,98 @@ export function ResultsPage() {
           {currentConversation.turns.map((turn, turnIndex) => (
             <div 
               key={turn.id}
-              className="space-y-4 sm:space-y-8"
               ref={(el) => {
                 turnRefs.current[turnIndex] = el;
                 if (turnIndex === currentConversation.turns.length - 1) {
                   latestTurnRef.current = el;
                 }
               }}
+              className="space-y-6 sm:space-y-8"
             >
-              {/* Turn Header - Hide when this turn is loading */}
+              {/* Turn Header */}
               {!turn.loading && (
-                <div className="flex items-start gap-2 sm:gap-4 pb-3 sm:pb-4 border-b border-gray-800">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-base sm:text-lg font-medium text-white">
-                        {turn.prompt}
-                      </h3>
+                <div className="flex items-center justify-between border-b border-gray-800 pb-3 sm:pb-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <Badge variant="outline" className="text-blue-400 border-blue-800 bg-blue-950/50 text-xs sm:text-sm">
+                      Turn {turnIndex + 1}
+                    </Badge>
+                    <span className="text-xs sm:text-sm text-gray-400">
+                      {formatTimestamp(turn.timestamp)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">
+                      {turn.responses.length} models
+                    </span>
+                    <span className="sm:hidden">
+                      {turn.responses.length}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Prompt Display */}
+              {!turn.loading && (
+                <div className="bg-gray-800/30 rounded-lg border border-gray-700/50 p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                      <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 text-white/70" />
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <Clock className="w-3 h-3 flex-shrink-0" />
-                      <span>{formatTimestamp(turn.timestamp)}</span>
-                      {turn.completed && (
-                        <>
-                          <span>•</span>
-                          <span className="text-green-400">Analysis Complete</span>
-                        </>
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm sm:text-base font-medium text-white mb-2">Your Question</h3>
+                      <p className="text-sm sm:text-base text-gray-300 leading-relaxed break-words">
+                        {turn.prompt}
+                      </p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Loading state for incomplete turns - Show Triangle Loader */}
+              {/* Loading State */}
               {turn.loading && (
-                <div className="flex items-center justify-center py-8 sm:py-12">
+                <div className="flex justify-center py-8 sm:py-12">
                   <TriangleLoader 
-                    size={window.innerWidth < 640 ? "md" : "lg"}
+                    size="lg" 
                     progress={getLoadingProgress(turn)}
                   />
                 </div>
               )}
 
-              {/* Fusion Response for this turn - FIRST */}
-              {turn.completed && turn.fusionResult && (
-                <div className="space-y-4 sm:space-y-6" data-fusion-panel>
+              {/* Fusion Response */}
+              {!turn.loading && turn.fusionResult && (
+                <div data-fusion-panel className="mt-8 sm:mt-12">
                   <FusionPanel fusion={turn.fusionResult} />
                 </div>
               )}
 
-              {/* Tabbed Reference Material - SECOND */}
-              {turn.completed && turn.analysisData && (
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="text-center">
-                    <h4 className="text-base sm:text-lg font-semibold text-white">Reference Material</h4>
-                  </div>
-                  
+              {/* Analytics Tabs */}
+              {!turn.loading && turn.analysisData && (
+                <div className="mt-8 sm:mt-12">
                   <Tabs defaultValue="analytics" className="w-full">
-                    <TabsList>
-                      <TabsTrigger value="analytics" className="flex items-center gap-2">
-                        <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="text-xs sm:text-sm">Analytics</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="responses" className="flex items-center gap-2">
-                        <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="text-xs sm:text-sm">AI Responses</span>
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="analytics" className="mt-4 sm:mt-6">
-                      <div className="space-y-4 sm:space-y-6">
-                        <div className="text-center">
-                          <div className="flex items-center justify-center gap-2 mb-2">
-                            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
-                            <h5 className="text-sm sm:text-base font-semibold text-white">Detailed Analytics</h5>
-                          </div>
-                          <p className="text-xs text-gray-500">Deep analysis of response patterns and insights</p>
-                        </div>
-                        <AnalyticsCharts 
-                          data={turn.analysisData} 
-                          fusionSources={turn.fusionResult?.sources}
-                        />
-                      </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                      <h3 className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+                        Reference Material
+                      </h3>
+                      <TabsList className="bg-gray-800 border-gray-700 w-full sm:w-auto">
+                        <TabsTrigger value="analytics" className="text-xs sm:text-sm">
+                          Analytics
+                        </TabsTrigger>
+                        <TabsTrigger value="responses" className="text-xs sm:text-sm">
+                          AI Responses
+                        </TabsTrigger>
+                      </TabsList>
+                    </div>
+                    
+                    <TabsContent value="analytics" className="mt-0">
+                      <AnalyticsCharts 
+                        data={turn.analysisData} 
+                        fusionSources={turn.fusionResult?.sources}
+                      />
                     </TabsContent>
-
-                    <TabsContent value="responses" className="mt-4 sm:mt-6">
+                    
+                    <TabsContent value="responses" className="mt-0">
                       <div className="space-y-4 sm:space-y-6">
                         <div className="text-center">
                           <div className="flex items-center justify-center gap-2 mb-2">
@@ -288,7 +292,7 @@ export function ResultsPage() {
                           </div>
                           <p className="text-xs text-gray-500">Compare how each platform approaches your query</p>
                         </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                           {turn.responses.map((response) => (
                             <AIResponsePanel key={response.id} response={response} />
                           ))}
@@ -302,10 +306,10 @@ export function ResultsPage() {
               {/* Turn Separator */}
               {turnIndex < currentConversation.turns.length - 1 && (
                 <div className="flex items-center justify-center py-6 sm:py-8">
-                  <div className="flex items-center gap-4 text-gray-600">
-                    <div className="h-px bg-gray-800 flex-1"></div>
+                  <div className="flex items-center gap-3 text-xs text-gray-500">
+                    <div className="h-px w-8 sm:w-12 bg-gray-700"></div>
                     <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <div className="h-px bg-gray-800 flex-1"></div>
+                    <div className="h-px w-8 sm:w-12 bg-gray-700"></div>
                   </div>
                 </div>
               )}
@@ -314,14 +318,17 @@ export function ResultsPage() {
         </div>
       </div>
 
-      {/* Fixed Bottom Search Input - Hide when latest turn is loading */}
+      {/* Bottom Search Bar - Fixed */}
       {!isLatestTurnLoading && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 max-w-4xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-          <SearchInput
-            onSearch={handlePromptSubmit}
-            isLoading={isLatestTurnLoading}
-            showDemoPrompts={false}
-          />
+        <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-md border-t border-gray-800 z-40">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+            <SearchInput 
+              onSearch={handlePromptSubmit} 
+              isLoading={isLatestTurnLoading || false}
+              showDemoPrompts={false}
+              className="w-full"
+            />
+          </div>
         </div>
       )}
     </div>
