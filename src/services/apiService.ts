@@ -525,10 +525,22 @@ The trajectory indicates continued evolution with increasing sophistication in b
 
   getApiKeyStatus(): Record<string, boolean> {
     return {
-      claude: !!this.apiKeys.claude,
-      grok: !!this.apiKeys.grok,
-      gemini: !!this.apiKeys.gemini
+      claude: this.isValidClaudeKey(this.apiKeys.claude),
+      grok: this.isValidGrokKey(this.apiKeys.grok),
+      gemini: this.isValidGeminiKey(this.apiKeys.gemini)
     };
+  }
+
+  private isValidClaudeKey(key: string): boolean {
+    return !!(key && key.startsWith('sk-ant-api'));
+  }
+
+  private isValidGrokKey(key: string): boolean {
+    return !!(key && key.startsWith('xai-'));
+  }
+
+  private isValidGeminiKey(key: string): boolean {
+    return !!(key && key.startsWith('AIzaSy'));
   }
 }
 
