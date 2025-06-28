@@ -1,5 +1,6 @@
 import { AIResponse, AnalysisData, FusionResult } from '../types';
 import { generateMockAnalysisData, generateMockFusionResult } from '../data/mockData';
+import { proxyService } from './proxyService';
 
 interface ApiKeyStatus {
   claude: boolean;
@@ -82,16 +83,27 @@ class PersonalAPIService {
       });
     }
     
-
-    switch (model) {
-      case 'claude':
-        return this.queryClaude(prompt);
-      case 'grok':
-        return this.queryGrok(prompt);
-      case 'gemini':
-        return this.queryGemini(prompt);
-      default:
-        throw new Error(`Unknown model: ${model}`);
+    // Use proxy service for better API handling
+    try {
+      let result;
+      switch (model) {
+        case 'claude':
+          result = await proxyService.queryClaude(prompt);
+          break;
+        case 'grok':
+          result = await proxyService.queryGroq(prompt);
+          break;
+        case 'gemini':
+          result = await proxyService.queryGemini(prompt);
+          break;
+        default:
+          throw new Error(`Unknown model: ${model}`);
+      }
+      
+      return result.data;
+    } catch (error) {
+      console.error(`❌ Error querying ${model}:`, error);
+      return this.createErrorResponse(model, (error as Error).message);
     }
   }
 
@@ -368,17 +380,48 @@ class PersonalAPIService {
     prompt: string,
     selectedModels: Record<string, boolean>
   ): Promise<AIResponse[]> {
-    const enabledModels = Object.entries(selectedModels)
-      .filter(([_, enabled]) => enabled)
-      .map(([model, _]) => model as 'claude' | 'grok' | 'gemini');
-
     if (this.debugMode) {
       console.log('🚀 Querying all models:', {
-        enabledModels,
+        selectedModels,
         mockMode: this.useMockData,
         prompt: prompt.substring(0, 50) + '...'
       });
     }
+
+    // Use the proxy service for better API handling and mock responses
+    try {
+      const results = await proxyService.queryMultiple(prompt, selectedModels);
+      const responses = results.map(result => result.data);
+      
+      if (this.debugMode) {
+        console.log('✅ All models completed:', {
+          totalResponses: responses.length,
+          successfulResponses: responses.filter(r => !r.error).length,
+          errorResponses: responses.filter(r => r.error).length
+        });
+      }
+
+      return responses;
+    } catch (error) {
+      console.error('❌ Error querying models:', error);
+      
+      // Fallback to mock responses if proxy service fails
+      const enabledModels = Object.entries(selectedModels)
+        .filter(([_, enabled]) => enabled)
+        .map(([model, _]) => model as 'claude' | 'grok' | 'gemini');
+      
+      return enabledModels.map(model => this.createErrorResponse(model, 'Service temporarily unavailable'));
+    }
+  }
+
+  // Legacy method - keeping for compatibility but using proxy service internally
+  private async queryAllModelsLegacy(
+    prompt: string,
+    selectedModels: Record<string, boolean>
+  ): Promise<AIResponse[]> {
+    const enabledModels = Object.entries(selectedModels)
+      .filter(([_, enabled]) => enabled)
+      .map(([model, _]) => model as 'claude' | 'grok' | 'gemini');
 
     const promises = enabledModels.map(async (model) => {
       try {
@@ -389,7 +432,14 @@ class PersonalAPIService {
       }
     });
 
-    const results = await Promise.all(promises);
+    return Promise.all(promises);
+  }
+
+  private async queryAllModelsOld(
+    prompt: string,
+    selectedModels: Record<string, boolean>
+  ): Promise<AIResponse[]> {
+    const results = await this.queryAllModelsLegacy(prompt, selectedModels);
     
     if (this.debugMode) {
       console.log('✅ All models completed:', {
@@ -528,12 +578,24 @@ The trajectory indicates continued evolution with increasing sophistication in b
   }
 
   hasValidKeys(): boolean {
+    // Use proxy service for key validation when available
+    if (proxyService) {
+      return proxyService.hasValidKeys();
+    }
+    
+    // Fallback to original validation
     return this.isValidClaudeKey(this.apiKeys.claude) || 
            this.isValidGrokKey(this.apiKeys.grok) || 
            this.isValidGeminiKey(this.apiKeys.gemini);
   }
 
   getApiKeyStatus(): Record<string, boolean> {
+    // Use proxy service for status when available
+    if (proxyService) {
+      return proxyService.getApiKeyStatus();
+    }
+    
+    // Fallback to original status
     return {
       claude: this.isValidClaudeKey(this.apiKeys.claude),
       grok: this.isValidGrokKey(this.apiKeys.grok),
