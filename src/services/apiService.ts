@@ -520,7 +520,9 @@ The trajectory indicates continued evolution with increasing sophistication in b
   }
 
   hasValidKeys(): boolean {
-    return !!(this.apiKeys.claude || this.apiKeys.grok || this.apiKeys.gemini);
+    return this.isValidClaudeKey(this.apiKeys.claude) || 
+           this.isValidGrokKey(this.apiKeys.grok) || 
+           this.isValidGeminiKey(this.apiKeys.gemini);
   }
 
   getApiKeyStatus(): Record<string, boolean> {
