@@ -119,7 +119,7 @@ const PrismFeatures = () => {
             {/* Prism Triangle - using our Triangle icon shape */}
             <g transform="translate(400, 300)">
               <polygon 
-                points="0,-92 79.67,46 -79.67,46" 
+                points="0,-90 80,45 -80,45" 
                 fill="url(#prismGradient)"
                 stroke="#60A5FA" 
                 strokeWidth="2"
