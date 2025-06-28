@@ -1,6 +1,6 @@
 export interface AIResponse {
   id: string;
-  platform: 'grok' | 'claude' | 'gemini';
+  platform: 'claude' | 'grok' | 'gemini';
   content: string;
   confidence: number;
   responseTime: number;
@@ -10,42 +10,11 @@ export interface AIResponse {
   timestamp: number;
 }
 
-export interface AnalysisData {
-  sentiment: {
-    platform: string;
-    positive: number;
-    neutral: number;
-    negative: number;
-  }[];
-  keywords: {
-    word: string;
-    grok: number;
-    claude: number;
-    gemini: number;
-  }[];
-  metrics: {
-    platform: string;
-    confidence: number;
-    responseTime: number;
-    wordCount: number;
-  }[];
-  efficiency: {
-    platform: string;
-    conciseness: number;
-    redundancy: number;
-  }[];
-  risk: {
-    platform: string;
-    hallucination: number;
-    contradictions: number;
-    hedging: number;
-  }[];
-  differentiation: {
-    platform: string;
-    originality: number;
-    divergence: number;
-    contribution: number;
-  }[];
+// New type for API results
+export interface AIResult {
+  success: boolean;
+  data: AIResponse;
+  error?: string;
 }
 
 export interface DemoPrompt {
@@ -53,6 +22,26 @@ export interface DemoPrompt {
   text: string;
   category: string;
   description: string;
+}
+
+export interface ConversationTurn {
+  id: string;
+  prompt: string;
+  timestamp: number;
+  responses: AIResponse[];
+  analysisData: AnalysisData | null;
+  fusionResult: FusionResult | null;
+  loading: boolean;
+  completed: boolean;
+  progress?: number;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  turns: ConversationTurn[];
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface FusionResult {
@@ -66,28 +55,40 @@ export interface FusionResult {
   keyInsights: string[];
 }
 
-export interface AIResult {
-  success: boolean;
-  error?: string;
-  data: AIResponse;
-}
-
-export interface ConversationTurn {
-  id: string;
-  prompt: string;
-  timestamp: number;
-  responses: AIResponse[];
-  analysisData: AnalysisData | null;
-  fusionResult: FusionResult | null;
-  loading: boolean;
-  completed: boolean;
-  progress?: number; // 0-100
-}
-
-export interface Conversation {
-  id: string;
-  title: string;
-  turns: ConversationTurn[];
-  createdAt: number;
-  updatedAt: number;
+export interface AnalysisData {
+  sentiment: Array<{
+    platform: string;
+    positive: number;
+    neutral: number;
+    negative: number;
+  }>;
+  keywords: Array<{
+    word: string;
+    grok: number;
+    claude: number;
+    gemini: number;
+  }>;
+  metrics: Array<{
+    platform: string;
+    confidence: number;
+    responseTime: number;
+    wordCount: number;
+  }>;
+  efficiency: Array<{
+    platform: string;
+    conciseness: number;
+    redundancy: number;
+  }>;
+  risk: Array<{
+    platform: string;
+    hallucination: number;
+    contradictions: number;
+    hedging: number;
+  }>;
+  differentiation: Array<{
+    platform: string;
+    originality: number;
+    divergence: number;
+    contribution: number;
+  }>;
 }
