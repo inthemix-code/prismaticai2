@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background: radial-gradient(ellipse at center, #061539 0%, #061539 35%, #000a1a 70%);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: radial-gradient(ellipse at center, #061539 0%, #061539 35%, #000a1a 70%);
+  color: #fafafa;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #404040;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #525252;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Beautiful text styles for AI responses */
+.ai-response-text {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  letter-spacing: 0.025em;
+  color: #e5e5e5;
+  text-align: left;
+}
+
+.ai-fusion-text {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 0.9rem;
+  line-height: 1.75;
+  letter-spacing: 0.025em;
+  color: #e5e5e5;
+  text-align: left;
+}
+
+/* Enhanced typography for better readability */
+.beautiful-text {
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prism Animation Keyframes - Simplified to single axis rotation */
+@keyframes prismRotate {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  50% { transform: rotate(180deg); }
+  75% { transform: rotate(270deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes prismPulse {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes prismShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Search Input Specific Styles */
+.chat-input-transition {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chat-input-shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.chat-input-shadow-focus {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.chat-input-border {
+  border-color: hsl(var(--border));
+}
+
+.chat-input-border-focus {
+  border-color: rgb(59, 130, 246);
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* shadcn/ui Typography Styles */
+@layer base {
+  h1 {
+    @apply scroll-m-20 text-3xl font-bold tracking-tight lg:text-4xl text-white;
+  }
+  
+  h2 {
+    @apply scroll-m-20 border-b border-gray-800 pb-2 text-2xl font-semibold tracking-tight first:mt-0 text-white;
+  }
+  
+  h3 {
+    @apply scroll-m-20 text-xl font-semibold tracking-tight text-white;
+  }
+  
+  h4 {
+    @apply scroll-m-20 text-lg font-semibold tracking-tight text-white;
+  }
+  
+  p {
+    @apply leading-7 [&:not(:first-child)]:mt-6 text-gray-300;
+  }
+  
+  blockquote {
+    @apply mt-6 border-l-2 border-gray-700 pl-6 italic text-gray-400;
+  }
+  
+  ul {
+    @apply my-6 ml-6 list-disc [&>li]:mt-2 text-gray-300;
+  }
+  
+  code {
+    @apply relative rounded bg-gray-800 px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold text-gray-200;
+  }
+  
+  .lead {
+    @apply text-lg text-gray-400;
+  }
+  
+  .large {
+    @apply text-lg font-semibold text-white;
+  }
+  
+  .small {
+    @apply text-xs font-medium leading-none text-gray-300;
+  }
+  
+  .muted {
+    @apply text-xs text-gray-500;
+  }
+}
