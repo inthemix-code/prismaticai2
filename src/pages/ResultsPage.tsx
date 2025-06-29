@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,6 @@ export function ResultsPage() {
     getCurrentTurn
   } = useAIStore();
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [showHeaderText, setShowHeaderText] = useState(false);
   const [currentTurnInView, setCurrentTurnInView] = useState<number>(0);
   
@@ -30,7 +29,6 @@ export function ResultsPage() {
 
   const handlePromptSubmit = async (prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => {
     await continueConversation(prompt, selectedModels);
-    setSearchQuery('');
   };
 
   const handleNewQuery = () => {

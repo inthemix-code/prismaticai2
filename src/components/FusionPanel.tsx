@@ -1,13 +1,10 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList } from 'recharts';
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Copy, Shield, Clock, Zap, Target, Lightbulb } from 'lucide-react';
 import { FusionResult } from '../types';
@@ -20,9 +17,6 @@ const confidenceChartConfig = {
   confidence: {
     label: "Synthesis Confidence",
     color: "#3B82F6",
-  },
-  label: {
-    color: "#FFFFFF",
   },
 } satisfies ChartConfig;
 
@@ -109,7 +103,7 @@ export function FusionPanel({ fusion }: FusionPanelProps) {
               </CardTitle>
               {/* Model Contributions Pills */}
               <div className="flex flex-wrap gap-1 sm:gap-2 ml-2 sm:ml-4">
-                {contributions.map((contribution, index) => (
+                {contributions.map((contribution) => (
                   <div
                     key={contribution.name}
                     className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border ${contribution.lightColor} border-gray-600/50`}

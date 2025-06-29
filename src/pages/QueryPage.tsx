@@ -1,6 +1,4 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from "@/components/ui/separator";
 import { Sparkles, TrendingUp, BarChart3, Zap } from 'lucide-react';
 import SearchInput from '../components/SearchInput';

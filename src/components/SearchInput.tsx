@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -18,7 +18,6 @@ interface SearchInputProps {
 
 const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }: SearchInputProps) => {
   const [query, setQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [charCount, setCharCount] = useState(0);
   const [selectedModels, setSelectedModels] = useState({
@@ -34,7 +33,7 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
   // Create debounced function for query updates
   const debouncedSetQuery = useMemo(
     () => debounce((value: string) => {
-      setDebouncedQuery(value);
+      // This debounced function no longer needs to do anything since we removed debouncedQuery
     }, 300),
     []
   );

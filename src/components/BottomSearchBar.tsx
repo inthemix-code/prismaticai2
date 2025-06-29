@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Search, Filter, Share } from 'lucide-react';
+import { ArrowLeft, Filter, Share } from 'lucide-react';
 
 interface BottomSearchBarProps {
   query: string;
-  onQueryChange: (query: string) => void;
   onSearch: (query: string) => void;
   onNewQuery: () => void;
 }
 
-export function BottomSearchBar({ query, onQueryChange, onSearch, onNewQuery }: BottomSearchBarProps) {
+export function BottomSearchBar({ query, onSearch, onNewQuery }: BottomSearchBarProps) {
   const [searchValue, setSearchValue] = useState(query);
 
   const handleSearch = () => {
@@ -46,7 +45,6 @@ export function BottomSearchBar({ query, onQueryChange, onSearch, onNewQuery }: 
               value={searchValue}
               onChange={(e) => {
                 setSearchValue(e.target.value);
-                // Remove the onQueryChange call to prevent parent re-renders on every keystroke
               }}
               onKeyPress={handleKeyPress}
               placeholder="Search or ask a new question..."
