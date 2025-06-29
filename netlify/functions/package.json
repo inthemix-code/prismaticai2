@@ -5,7 +5,7 @@
   "main": "claude-proxy.js",
   "type": "module",
   "engines": {
-    "node": ">=20.14.0"
+    "node": ">=20.15.0"
   },
   "dependencies": {
     "node-fetch": "^3.3.2"
