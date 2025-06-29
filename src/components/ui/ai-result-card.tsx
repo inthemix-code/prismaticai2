@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ExternalLink, Copy, ThumbsUp, ThumbsDown, TrendingUp, MoreVertical } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { AIResponse } from "@/lib/mock-data"
+import type { AIResponse } from "@/types"
 
 const platformConfig = {
   chatgpt: {

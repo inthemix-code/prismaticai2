@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Loader2, Triangle, Bot, Zap, Diamond, Sparkles } from 'lucide-react';
-import { debounce } from 'lodash';
 import { demoPrompts } from '../data/mockData';
 import { DemoPrompt } from '../types';
 import { validateSearchRequest } from '../utils/validation';
@@ -30,28 +29,13 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
 
   const maxChars = 500;
 
-  // Create debounced function for query updates
-  const debouncedSetQuery = useMemo(
-    () => debounce((value: string) => {
-      // This debounced function no longer needs to do anything since we removed debouncedQuery
-    }, 300),
-    []
-  );
-
-  // Cleanup debounced function on unmount
-  useEffect(() => {
-    return () => {
-      debouncedSetQuery.cancel();
-    };
-  }, [debouncedSetQuery]);
-
   useEffect(() => {
     setCharCount(query.length);
-    debouncedSetQuery(query);
-  }, [query, debouncedSetQuery]);
+  }, [query]);
 
   const handleQueryChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setQuery(e.target.value);
+    setCharCount(e.target.value.length);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -101,9 +85,6 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
 
   // Calculate selected models count and order
   const selectedCount = Object.values(selectedModels).filter(Boolean).length;
-  const modelOrder = ['claude', 'grok', 'gemini'] as const;
-  const selectedModelsList = modelOrder.filter(model => selectedModels[model]);
-  
 
   const handleDemoPrompt = (demoPrompt: DemoPrompt) => {
     setQuery(demoPrompt.text);
