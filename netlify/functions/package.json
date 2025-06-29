@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "description": "Dependencies for Netlify Functions",
   "main": "claude-proxy.js",
-  "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^2.7.0"
   }
 }

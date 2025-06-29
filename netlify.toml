@@ -1,6 +1,6 @@
 [build]
   # Build command and publish directory
-  command = "set -euxo pipefail && npm ci && npm run build"
+  command = "npm ci && npm run build"
   publish = "dist"
 
 [functions]
