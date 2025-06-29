@@ -3,12 +3,6 @@ import { generateMockAnalysisData, generateMockFusionResult } from '../data/mock
 import { proxyService } from './proxyService';
 import { realClaudeService } from './realClaudeService';
 
-interface ApiKeyStatus {
-  claude: boolean;
-  grok: boolean;
-  gemini: boolean;
-}
-
 class PersonalAPIService {
   private readonly apiKeys = {
     claude: import.meta.env.VITE_CLAUDE_API_KEY,
@@ -110,7 +104,7 @@ class PersonalAPIService {
 
   async queryAllModels(
     prompt: string,
-    selectedModels: Record<string, boolean>
+    selectedModels: { claude: boolean; grok: boolean; gemini: boolean }
   ): Promise<AIResponse[]> {
     if (this.debugMode) {
       console.log('🚀 Querying all models:', {
@@ -180,7 +174,7 @@ class PersonalAPIService {
         
         const synthesisResult = await realClaudeService.synthesizeResponses(prompt, responses);
         
-        if (synthesisResult.success) {
+        if (synthesisResult.success && synthesisResult.data) {
           console.log('✅ Claude synthesis successful');
           
           // Calculate sources based on response word counts
@@ -200,11 +194,11 @@ class PersonalAPIService {
           }
           
           // Extract key insights from the synthesized content
-          const keyInsights = this.extractKeyInsights(synthesisResult.data.content);
+          const keyInsights = this.extractKeyInsights(synthesisResult.data?.content || '');
           
           return {
-            content: synthesisResult.data.content,
-            confidence: synthesisResult.data.confidence,
+            content: synthesisResult.data?.content || '',
+            confidence: synthesisResult.data?.confidence || 0.5,
             sources,
             keyInsights
           };

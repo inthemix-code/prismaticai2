@@ -89,7 +89,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
     }));
     
     // Process AI responses
-    get().processAIResponses(turnId, conversationId, sanitizedPrompt, selectedModels || { claude: true, grok: true, gemini: true });
+    get().processAIResponses(turnId, sanitizedPrompt, selectedModels || { claude: true, grok: true, gemini: true });
   },
 
   continueConversation: async (prompt: string, selectedModels?: { claude: boolean; grok: boolean; gemini: boolean }) => {
@@ -157,11 +157,10 @@ export const useAIStore = create<AIStore>((set, get) => ({
     }));
     
     // Process AI responses
-    get().processAIResponses(turnId, currentConv.id, sanitizedPrompt, selectedModels || { claude: true, grok: true, gemini: true });
+    get().processAIResponses(turnId, sanitizedPrompt, selectedModels || { claude: true, grok: true, gemini: true });
   },
 
-  processAIResponses: async (turnId: string, conversationId: string, prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => {
-    // Note: conversationId parameter is used for potential future functionality
+  processAIResponses: async (turnId: string, prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => {
     // Simulate progressive loading with real-time updates
     const totalSteps = 100;
     const stepDelay = 50; // 50ms per step = 5 seconds total
