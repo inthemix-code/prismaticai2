@@ -176,7 +176,7 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 py-2 bg-muted/30 border-t border-border/50 gap-2">
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <div className="text-xs text-muted-foreground/70 font-medium mr-1 sm:mr-2 w-full sm:w-auto">
-                Models selected:
+                Models selected: {selectedCount}/3
               </div>
               
               <div className="flex flex-wrap gap-1 sm:gap-2">
@@ -193,7 +193,7 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
                   disabled={isLoading}
                 >
                   <Bot className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Claude{getModelNumber('claude')}
+                  Claude
                 </Button>
 
                 <Button
@@ -209,7 +209,7 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
                   disabled={isLoading}
                 >
                   <Zap className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Grok{getModelNumber('grok')}
+                  Grok
                 </Button>
 
                 <Button
@@ -225,7 +225,7 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
                   disabled={isLoading}
                 >
                   <Diamond className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Gemini{getModelNumber('gemini')}
+                  Gemini
                 </Button>
               </div>
               
