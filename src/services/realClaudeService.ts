@@ -1,4 +1,5 @@
-import { AIResponse } from '../types';
+// src/services/realClaudeService.ts - Real Claude API service
+import { AIResponse, AIResult } from '../types';
 
 interface SynthesisResult {
   success: boolean;
@@ -13,177 +14,62 @@ class RealClaudeService {
   private readonly apiKey = import.meta.env.VITE_CLAUDE_API_KEY;
   private readonly debugMode = import.meta.env.VITE_DEBUG_MODE === 'true';
 
-  async getResponse(prompt: string): Promise<AIResponse> {
+  async queryClaude(prompt: string): Promise<AIResult> {
+    const startTime = Date.now();
+    
     if (!this.apiKey) {
-      return {
-        success: false,
-        error: 'Claude API key not available',
-        data: {
-          id: crypto.randomUUID(),
-          platform: 'claude' as const,
-          content: '',
-          confidence: 0,
-          responseTime: 0,
-          wordCount: 0,
-          loading: false,
-          error: 'Claude API key not available',
-          timestamp: Date.now()
-        }
-      };
+      return this.getFallbackResponse(prompt, startTime, 'No Claude API key configured');
     }
 
     if (!this.apiKey.startsWith('sk-ant-api')) {
-      return {
-        success: false,
-        error: 'Invalid Claude API key format',
-        data: {
-          id: crypto.randomUUID(),
-          platform: 'claude' as const,
-          content: '',
-          confidence: 0,
-          responseTime: 0,
-          wordCount: 0,
-          loading: false,
-          error: 'Invalid Claude API key format',
-          timestamp: Date.now()
-        }
-      };
+      return this.getFallbackResponse(prompt, startTime, 'Invalid Claude API key format');
     }
 
-    try {
-      if (this.debugMode) {
-        console.log('🤖 Calling real Claude API for query...');
-      }
-
-      const startTime = Date.now();
-      
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.apiKey,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-3-sonnet-20240229',
-          max_tokens: 1000,
-          messages: [{ role: 'user', content: prompt }]
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Real Claude API Error:', response.status, errorText);
-        
-        return {
-          success: false,
-          error: `Claude API error: ${response.status}`,
-          data: {
-            id: crypto.randomUUID(),
-            platform: 'claude' as const,
-            content: '',
-            confidence: 0,
-            responseTime: (Date.now() - startTime) / 1000,
-            wordCount: 0,
-            loading: false,
-            error: `Claude API error: ${response.status}`,
-            timestamp: Date.now()
-          }
-        };
-      }
-
-      const data = await response.json();
-      const responseTime = Date.now() - startTime;
-      const content = data.content[0]?.text || 'No response';
-
-      if (this.debugMode) {
-        console.log('✅ Real Claude API response received:', {
-          responseTime: `${responseTime}ms`,
-          contentLength: content.length,
-          wordCount: content.split(' ').length
-        });
-      }
-
-      return {
-        success: true,
-        data: {
-          id: crypto.randomUUID(),
-          platform: 'claude' as const,
-          content,
-          confidence: 0.92,
-          responseTime: responseTime / 1000,
-          wordCount: content.split(' ').length,
-          loading: false,
-          timestamp: Date.now()
-        }
-      };
-    } catch (error) {
-      console.error('❌ Real Claude API Error:', error);
-      
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        data: {
-          id: crypto.randomUUID(),
-          platform: 'claude' as const,
-          content: '',
-          confidence: 0,
-          responseTime: 0,
-          wordCount: 0,
-          loading: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: Date.now()
-        }
-      };
+    // Try direct API call first (works in many environments)
+    const directResult = await this.makeDirectClaudeRequest(prompt, startTime);
+    if (directResult.success) {
+      return directResult;
     }
+
+    // If direct call fails, try CORS proxies
+    const proxyResult = await this.makeProxiedClaudeRequest(prompt, startTime);
+    return proxyResult;
   }
 
   async synthesizeResponses(originalPrompt: string, responses: AIResponse[]): Promise<SynthesisResult> {
-    if (!this.apiKey) {
+    if (!this.apiKey || !this.apiKey.startsWith('sk-ant-api')) {
+      console.log('⚠️ Claude API key not available for synthesis, using fallback');
       return {
         success: false,
         error: 'Claude API key not available'
       };
     }
 
-    if (!this.apiKey.startsWith('sk-ant-api')) {
-      return {
-        success: false,
-        error: 'Invalid Claude API key format'
-      };
-    }
-
     try {
-      // Create a synthesis prompt based on the original query and AI responses
+      console.log('🧠 Starting Claude-powered synthesis...');
+      
+      // Create synthesis prompt
       const synthesisPrompt = this.createSynthesisPrompt(originalPrompt, responses);
       
       if (this.debugMode) {
-        console.log('🧠 Synthesizing responses with Claude...');
+        console.log('📝 Synthesis prompt created:', synthesisPrompt.substring(0, 200) + '...');
       }
 
       const startTime = Date.now();
-      
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.apiKey,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-3-sonnet-20240229',
-          max_tokens: 2000,
-          messages: [{ role: 'user', content: synthesisPrompt }]
-        })
-      });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Claude Synthesis API Error:', response.status, errorText);
-        
+      // Try direct API call first
+      let response = await this.makeDirectClaudeAPICall(synthesisPrompt);
+      
+      // If direct call fails, try CORS proxy
+      if (!response) {
+        console.log('⚠️ Direct Claude API failed, trying CORS proxy...');
+        response = await this.makeProxiedClaudeAPICall(synthesisPrompt);
+      }
+
+      if (!response) {
         return {
           success: false,
-          error: `Claude API error: ${response.status} - ${errorText}`
+          error: 'All Claude API access methods failed'
         };
       }
 
@@ -191,14 +77,13 @@ class RealClaudeService {
       const responseTime = Date.now() - startTime;
       const content = data.content[0]?.text || 'No synthesis available';
 
-      if (this.debugMode) {
-        console.log('✅ Claude synthesis completed:', {
-          responseTime: `${responseTime}ms`,
-          contentLength: content.length
-        });
-      }
+      console.log('✅ Claude synthesis successful:', {
+        responseTime: `${responseTime}ms`,
+        contentLength: content.length,
+        wordCount: content.split(' ').length
+      });
 
-      // Calculate confidence based on response quality indicators
+      // Calculate confidence based on synthesis quality
       const confidence = this.calculateSynthesisConfidence(content, responses);
 
       return {
@@ -218,60 +103,7 @@ class RealClaudeService {
     }
   }
 
-  private createSynthesisPrompt(originalPrompt: string, responses: AIResponse[]): string {
-    const responseTexts = responses
-      .filter(r => !r.error)
-      .map(r => `**${r.platform.toUpperCase()}:**\n${r.content}`)
-      .join('\n\n---\n\n');
-
-    return `You are an expert AI analyst tasked with synthesizing multiple AI responses into a single, coherent, and comprehensive answer.
-
-**Original Question:** ${originalPrompt}
-
-**AI Responses to Synthesize:**
-${responseTexts}
-
-**Instructions:**
-1. Create a unified response that combines the best insights from all AI responses
-2. Resolve any contradictions by providing balanced perspectives
-3. Maintain accuracy while improving clarity and coherence
-4. Structure the response with clear headings and bullet points
-5. Highlight key insights and actionable recommendations
-6. Ensure the synthesis is more valuable than any individual response
-
-**Synthesized Response:**`;
-  }
-
-  private calculateSynthesisConfidence(content: string, responses: AIResponse[]): number {
-    let confidence = 0.75; // Base confidence for successful synthesis
-    
-    // Boost confidence for longer, more detailed responses
-    if (content.length > 1000) confidence += 0.05;
-    if (content.length > 2000) confidence += 0.05;
-    
-    // Boost confidence for structured content (headings, bullets)
-    if (content.includes('**') || content.includes('•') || content.includes('1.')) {
-      confidence += 0.05;
-    }
-    
-    // Boost confidence based on number of source responses
-    confidence += Math.min(responses.length * 0.02, 0.08);
-    
-    // Boost confidence for balanced responses (mentions multiple perspectives)
-    if (content.toLowerCase().includes('however') || 
-        content.toLowerCase().includes('on the other hand') ||
-        content.toLowerCase().includes('alternatively')) {
-      confidence += 0.03;
-    }
-    
-    return Math.min(confidence, 0.98); // Cap at 98%
-  }
-
-  async testConnection(): Promise<boolean> {
-    if (!this.apiKey || !this.apiKey.startsWith('sk-ant-api')) {
-      return false;
-    }
-
+  private async makeDirectClaudeAPICall(prompt: string): Promise<Response | null> {
     try {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -282,14 +114,237 @@ ${responseTexts}
         },
         body: JSON.stringify({
           model: 'claude-3-sonnet-20240229',
-          max_tokens: 10,
-          messages: [{ role: 'user', content: 'Hello' }]
+          max_tokens: 2000,
+          messages: [{ role: 'user', content: prompt }]
         })
       });
 
-      return response.ok;
+      if (response.ok) {
+        console.log('✅ Direct Claude API call successful');
+        return response;
+      } else {
+        console.warn('⚠️ Direct Claude API call failed:', response.status);
+        return null;
+      }
     } catch (error) {
-      console.error('❌ Claude connection test failed:', error);
+      console.warn('⚠️ Direct Claude API call error:', error);
+      return null;
+    }
+  }
+
+  private async makeProxiedClaudeAPICall(prompt: string): Promise<Response | null> {
+    const corsProxies = [
+      'https://cors-anywhere.herokuapp.com/',
+      'https://api.allorigins.win/raw?url=',
+      'https://corsproxy.io/?'
+    ];
+
+    for (const proxy of corsProxies) {
+      try {
+        console.log(`🌐 Trying Claude API via proxy: ${proxy}`);
+        
+        const url = proxy + encodeURIComponent('https://api.anthropic.com/v1/messages');
+        
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': this.apiKey,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-3-sonnet-20240229',
+            max_tokens: 2000,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+
+        if (response.ok) {
+          console.log('✅ Proxied Claude API call successful via:', proxy);
+          return response;
+        } else {
+          console.warn(`⚠️ Proxy ${proxy} failed:`, response.status);
+          continue;
+        }
+      } catch (error) {
+        console.warn(`⚠️ Proxy ${proxy} error:`, error);
+        continue;
+      }
+    }
+
+    console.error('❌ All CORS proxies failed');
+    return null;
+  }
+
+  private async makeDirectClaudeRequest(prompt: string, startTime: number): Promise<AIResult> {
+    try {
+      const response = await this.makeDirectClaudeAPICall(prompt);
+      
+      if (response) {
+        const data = await response.json();
+        const content = data.content[0]?.text || '';
+        const responseTime = Date.now() - startTime;
+
+        return {
+          success: true,
+          data: {
+            id: crypto.randomUUID(),
+            platform: 'claude',
+            content,
+            confidence: this.calculateConfidence(content),
+            responseTime,
+            wordCount: content.split(' ').length,
+            loading: false,
+            timestamp: Date.now()
+          }
+        };
+      }
+    } catch (error) {
+      console.warn('❌ Direct Claude request failed:', error);
+    }
+
+    return this.getFallbackResponse(prompt, startTime, 'Direct API call failed');
+  }
+
+  private async makeProxiedClaudeRequest(prompt: string, startTime: number): Promise<AIResult> {
+    try {
+      const response = await this.makeProxiedClaudeAPICall(prompt);
+      
+      if (response) {
+        const data = await response.json();
+        const content = data.content[0]?.text || '';
+        const responseTime = Date.now() - startTime;
+
+        return {
+          success: true,
+          data: {
+            id: crypto.randomUUID(),
+            platform: 'claude',
+            content,
+            confidence: this.calculateConfidence(content),
+            responseTime,
+            wordCount: content.split(' ').length,
+            loading: false,
+            timestamp: Date.now()
+          }
+        };
+      }
+    } catch (error) {
+      console.warn('❌ Proxied Claude request failed:', error);
+    }
+
+    return this.getFallbackResponse(prompt, startTime, 'All CORS proxies failed');
+  }
+
+  private createSynthesisPrompt(originalPrompt: string, responses: AIResponse[]): string {
+    const responseTexts = responses
+      .filter(r => !r.error && r.content.trim())
+      .map(r => `**${r.platform.toUpperCase()} Response:**\n${r.content.trim()}`)
+      .join('\n\n---\n\n');
+
+    return `You are an expert AI analyst creating a comprehensive synthesis response. Your goal is to combine the best insights from multiple AI responses into a single, superior answer.
+
+**Original Question:** "${originalPrompt}"
+
+**AI Responses to Synthesize:**
+${responseTexts}
+
+**Your Task:**
+Create a unified response that:
+1. Combines the best insights and information from all responses
+2. Resolves any contradictions with balanced analysis
+3. Is more comprehensive and valuable than any individual response
+4. Uses clear structure with headings and bullet points
+5. Provides actionable insights and recommendations
+6. Maintains accuracy while improving clarity
+
+**Important:** Write as if you are providing the definitive answer to the original question, not as if you are analyzing other AI responses. The user should see this as THE answer, not a meta-analysis.
+
+**Synthesized Response:**`;
+  }
+
+  private calculateSynthesisConfidence(content: string, responses: AIResponse[]): number {
+    let confidence = 0.80; // Base confidence for successful real synthesis
+
+    // Content quality indicators
+    if (content.length > 1000) confidence += 0.05;
+    if (content.length > 2000) confidence += 0.03;
+    
+    // Structure quality (headings, bullets, formatting)
+    if (content.includes('**') || content.includes('##')) confidence += 0.04;
+    if (content.includes('•') || content.includes('1.') || content.includes('-')) confidence += 0.03;
+    
+    // Number of source responses
+    confidence += Math.min(responses.length * 0.01, 0.05);
+    
+    // Balanced analysis indicators
+    const balanceWords = ['however', 'although', 'while', 'whereas', 'on the other hand'];
+    const hasBalance = balanceWords.some(word => content.toLowerCase().includes(word));
+    if (hasBalance) confidence += 0.02;
+    
+    // Actionable content indicators
+    const actionWords = ['recommend', 'should', 'implement', 'consider', 'strategy'];
+    const hasAction = actionWords.some(word => content.toLowerCase().includes(word));
+    if (hasAction) confidence += 0.02;
+
+    return Math.min(confidence, 0.96); // Cap at 96% for real synthesis
+  }
+
+  private calculateConfidence(content: string): number {
+    let confidence = 0.85; // Base confidence for real Claude responses
+
+    const wordCount = content.split(' ').length;
+    if (wordCount > 100) confidence += 0.05;
+    if (wordCount > 200) confidence += 0.05;
+
+    // Claude tends to be well-structured
+    if (content.includes('**') || content.includes('##')) confidence += 0.03;
+    if (content.includes('•') || content.includes('-')) confidence += 0.02;
+
+    return Math.max(75, Math.min(95, confidence * 100));
+  }
+
+  private getFallbackResponse(prompt: string, startTime: number, reason: string): AIResult {
+    const responseTime = Date.now() - startTime;
+    const content = `I apologize, but I'm currently unable to access the Claude API directly from the browser (${reason}). 
+
+However, I can provide some insights about your query: "${prompt}"
+
+This appears to be a thoughtful question that would benefit from careful analysis. Based on general principles, I would recommend considering multiple perspectives, evaluating both theoretical frameworks and practical applications, and examining current best practices in the field.
+
+For full Claude API functionality, you might consider:
+- Using a browser CORS extension
+- Setting up a simple backend proxy
+- Using a different deployment environment
+
+Would you like me to provide more specific guidance despite these limitations?`;
+
+    return {
+      success: false,
+      error: reason,
+      data: {
+        id: crypto.randomUUID(),
+        platform: 'claude',
+        content,
+        confidence: 60,
+        responseTime,
+        wordCount: content.split(' ').length,
+        loading: false,
+        error: `Claude API unavailable: ${reason}`,
+        timestamp: Date.now()
+      }
+    };
+  }
+
+  async testConnection(): Promise<boolean> {
+    if (!this.apiKey || !this.apiKey.startsWith('sk-ant-api')) {
+      return false;
+    }
+
+    try {
+      const response = await this.makeDirectClaudeAPICall('Hello');
+      return !!response;
+    } catch {
       return false;
     }
   }
