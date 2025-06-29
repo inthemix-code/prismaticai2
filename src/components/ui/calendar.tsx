@@ -11,14 +11,14 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-}: React.ComponentProps<"svg">) {
+  ...props
+}: CalendarProps) {
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn('p-3', className)}
       classNames={{
         months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0',
-}: React.ComponentProps<"svg">) {
         caption_label: 'text-sm font-medium',
         nav: 'space-x-1 flex items-center',
         nav_button: cn(
