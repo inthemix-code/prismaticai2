@@ -237,7 +237,7 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
             <Button
               type="submit"
               disabled={!query.trim() || isLoading || charCount > maxChars || validationErrors.length > 0}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-sm hover:shadow-md chat-input-transition font-medium min-w-[60px] h-7 sm:h-8 text-xs sm:text-sm px-3 sm:px-4 w-full sm:w-auto"
+              className="bg-accent-foreground hover:bg-gray-200 text-accent shadow-sm hover:shadow-md chat-input-transition font-medium min-w-[60px] h-7 sm:h-8 text-xs sm:text-sm px-3 sm:px-4 w-full sm:w-auto"
             >
               {isLoading ? (
                 <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
