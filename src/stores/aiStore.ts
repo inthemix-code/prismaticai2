@@ -16,7 +16,7 @@ interface AIStore {
   clearResults: () => void;
   addToHistory: (prompt: string) => void;
   loadConversation: (conversationId: string) => void;
-  processAIResponses: (turnId: string, conversationId: string, prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => Promise<void>;
+  processAIResponses: (turnId: string, prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => Promise<void>;
   
   // Computed getters
   getCurrentTurn: () => ConversationTurn | null;
