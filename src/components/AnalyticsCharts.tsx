@@ -21,93 +21,93 @@ interface AnalyticsChartsProps {
 const metricsChartConfig = {
   confidence: {
     label: "Confidence",
-    color: "var(--color-confidence)",
+    color: "#3B82F6",
   },
 } satisfies ChartConfig;
 
 const sentimentChartConfig = {
   positive: {
     label: "Positive",
-    color: "var(--color-positive)",
+    color: "#10B981",
   },
   neutral: {
     label: "Neutral", 
-    color: "var(--color-neutral)",
+    color: "#8B5CF6",
   },
   negative: {
     label: "Negative",
-    color: "var(--color-negative)",
+    color: "#EF4444",
   },
 } satisfies ChartConfig;
 
 const keywordChartConfig = {
   grok: {
     label: "Grok",
-    color: "var(--color-grok)",
+    color: "#64748B",
   },
   claude: {
     label: "Claude",
-    color: "var(--color-claude)",
+    color: "#8B5CF6",
   },
   gemini: {
     label: "Gemini",
-    color: "var(--color-gemini)",
+    color: "#3B82F6",
   },
 } satisfies ChartConfig;
 
 const efficiencyChartConfig = {
   conciseness: {
     label: "Conciseness",
-    color: "var(--color-conciseness)",
+    color: "#10B981",
   },
   redundancy: {
     label: "Redundancy Score",
-    color: "var(--color-redundancy)",
+    color: "#EF4444",
   },
 } satisfies ChartConfig;
 
 const riskChartConfig = {
   hallucination: {
     label: "Hallucination Risk",
-    color: "var(--color-hallucination)",
+    color: "#EF4444",
   },
   contradictions: {
     label: "Contradictions",
-    color: "var(--color-contradictions)",
+    color: "#F59E0B",
   },
   hedging: {
     label: "Confidence/Hedging",
-    color: "var(--color-hedging)",
+    color: "#10B981",
   },
 } satisfies ChartConfig;
 
 const differentiationChartConfig = {
   originality: {
     label: "Originality",
-    color: "var(--color-originality)",
+    color: "#8B5CF6",
   },
   divergence: {
     label: "Divergence",
-    color: "var(--color-divergence)",
+    color: "#3B82F6",
   },
   contribution: {
     label: "Contribution",
-    color: "var(--color-contribution)",
+    color: "#10B981",
   },
 } satisfies ChartConfig;
 
 const attributionChartConfig = {
   grok: {
     label: "Grok",
-    color: "var(--color-grok)",
+    color: "#64748B",
   },
   claude: {
     label: "Claude", 
-    color: "var(--color-claude)",
+    color: "#8B5CF6",
   },
   gemini: {
     label: "Gemini",
-    color: "var(--color-gemini)",
+    color: "#3B82F6",
   },
 } satisfies ChartConfig;
 

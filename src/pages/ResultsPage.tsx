@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ export function ResultsPage() {
     getCurrentTurn
   } = useAIStore();
 
+  const [searchQuery, setSearchQuery] = useState('');
   const [showHeaderText, setShowHeaderText] = useState(false);
   const [currentTurnInView, setCurrentTurnInView] = useState<number>(0);
   
@@ -27,15 +28,9 @@ export function ResultsPage() {
   const latestTurnRef = useRef<HTMLDivElement>(null);
   const turnRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Callback for setting turn refs
-  const setTurnRef = useCallback((index: number) => (el: HTMLDivElement | null) => {
-    turnRefs.current[index] = el;
-    if (index === (currentConversation?.turns.length || 0) - 1) {
-      latestTurnRef.current = el;
-    }
-  }, [currentConversation?.turns.length]);
   const handlePromptSubmit = async (prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => {
     await continueConversation(prompt, selectedModels);
+    setSearchQuery('');
   };
 
   const handleNewQuery = () => {
@@ -197,7 +192,12 @@ export function ResultsPage() {
           {currentConversation.turns.map((turn, turnIndex) => (
             <div 
               key={turn.id}
-              ref={setTurnRef(turnIndex)}
+              ref={(el) => {
+                turnRefs.current[turnIndex] = el;
+                if (turnIndex === currentConversation.turns.length - 1) {
+                  latestTurnRef.current = el;
+                }
+              }}
               className="space-y-6 sm:space-y-8"
             >
               {/* Turn Header */}

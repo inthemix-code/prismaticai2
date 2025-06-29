@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { AIResponse, ConversationTurn, Conversation } from '../types';
-import { apiService } from '../services/apiService';
+import { AIResponse, AnalysisData, FusionResult, ConversationTurn, Conversation } from '../types';
+import { generateMockAnalysisData, generateMockFusionResult } from '../data/mockData';
 import { validateSearchRequest } from '../utils/validation';
+import { apiService } from '../services/apiService';
 
 interface AIStore {
   // State
@@ -12,7 +13,6 @@ interface AIStore {
   // Actions
   startNewConversation: (prompt: string, selectedModels?: { claude: boolean; grok: boolean; gemini: boolean }) => Promise<void>;
   continueConversation: (prompt: string, selectedModels?: { claude: boolean; grok: boolean; gemini: boolean }) => Promise<void>;
-  processAIResponses: (turnId: string, conversationId: string, prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => Promise<void>;
   setResponse: (turnId: string, responseId: string, response: Partial<AIResponse>) => void;
   clearResults: () => void;
   addToHistory: (prompt: string) => void;
@@ -89,7 +89,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
     }));
     
     // Process AI responses
-    get().processAIResponses(turnId, sanitizedPrompt, selectedModels || { claude: true, grok: true, gemini: true });
+    get().processAIResponses(turnId, conversationId, sanitizedPrompt, selectedModels || { claude: true, grok: true, gemini: true });
   },
 
   continueConversation: async (prompt: string, selectedModels?: { claude: boolean; grok: boolean; gemini: boolean }) => {
@@ -157,10 +157,10 @@ export const useAIStore = create<AIStore>((set, get) => ({
     }));
     
     // Process AI responses
-    get().processAIResponses(turnId, sanitizedPrompt, selectedModels || { claude: true, grok: true, gemini: true });
+    get().processAIResponses(turnId, currentConv.id, sanitizedPrompt, selectedModels || { claude: true, grok: true, gemini: true });
   },
 
-  processAIResponses: async (turnId: string, prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => {
+  processAIResponses: async (turnId: string, conversationId: string, prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => {
     // Simulate progressive loading with real-time updates
     const totalSteps = 100;
     const stepDelay = 50; // 50ms per step = 5 seconds total

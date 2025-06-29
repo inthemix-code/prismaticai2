@@ -18,6 +18,7 @@ interface SearchInputProps {
 
 const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }: SearchInputProps) => {
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [charCount, setCharCount] = useState(0);
   const [selectedModels, setSelectedModels] = useState({
@@ -31,10 +32,24 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
   const maxChars = 500;
 
   // Create debounced function for query updates
+  const debouncedSetQuery = useMemo(
+    () => debounce((value: string) => {
+      setDebouncedQuery(value);
+    }, 300),
+    []
+  );
+
+  // Cleanup debounced function on unmount
+  useEffect(() => {
+    return () => {
+      debouncedSetQuery.cancel();
+    };
+  }, [debouncedSetQuery]);
 
   useEffect(() => {
     setCharCount(query.length);
-  }, [query]);
+    debouncedSetQuery(query);
+  }, [query, debouncedSetQuery]);
 
   const handleQueryChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setQuery(e.target.value);

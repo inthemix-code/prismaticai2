@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList } from 'recharts';
 import {
@@ -26,7 +27,7 @@ const confidenceChartConfig = {
 } satisfies ChartConfig;
 
 // Dynamic icons for key insights
-const getInsightIcon = (insight: string, _index: number) => {
+const getInsightIcon = (insight: string, index: number) => {
   const lowerInsight = insight.toLowerCase();
   
   if (lowerInsight.includes('quantum') || lowerInsight.includes('break') || lowerInsight.includes('encryption')) {

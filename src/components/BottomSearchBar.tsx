@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Filter, Share } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Share } from 'lucide-react';
 
 interface BottomSearchBarProps {
   query: string;
+  onQueryChange: (query: string) => void;
   onSearch: (query: string) => void;
   onNewQuery: () => void;
 }
 
-export function BottomSearchBar({ query, onSearch, onNewQuery }: BottomSearchBarProps) {
+export function BottomSearchBar({ query, onQueryChange, onSearch, onNewQuery }: BottomSearchBarProps) {
   const [searchValue, setSearchValue] = useState(query);
 
   const handleSearch = () => {
