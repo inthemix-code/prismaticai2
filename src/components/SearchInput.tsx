@@ -104,11 +104,6 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
   const modelOrder = ['claude', 'grok', 'gemini'] as const;
   const selectedModelsList = modelOrder.filter(model => selectedModels[model]);
   
-  const getModelNumber = (model: keyof typeof selectedModels) => {
-    if (!selectedModels[model]) return '';
-    const position = selectedModelsList.indexOf(model) + 1;
-    return ` (${position}/${selectedCount})`;
-  };
 
   const handleDemoPrompt = (demoPrompt: DemoPrompt) => {
     setQuery(demoPrompt.text);

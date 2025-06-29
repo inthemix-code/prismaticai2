@@ -2,7 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, XCircle, Eye, EyeOff, Settings } from 'lucide-react';
+import { CheckCircle, XCircle, EyeOff, Settings } from 'lucide-react';
 import { apiService } from '../services/apiService';
 import { realClaudeService } from '../services/realClaudeService';
 

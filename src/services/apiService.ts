@@ -146,27 +146,6 @@ class PersonalAPIService {
     }
   }
 
-  // Legacy method - keeping for compatibility but using proxy service internally
-  private async queryAllModelsLegacy(
-    prompt: string,
-    selectedModels: Record<string, boolean>
-  ): Promise<AIResponse[]> {
-    const enabledModels = Object.entries(selectedModels)
-      .filter(([_, enabled]) => enabled)
-      .map(([model, _]) => model as 'claude' | 'grok' | 'gemini');
-
-    const promises = enabledModels.map(async (model) => {
-      try {
-        return await this.queryModel(model, prompt);
-      } catch (error) {
-        console.error(`❌ Error querying ${model}:`, error);
-        return this.createErrorResponse(model, (error as Error).message);
-      }
-    });
-
-    return Promise.all(promises);
-  }
-
   async getAnalysisData(responses: AIResponse[]): Promise<AnalysisData> {
     // Generate dynamic analysis data based on actual AI responses
     await new Promise(resolve => setTimeout(resolve, 500));
