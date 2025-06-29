@@ -1,5 +1,6 @@
 // src/services/proxyService.ts - Browser-compatible AI service
 import { AIResult } from '../types';
+import { realClaudeService } from './realClaudeService';
 
 class ProxyService {
   private config = {
@@ -17,7 +18,7 @@ class ProxyService {
       // Try real Claude API first if API key is available
       if (import.meta.env.VITE_CLAUDE_API_KEY) {
         console.log('🔄 Attempting real Claude API via CORS proxy...');
-        const realResult = await this.realClaudeService.queryClaude(prompt);
+        const realResult = await realClaudeService.queryClaude(prompt);
         
         // If real API succeeds, return it
         if (realResult.success) {
@@ -220,7 +221,7 @@ This analysis reflects current understanding while acknowledging areas of ongoin
         const allResponses = [...otherResults.map(r => r.data), claudeResponse.data];
         
         console.log('🔍 Getting Claude analysis of all responses...');
-        const analysisResult = await this.realClaudeService.synthesizeResponses(prompt, allResponses);
+        const analysisResult = await realClaudeService.synthesizeResponses(prompt, allResponses);
         
         if (analysisResult.success) {
           // Replace Claude's content with analysis + original response

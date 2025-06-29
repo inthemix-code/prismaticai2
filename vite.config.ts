@@ -12,4 +12,17 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-accordion', '@radix-ui/react-dialog', '@radix-ui/react-popover'],
+          charts: ['recharts'],
+          utils: ['lodash', 'clsx', 'tailwind-merge']
+        }
+      }
+    }
+  }
 });
