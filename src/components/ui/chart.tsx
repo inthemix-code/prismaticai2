@@ -3,6 +3,17 @@ import * as RechartsPrimitive from "recharts";
 
 import { cn } from "@/lib/utils";
 
+// Chart configuration type
+export type ChartConfig = Record<string, {
+  label: string;
+  color?: string;
+  theme?: {
+    light?: string;
+    dark?: string;
+  };
+  icon?: React.ComponentType;
+}>;
+
 // Chart container component
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
