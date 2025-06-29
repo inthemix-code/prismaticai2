@@ -115,7 +115,7 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
         isFocused 
           ? 'chat-input-shadow-focus border-white/20' 
           : 'chat-input-shadow border-white/10 hover:border-white/20'
-        } ${isLoading ? 'animate-glow-pulse' : ''} bg-transparent backdrop-blur-md`}>
+        } ${isLoading ? 'animate-glow-pulse' : ''} bg-white/5 backdrop-blur-xl`}>
         <form onSubmit={handleSubmit} className="relative">
           <div className="px-4 sm:px-6 py-3">
             <div className="relative">
