@@ -192,6 +192,59 @@ This analysis reflects current understanding while acknowledging areas of ongoin
     }
   }
 
+  async queryMultiple(
+    prompt: string, 
+    selectedModels: { claude: boolean; grok: boolean; gemini: boolean }
+  ): Promise<AIResult[]> {
+    const promises: Promise<AIResult>[] = [];
+
+    // Get non-Claude responses first
+    if (selectedModels.grok) {
+      promises.push(this.queryGroq(prompt));
+    }
+
+    if (selectedModels.gemini) {
+      promises.push(this.queryGemini(prompt));
+    }
+
+    const otherResults = await Promise.all(promises);
+    
+    // If Claude is selected, do the complete workflow
+    if (selectedModels.claude) {
+      console.log('🤖 Starting Claude complete workflow...');
+      
+      // Step 1: Get Claude's response to the original prompt
+      const claudeResponse = await this.queryClaude(prompt);
+      
+      // Step 2: Get Claude's analysis of ALL responses (including its own)
+      if (claudeResponse.success) {
+        const allResponses = [...otherResults.map(r => r.data), claudeResponse.data];
+        
+        console.log('🔍 Getting Claude analysis of all responses...');
+        const analysisResult = await realClaudeService.analyzeAllResponses(prompt, allResponses);
+        
+        if (analysisResult.success) {
+          // Replace Claude's content with analysis + original response
+          claudeResponse.data.content = `**My Response to Your Question:**
+
+${claudeResponse.data.content}
+
+---
+
+**My Analysis of All Responses (Including Self-Assessment):**
+
+${analysisResult.data.content}`;
+          
+          claudeResponse.data.wordCount = claudeResponse.data.content.split(' ').length;
+        }
+      }
+      
+      return [...otherResults, claudeResponse];
+    }
+
+    return otherResults;
+  }
+
   private getMockGroqResponse(prompt: string, startTime: number): Promise<AIResult> {
     return new Promise(resolve => {
       setTimeout(() => {
@@ -288,31 +341,6 @@ This analysis reveals both immediate opportunities and longer-term consideration
         });
       }, 1200 + Math.random() * 1800);
     });
-  }
-
-  async queryMultiple(
-    prompt: string, 
-    selectedModels: { claude: boolean; grok: boolean; gemini: boolean }
-  ): Promise<AIResult[]> {
-    const promises: Promise<AIResult>[] = [];
-
-    if (selectedModels.claude) {
-      promises.push(this.queryClaude(prompt));
-    }
-
-    if (selectedModels.grok) {
-      promises.push(this.queryGroq(prompt));
-    }
-
-    if (selectedModels.gemini) {
-      promises.push(this.queryGemini(prompt));
-    }
-
-    if (promises.length === 0) {
-      throw new Error('No AI services selected');
-    }
-
-    return Promise.all(promises);
   }
 
   private calculateConfidence(content: string): number {
