@@ -110,12 +110,15 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
   );
 
   return (
-    <div className={className || "w-full max-w-4xl mx-auto space-y-6"}>
+    <div className={cn("w-full max-w-4xl mx-auto space-y-6 relative", className)}>
+      {/* Blur layer positioned behind the search card */}
+      <div className="absolute inset-[-20px] z-[-1] rounded-xl bg-white/5 backdrop-blur-xl pointer-events-none" />
+      
       <Card className={`chat-input-transition relative overflow-hidden ${
         isFocused 
           ? 'chat-input-shadow-focus border-white/20' 
           : 'chat-input-shadow border-white/10 hover:border-white/20'
-        } ${isLoading ? 'animate-glow-pulse' : ''} bg-white/5 backdrop-blur-xl`}>
+        } ${isLoading ? 'animate-glow-pulse' : ''}`}>
         <form onSubmit={handleSubmit} className="relative">
           <div className="px-4 sm:px-6 py-3">
             <div className="relative">
