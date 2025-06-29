@@ -7,6 +7,7 @@ import { debounce } from 'lodash';
 import { demoPrompts } from '../data/mockData';
 import { DemoPrompt } from '../types';
 import { validateSearchRequest } from '../utils/validation';
+import { cn } from '@/lib/utils';
 
 interface SearchInputProps {
   onSearch: (query: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => void;
