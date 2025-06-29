@@ -221,7 +221,7 @@ This analysis reflects current understanding while acknowledging areas of ongoin
         const allResponses = [...otherResults.map(r => r.data), claudeResponse.data];
         
         console.log('🔍 Getting Claude analysis of all responses...');
-        const analysisResult = await realClaudeService.analyzeAllResponses(prompt, allResponses);
+        const analysisResult = await realClaudeService.synthesizeResponses(prompt, allResponses);
         
         if (analysisResult.success) {
           // Replace Claude's content with analysis + original response
@@ -233,9 +233,14 @@ ${claudeResponse.data.content}
 
 **My Analysis of All Responses (Including Self-Assessment):**
 
-${analysisResult.data.content}`;
+${analysisResult.data?.content || 'Synthesis unavailable'}`;
           
           claudeResponse.data.wordCount = claudeResponse.data.content.split(' ').length;
+          
+          // Update confidence if synthesis was successful
+          if (analysisResult.data?.confidence) {
+            claudeResponse.data.confidence = analysisResult.data.confidence;
+          }
         }
       }
       
