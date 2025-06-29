@@ -1,0 +1,10 @@
+{
+  "name": "netlify-functions",
+  "version": "1.0.0",
+  "description": "Dependencies for Netlify Functions",
+  "main": "claude-proxy.js",
+  "type": "module",
+  "engines": {
+    "node": ">=20.14.0"
+  }
+}
