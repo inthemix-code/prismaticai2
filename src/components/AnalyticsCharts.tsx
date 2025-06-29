@@ -160,7 +160,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
                 left: 4,
                 bottom: 4,
               }}
-              width="100%"
+              width={300}
               height={160}
             >
               <CartesianGrid horizontal={false} stroke="#374151" />
@@ -237,7 +237,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
                   left: 4,
                   bottom: 4,
                 }}
-                width="100%"
+                width={300}
                 height={160}
               >
                 <CartesianGrid horizontal={false} stroke="#374151" />
@@ -311,7 +311,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
                 bottom: 10,
                 left: 10,
               }}
-              width="100%"
+              width={300}
               height={160}
             >
               <ChartTooltip
@@ -391,7 +391,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
                 left: 12,
                 bottom: 4,
               }}
-              width="100%"
+              width={300}
               height={160}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -450,7 +450,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
                 bottom: 10,
                 left: 10,
               }}
-              width="100%"
+              width={300}
               height={160}
             >
               <ChartTooltip
@@ -530,7 +530,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
                 left: 12,
                 bottom: 4,
               }}
-              width="100%"
+              width={300}
               height={160}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -606,7 +606,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
                 bottom: 5,
                 left: 36,
               }}
-              width="100%"
+              width={300}
               height={160}
             >
               <CartesianGrid horizontal={false} stroke="#374151" />
