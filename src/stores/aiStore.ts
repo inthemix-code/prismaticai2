@@ -161,6 +161,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
   },
 
   processAIResponses: async (turnId: string, conversationId: string, prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => {
+    // Note: conversationId parameter is used for potential future functionality
     // Simulate progressive loading with real-time updates
     const totalSteps = 100;
     const stepDelay = 50; // 50ms per step = 5 seconds total

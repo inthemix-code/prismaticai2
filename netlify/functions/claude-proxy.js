@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-export const handler = async (event, context) => {
+export const handler = async (event, _context) => {
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
