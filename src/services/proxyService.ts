@@ -1,5 +1,6 @@
 // src/services/proxyService.ts - Browser-compatible AI service
 import { AIResponse, AIResult } from '../types';
+import { realClaudeService } from './realClaudeService';
 
 class ProxyService {
   private config = {
@@ -14,8 +15,22 @@ class ProxyService {
     const startTime = Date.now();
     
     try {
-      // For Claude, we'll use a different approach since direct API calls have CORS issues
-      // This is a simplified mock that looks like a real API response
+      // Try real Claude API first if API key is available
+      if (import.meta.env.VITE_CLAUDE_API_KEY) {
+        console.log('🔄 Attempting real Claude API via CORS proxy...');
+        const realResult = await realClaudeService.queryClaude(prompt);
+        
+        // If real API succeeds, return it
+        if (realResult.success) {
+          console.log('✅ Real Claude API successful');
+          return realResult;
+        } else {
+          console.warn('⚠️ Real Claude API failed, falling back to mock');
+        }
+      }
+      
+      // Fallback to enhanced mock response
+      console.log('📝 Using enhanced Claude mock response');
       await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
       
       const responseTime = Date.now() - startTime;

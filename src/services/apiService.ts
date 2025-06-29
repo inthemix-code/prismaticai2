@@ -1,6 +1,7 @@
 import { AIResponse, AnalysisData, FusionResult } from '../types';
 import { generateMockAnalysisData, generateMockFusionResult } from '../data/mockData';
 import { proxyService } from './proxyService';
+import { realClaudeService } from './realClaudeService';
 
 interface ApiKeyStatus {
   claude: boolean;
@@ -459,9 +460,13 @@ class PersonalAPIService {
   }
 
   async getFusionResult(responses: AIResponse[]): Promise<FusionResult> {
-    // For now, return mock fusion data - in production this would use AI synthesis
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return generateMockFusionResult();
+    // Try to use real Claude for intelligent synthesis if available
+    if (import.meta.env.VITE_CLAUDE_API_KEY && responses.length > 0) {
+      try {
+        console.log('🧠 Attempting Claude-powered response synthesis...');
+        
+        // Get the original prompt from the first response context
+        const synthesisPrompt = `Please synthesize these AI responses into a comprehensive, unified answer. Focus on creating the best possible response by combining insights, resolving contradictions, and providing a balanced perspective.
   }
 
   private generateMockResponse(model: string, prompt: string): AIResponse {
