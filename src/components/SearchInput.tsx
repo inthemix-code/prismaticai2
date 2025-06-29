@@ -113,9 +113,9 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
     <div className={className || "w-full max-w-4xl mx-auto space-y-6"}>
       <Card className={`chat-input-transition relative overflow-hidden ${
         isFocused 
-          ? 'chat-input-shadow-focus border-chat-input-border-focus' 
-          : 'chat-input-shadow border-chat-input-border hover:border-chat-input-border-focus/50'
-      } ${isLoading ? 'animate-glow-pulse' : ''}`}>
+          ? 'chat-input-shadow-focus border-white/20' 
+          : 'chat-input-shadow border-white/10 hover:border-white/20'
+        } ${isLoading ? 'animate-glow-pulse' : ''} bg-transparent backdrop-blur-md`}>
         <form onSubmit={handleSubmit} className="relative">
           <div className="px-4 sm:px-6 py-3">
             <div className="relative">
