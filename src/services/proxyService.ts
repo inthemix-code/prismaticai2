@@ -192,65 +192,6 @@ This analysis reflects current understanding while acknowledging areas of ongoin
     }
   }
 
-  async queryMultiple(
-    prompt: string, 
-    selectedModels: { claude: boolean; grok: boolean; gemini: boolean }
-  ): Promise<AIResult[]> {
-    const promises: Promise<AIResult>[] = [];
-
-    // Get all responses in parallel
-    if (selectedModels.claude) {
-      promises.push(this.queryClaude(prompt));
-    }
-
-    if (selectedModels.grok) {
-      promises.push(this.queryGroq(prompt));
-    }
-
-    if (selectedModels.gemini) {
-      promises.push(this.queryGemini(prompt));
-    }
-
-    if (promises.length === 0) {
-      throw new Error('No AI services selected');
-    }
-
-    const results = await Promise.all(promises);
-
-    // If Claude is included and real API is available, get Claude's analysis of all responses
-    if (selectedModels.claude && import.meta.env.VITE_CLAUDE_API_KEY) {
-      const claudeResultIndex = results.findIndex(r => r.data.platform === 'claude');
-      
-      if (claudeResultIndex !== -1 && results[claudeResultIndex].success) {
-        try {
-          console.log('🔍 Getting Claude analysis of all responses...');
-          const allResponses = results.map(r => r.data);
-          const analysisResult = await realClaudeService.analyzeAllResponses(prompt, allResponses);
-          
-          if (analysisResult.success) {
-            // Enhance Claude's response with analysis
-            const originalContent = results[claudeResultIndex].data.content;
-            results[claudeResultIndex].data.content = `**My Response to Your Question:**
-
-${originalContent}
-
----
-
-**My Analysis of All Responses (Including Self-Assessment):**
-
-${analysisResult.data.content}`;
-            
-            results[claudeResultIndex].data.wordCount = results[claudeResultIndex].data.content.split(' ').length;
-          }
-        } catch (error) {
-          console.warn('⚠️ Failed to get Claude analysis, using standard response');
-        }
-      }
-    }
-
-    return results;
-  }
-
   private getMockGroqResponse(prompt: string, startTime: number): Promise<AIResult> {
     return new Promise(resolve => {
       setTimeout(() => {
@@ -347,6 +288,31 @@ This analysis reveals both immediate opportunities and longer-term consideration
         });
       }, 1200 + Math.random() * 1800);
     });
+  }
+
+  async queryMultiple(
+    prompt: string, 
+    selectedModels: { claude: boolean; grok: boolean; gemini: boolean }
+  ): Promise<AIResult[]> {
+    const promises: Promise<AIResult>[] = [];
+
+    if (selectedModels.claude) {
+      promises.push(this.queryClaude(prompt));
+    }
+
+    if (selectedModels.grok) {
+      promises.push(this.queryGroq(prompt));
+    }
+
+    if (selectedModels.gemini) {
+      promises.push(this.queryGemini(prompt));
+    }
+
+    if (promises.length === 0) {
+      throw new Error('No AI services selected');
+    }
+
+    return Promise.all(promises);
   }
 
   private calculateConfidence(content: string): number {
