@@ -148,8 +148,6 @@ export function FusionPanel({ fusion }: FusionPanelProps) {
                   left: 10,
                   bottom: 0,
                 }}
-                width="100%"
-                height={15}
               >
                 <CartesianGrid horizontal={false} stroke="#374151" />
                 <YAxis
