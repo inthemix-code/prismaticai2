@@ -61,7 +61,7 @@ function generateDynamicAnalysisData(responses: AIResponse[]): AnalysisData {
     const negativeWords = ['poor', 'bad', 'ineffective', 'failed', 'problematic', 'challenging', 'difficult', 'risk', 'threat', 'concern'];
     const neutralWords = ['however', 'although', 'consider', 'analysis', 'framework', 'approach', 'method', 'system', 'process'];
   });
-  
+    
   return {
     sentiment: [
       { platform: 'Grok', positive: Math.floor(Math.random() * 20) + 35, neutral: Math.floor(Math.random() * 20) + 35, negative: Math.floor(Math.random() * 20) + 10 },
