@@ -488,28 +488,6 @@ class PersonalAPIService {
     const promptPreview = prompt.substring(0, 50) + (prompt.length > 50 ? '...' : '');
     
     const mockContent = {
-      claude: \`Claude's sophisticated analysis of "${promptPreview}":
-      }
-    }
-  }
-}
-
-This question touches on several interconnected dimensions that warrant careful examination. From a systematic perspective, we should consider both the immediate implications and the broader contextual factors at play.
-
-**Key Considerations:**
-• Foundational principles and theoretical frameworks
-• Current implementation strategies and best practices  
-• Emerging trends and future trajectory
-• Risk assessment and mitigation approaches
-
-The evidence suggests that this field is experiencing significant evolution, with traditional approaches being challenged by innovative methodologies. Stakeholders should adopt a balanced approach that considers both opportunities and constraints while maintaining focus on sustainable outcomes.
-
-**Strategic Recommendations:**
-1. Comprehensive assessment of current capabilities
-2. Phased implementation with iterative refinement
-3. Continuous monitoring and adaptive management
-4. Cross-functional collaboration and knowledge sharing
-
 The complexity of this domain requires nuanced thinking and careful planning to achieve optimal results.`,
 
       grok: \`Grok's unfiltered take on "${promptPreview}":
