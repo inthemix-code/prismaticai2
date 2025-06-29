@@ -99,6 +99,17 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
     }));
   };
 
+  // Calculate selected models count and order
+  const selectedCount = Object.values(selectedModels).filter(Boolean).length;
+  const modelOrder = ['claude', 'grok', 'gemini'] as const;
+  const selectedModelsList = modelOrder.filter(model => selectedModels[model]);
+  
+  const getModelNumber = (model: keyof typeof selectedModels) => {
+    if (!selectedModels[model]) return '';
+    const position = selectedModelsList.indexOf(model) + 1;
+    return ` (${position}/${selectedCount})`;
+  };
+
   const handleDemoPrompt = (demoPrompt: DemoPrompt) => {
     setQuery(demoPrompt.text);
     setValidationErrors([]); // Clear any existing validation errors
@@ -182,7 +193,7 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
                   disabled={isLoading}
                 >
                   <Bot className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Claude
+                  Claude{getModelNumber('claude')}
                 </Button>
 
                 <Button
@@ -198,7 +209,7 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
                   disabled={isLoading}
                 >
                   <Zap className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Grok
+                  Grok{getModelNumber('grok')}
                 </Button>
 
                 <Button
@@ -214,7 +225,7 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
                   disabled={isLoading}
                 >
                   <Diamond className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Gemini
+                  Gemini{getModelNumber('gemini')}
                 </Button>
               </div>
               
