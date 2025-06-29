@@ -61,7 +61,8 @@
     "vaul": "^1.0.0",
     "zod": "^3.23.8",
     "zustand": "^5.0.1",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
