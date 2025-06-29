@@ -60,40 +60,43 @@ function generateDynamicAnalysisData(responses: AIResponse[]): AnalysisData {
     const positiveWords = ['excellent', 'great', 'good', 'effective', 'successful', 'innovative', 'promising', 'beneficial', 'optimal', 'advanced'];
     const negativeWords = ['poor', 'bad', 'ineffective', 'failed', 'problematic', 'challenging', 'difficult', 'risk', 'threat', 'concern'];
     const neutralWords = ['however', 'although', 'consider', 'analysis', 'framework', 'approach', 'method', 'system', 'process'];
-    
-  sentiment: [
-    { platform: 'Grok', positive: Math.floor(Math.random() * 20) + 35, neutral: Math.floor(Math.random() * 20) + 35, negative: Math.floor(Math.random() * 20) + 10 },
-    { platform: 'Claude', positive: Math.floor(Math.random() * 20) + 30, neutral: Math.floor(Math.random() * 20) + 40, negative: Math.floor(Math.random() * 15) + 5 },
-    { platform: 'Gemini', positive: Math.floor(Math.random() * 20) + 25, neutral: Math.floor(Math.random() * 20) + 45, negative: Math.floor(Math.random() * 15) + 5 }
-  ],
-  keywords: [
-    { word: 'quantum', grok: Math.floor(Math.random() * 10) + 8, claude: Math.floor(Math.random() * 10) + 10, gemini: Math.floor(Math.random() * 10) + 12 },
-    { word: 'encryption', grok: Math.floor(Math.random() * 8) + 4, claude: Math.floor(Math.random() * 8) + 3, gemini: Math.floor(Math.random() * 8) + 8 },
-    { word: 'security', grok: Math.floor(Math.random() * 8) + 6, claude: Math.floor(Math.random() * 8) + 4, gemini: Math.floor(Math.random() * 8) + 10 },
-    { word: 'algorithms', grok: Math.floor(Math.random() * 6) + 2, claude: Math.floor(Math.random() * 6) + 6, gemini: Math.floor(Math.random() * 6) + 8 },
-    { word: 'cryptography', grok: Math.floor(Math.random() * 5) + 2, claude: Math.floor(Math.random() * 5) + 4, gemini: Math.floor(Math.random() * 5) + 6 }
-  ],
-  metrics: [
-    { platform: 'Grok', confidence: Math.floor(Math.random() * 15) + 80, responseTime: Math.random() * 2 + 1.5, wordCount: Math.floor(Math.random() * 50) + 150 },
-    { platform: 'Claude', confidence: Math.floor(Math.random() * 15) + 85, responseTime: Math.random() * 2 + 2.5, wordCount: Math.floor(Math.random() * 50) + 200 },
-    { platform: 'Gemini', confidence: Math.floor(Math.random() * 15) + 82, responseTime: Math.random() * 2 + 2.0, wordCount: Math.floor(Math.random() * 50) + 220 }
-  ],
-  efficiency: [
-    { platform: 'Grok', conciseness: Math.floor(Math.random() * 20) + 75, redundancy: Math.floor(Math.random() * 15) + 10 },
-    { platform: 'Claude', conciseness: Math.floor(Math.random() * 20) + 65, redundancy: Math.floor(Math.random() * 15) + 20 },
-    { platform: 'Gemini', conciseness: Math.floor(Math.random() * 20) + 70, redundancy: Math.floor(Math.random() * 15) + 15 }
-  ],
-  risk: [
-    { platform: 'Grok', hallucination: Math.floor(Math.random() * 15) + 20, contradictions: Math.floor(Math.random() * 10) + 15, hedging: Math.floor(Math.random() * 20) + 70 },
-    { platform: 'Claude', hallucination: Math.floor(Math.random() * 10) + 10, contradictions: Math.floor(Math.random() * 8) + 8, hedging: Math.floor(Math.random() * 20) + 80 },
-    { platform: 'Gemini', hallucination: Math.floor(Math.random() * 12) + 15, contradictions: Math.floor(Math.random() * 10) + 12, hedging: Math.floor(Math.random() * 20) + 75 }
-  ],
-  differentiation: [
-    { platform: 'Grok', originality: Math.floor(Math.random() * 20) + 60, divergence: Math.floor(Math.random() * 20) + 55, contribution: Math.floor(Math.random() * 20) + 65 },
-    { platform: 'Claude', originality: Math.floor(Math.random() * 20) + 70, divergence: Math.floor(Math.random() * 20) + 65, contribution: Math.floor(Math.random() * 20) + 75 },
-    { platform: 'Gemini', originality: Math.floor(Math.random() * 20) + 75, divergence: Math.floor(Math.random() * 20) + 70, contribution: Math.floor(Math.random() * 20) + 70 }
-  ]
-});
+  });
+  
+  return {
+    sentiment: [
+      { platform: 'Grok', positive: Math.floor(Math.random() * 20) + 35, neutral: Math.floor(Math.random() * 20) + 35, negative: Math.floor(Math.random() * 20) + 10 },
+      { platform: 'Claude', positive: Math.floor(Math.random() * 20) + 30, neutral: Math.floor(Math.random() * 20) + 40, negative: Math.floor(Math.random() * 15) + 5 },
+      { platform: 'Gemini', positive: Math.floor(Math.random() * 20) + 25, neutral: Math.floor(Math.random() * 20) + 45, negative: Math.floor(Math.random() * 15) + 5 }
+    ],
+    keywords: [
+      { word: 'quantum', grok: Math.floor(Math.random() * 10) + 8, claude: Math.floor(Math.random() * 10) + 10, gemini: Math.floor(Math.random() * 10) + 12 },
+      { word: 'encryption', grok: Math.floor(Math.random() * 8) + 4, claude: Math.floor(Math.random() * 8) + 3, gemini: Math.floor(Math.random() * 8) + 8 },
+      { word: 'security', grok: Math.floor(Math.random() * 8) + 6, claude: Math.floor(Math.random() * 8) + 4, gemini: Math.floor(Math.random() * 8) + 10 },
+      { word: 'algorithms', grok: Math.floor(Math.random() * 6) + 2, claude: Math.floor(Math.random() * 6) + 6, gemini: Math.floor(Math.random() * 6) + 8 },
+      { word: 'cryptography', grok: Math.floor(Math.random() * 5) + 2, claude: Math.floor(Math.random() * 5) + 4, gemini: Math.floor(Math.random() * 5) + 6 }
+    ],
+    metrics: [
+      { platform: 'Grok', confidence: Math.floor(Math.random() * 15) + 80, responseTime: Math.random() * 2 + 1.5, wordCount: Math.floor(Math.random() * 50) + 150 },
+      { platform: 'Claude', confidence: Math.floor(Math.random() * 15) + 85, responseTime: Math.random() * 2 + 2.5, wordCount: Math.floor(Math.random() * 50) + 200 },
+      { platform: 'Gemini', confidence: Math.floor(Math.random() * 15) + 82, responseTime: Math.random() * 2 + 2.0, wordCount: Math.floor(Math.random() * 50) + 220 }
+    ],
+    efficiency: [
+      { platform: 'Grok', conciseness: Math.floor(Math.random() * 20) + 75, redundancy: Math.floor(Math.random() * 15) + 10 },
+      { platform: 'Claude', conciseness: Math.floor(Math.random() * 20) + 65, redundancy: Math.floor(Math.random() * 15) + 20 },
+      { platform: 'Gemini', conciseness: Math.floor(Math.random() * 20) + 70, redundancy: Math.floor(Math.random() * 15) + 15 }
+    ],
+    risk: [
+      { platform: 'Grok', hallucination: Math.floor(Math.random() * 15) + 20, contradictions: Math.floor(Math.random() * 10) + 15, hedging: Math.floor(Math.random() * 20) + 70 },
+      { platform: 'Claude', hallucination: Math.floor(Math.random() * 10) + 10, contradictions: Math.floor(Math.random() * 8) + 8, hedging: Math.floor(Math.random() * 20) + 80 },
+      { platform: 'Gemini', hallucination: Math.floor(Math.random() * 12) + 15, contradictions: Math.floor(Math.random() * 10) + 12, hedging: Math.floor(Math.random() * 20) + 75 }
+    ],
+    differentiation: [
+      { platform: 'Grok', originality: Math.floor(Math.random() * 20) + 60, divergence: Math.floor(Math.random() * 20) + 55, contribution: Math.floor(Math.random() * 20) + 65 },
+      { platform: 'Claude', originality: Math.floor(Math.random() * 20) + 70, divergence: Math.floor(Math.random() * 20) + 65, contribution: Math.floor(Math.random() * 20) + 75 },
+      { platform: 'Gemini', originality: Math.floor(Math.random() * 20) + 75, divergence: Math.floor(Math.random() * 20) + 70, contribution: Math.floor(Math.random() * 20) + 70 }
+    ]
+  };
+}
 
 // Function to generate unique fusion result for each conversation
 export const generateMockFusionResult = (responses?: AIResponse[]): FusionResult => {
@@ -124,7 +127,7 @@ export const generateMockFusionResult = (responses?: AIResponse[]): FusionResult
   }
   
   return {
-  content: `**Quantum Computing's Cybersecurity Revolution: A Comprehensive Analysis**
+    content: `**Quantum Computing's Cybersecurity Revolution: A Comprehensive Analysis**
 
 Quantum computing represents a fundamental paradigm shift that will simultaneously disrupt current cybersecurity foundations while enabling next-generation protection mechanisms.
 
@@ -146,13 +149,13 @@ While cryptographically relevant quantum computers may emerge within 15-20 years
 4. Establish hybrid classical-quantum security measures during the transition period
 
 The quantum cybersecurity landscape represents not just a technological upgrade, but a fundamental phase transition requiring proactive adaptation rather than reactive mitigation.`,
-  confidence: Math.random() * 0.1 + 0.85,
-  sources,
-  keyInsights: [
-    'Quantum computers will break current encryption within 15-20 years',
-    'Post-quantum cryptography standards are already available from NIST',
-    'Quantum Key Distribution offers theoretically unbreakable communication',
-    'Organizations must start crypto-agility planning immediately'
-  ]
+    confidence: Math.random() * 0.1 + 0.85,
+    sources,
+    keyInsights: [
+      'Quantum computers will break current encryption within 15-20 years',
+      'Post-quantum cryptography standards are already available from NIST',
+      'Quantum Key Distribution offers theoretically unbreakable communication',
+      'Organizations must start crypto-agility planning immediately'
+    ]
   };
 };
