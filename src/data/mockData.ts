@@ -34,7 +34,150 @@ export const demoPrompts: DemoPrompt[] = [
 ];
 
 // Function to generate unique analysis data for each conversation
-export const generateMockAnalysisData = (): AnalysisData => ({
+export const generateMockAnalysisData = (responses?: AIResponse[]): AnalysisData => {
+  // Generate analytics based on actual responses if provided
+  if (responses && responses.length > 0) {
+    return generateDynamicAnalysisData(responses);
+  }
+  
+  // Fallback to random mock data
+  return generateRandomAnalysisData();
+};
+
+// Generate analytics based on actual AI response data
+function generateDynamicAnalysisData(responses: AIResponse[]): AnalysisData {
+  // Create platform-specific data from actual responses
+  const platformData = responses.reduce((acc, response) => {
+    acc[response.platform] = response;
+    return acc;
+  }, {} as Record<string, AIResponse>);
+
+  // Calculate sentiment based on content analysis
+  const sentiment = responses.map(response => {
+    const content = response.content.toLowerCase();
+    
+    // Simple sentiment analysis
+    const positiveWords = ['excellent', 'great', 'good', 'effective', 'successful', 'innovative', 'promising', 'beneficial', 'optimal', 'advanced'];
+    const negativeWords = ['poor', 'bad', 'ineffective', 'failed', 'problematic', 'challenging', 'difficult', 'risk', 'threat', 'concern'];
+    const neutralWords = ['however', 'although', 'consider', 'analysis', 'framework', 'approach', 'method', 'system', 'process'];
+    
+    const positiveCount = positiveWords.reduce((count, word) => count + (content.match(new RegExp(word, 'g')) || []).length, 0);
+    const negativeCount = negativeWords.reduce((count, word) => count + (content.match(new RegExp(word, 'g')) || []).length, 0);
+    const neutralCount = neutralWords.reduce((count, word) => count + (content.match(new RegExp(word, 'g')) || []).length, 0);
+    
+    const total = Math.max(1, positiveCount + negativeCount + neutralCount);
+    
+    return {
+      platform: response.platform,
+      positive: Math.round((positiveCount / total) * 100),
+      neutral: Math.round((neutralCount / total) * 100),
+      negative: Math.round((negativeCount / total) * 100)
+    };
+  });
+
+  // Extract keywords from all responses
+  const allText = responses.map(r => r.content).join(' ').toLowerCase();
+  const words = allText.match(/\b[a-z]{4,}\b/g) || [];
+  const wordFreq = words.reduce((freq, word) => {
+    freq[word] = (freq[word] || 0) + 1;
+    return freq;
+  }, {} as Record<string, number>);
+  
+  // Get top keywords and their frequency per platform
+  const topWords = Object.entries(wordFreq)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 5)
+    .map(([word]) => word);
+  
+  const keywords = topWords.map(word => {
+    const platformCounts = {
+      grok: (platformData.grok?.content.toLowerCase().match(new RegExp(word, 'g')) || []).length,
+      claude: (platformData.claude?.content.toLowerCase().match(new RegExp(word, 'g')) || []).length,
+      gemini: (platformData.gemini?.content.toLowerCase().match(new RegExp(word, 'g')) || []).length
+    };
+    
+    return {
+      word,
+      ...platformCounts
+    };
+  });
+
+  // Use actual response metrics
+  const metrics = responses.map(response => ({
+    platform: response.platform,
+    confidence: Math.round(response.confidence * 100),
+    responseTime: response.responseTime,
+    wordCount: response.wordCount
+  }));
+
+  // Calculate efficiency metrics
+  const efficiency = responses.map(response => {
+    const wordCount = response.wordCount;
+    const avgWordsPerSentence = response.content.split(/[.!?]+/).filter(s => s.trim()).length;
+    const conciseness = Math.max(0, Math.min(100, 100 - (wordCount / 10))); // Lower word count = higher conciseness
+    const redundancy = Math.max(0, Math.min(50, avgWordsPerSentence > 0 ? (wordCount / avgWordsPerSentence) - 15 : 20));
+    
+    return {
+      platform: response.platform,
+      conciseness: Math.round(conciseness),
+      redundancy: Math.round(redundancy)
+    };
+  });
+
+  // Calculate risk metrics based on content analysis
+  const risk = responses.map(response => {
+    const content = response.content.toLowerCase();
+    const hedgingWords = ['might', 'could', 'perhaps', 'possibly', 'may', 'seems', 'appears', 'likely'];
+    const uncertainWords = ['uncertain', 'unclear', 'unknown', 'unsure', 'ambiguous'];
+    const contradictionWords = ['however', 'but', 'although', 'nevertheless', 'contrary'];
+    
+    const hedgingCount = hedgingWords.reduce((count, word) => count + (content.match(new RegExp(word, 'g')) || []).length, 0);
+    const uncertainCount = uncertainWords.reduce((count, word) => count + (content.match(new RegExp(word, 'g')) || []).length, 0);
+    const contradictionCount = contradictionWords.reduce((count, word) => count + (content.match(new RegExp(word, 'g')) || []).length, 0);
+    
+    return {
+      platform: response.platform,
+      hallucination: Math.min(50, uncertainCount * 5), // Lower is better
+      contradictions: Math.min(30, contradictionCount * 3), // Lower is better
+      hedging: Math.min(100, 100 - (hedgingCount * 5)) // Higher confidence/less hedging is better
+    };
+  });
+
+  // Calculate differentiation metrics
+  const differentiation = responses.map((response, index) => {
+    const otherResponses = responses.filter((_, i) => i !== index);
+    const responseWords = new Set(response.content.toLowerCase().match(/\b[a-z]{4,}\b/g) || []);
+    const otherWords = new Set(otherResponses.flatMap(r => r.content.toLowerCase().match(/\b[a-z]{4,}\b/g) || []));
+    
+    const uniqueWords = [...responseWords].filter(word => !otherWords.has(word)).length;
+    const totalWords = responseWords.size;
+    const originality = totalWords > 0 ? Math.round((uniqueWords / totalWords) * 100) : 50;
+    
+    // Simple metrics for divergence and contribution
+    const divergence = Math.min(100, originality + Math.random() * 20);
+    const contribution = Math.min(100, response.wordCount / 5 + originality / 2);
+    
+    return {
+      platform: response.platform,
+      originality: Math.round(originality),
+      divergence: Math.round(divergence),
+      contribution: Math.round(contribution)
+    };
+  });
+
+  return {
+    sentiment,
+    keywords,
+    metrics,
+    efficiency,
+    risk,
+    differentiation
+  };
+}
+
+// Original random mock data generation (fallback)
+function generateRandomAnalysisData(): AnalysisData {
+  return {
   sentiment: [
     { platform: 'Grok', positive: Math.floor(Math.random() * 20) + 35, neutral: Math.floor(Math.random() * 20) + 35, negative: Math.floor(Math.random() * 20) + 10 },
     { platform: 'Claude', positive: Math.floor(Math.random() * 20) + 30, neutral: Math.floor(Math.random() * 20) + 40, negative: Math.floor(Math.random() * 15) + 5 },
@@ -67,7 +210,8 @@ export const generateMockAnalysisData = (): AnalysisData => ({
     { platform: 'Claude', originality: Math.floor(Math.random() * 20) + 70, divergence: Math.floor(Math.random() * 20) + 65, contribution: Math.floor(Math.random() * 20) + 75 },
     { platform: 'Gemini', originality: Math.floor(Math.random() * 20) + 75, divergence: Math.floor(Math.random() * 20) + 70, contribution: Math.floor(Math.random() * 20) + 70 }
   ]
-});
+  };
+}
 
 // Function to generate unique fusion result for each conversation
 export const generateMockFusionResult = (responses?: AIResponse[]): FusionResult => {
