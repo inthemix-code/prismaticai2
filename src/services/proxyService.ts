@@ -365,7 +365,7 @@ This analysis reveals both immediate opportunities and longer-term consideration
   }
 
   hasValidKeys(): boolean {
-    return !!(import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_GEMINI_API_KEY);
+    return !!(import.meta.env.VITE_CLAUDE_API_KEY || import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_GEMINI_API_KEY);
   }
 
   getAvailableServices(): string[] {
