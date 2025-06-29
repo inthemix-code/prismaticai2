@@ -1,6 +1,15 @@
 // src/services/realClaudeService.ts - Real Claude API service
 import { AIResponse, AIResult } from '../types';
 
+// Detect if running in Netlify environment
+const isNetlify = window.location.hostname.includes('netlify') || 
+                  window.location.hostname.includes('.app') ||
+                  process.env.NODE_ENV === 'production';
+
+const NETLIFY_FUNCTIONS_BASE = isNetlify 
+  ? `${window.location.origin}/.netlify/functions`
+  : 'http://localhost:8888/.netlify/functions'; // For local Netlify dev
+
 interface SynthesisResult {
   success: boolean;
   data?: {
@@ -16,6 +25,11 @@ class RealClaudeService {
 
   async queryClaude(prompt: string): Promise<AIResult> {
     const startTime = Date.now();
+    
+    // If in Netlify environment, use Netlify Function
+    if (isNetlify || this.shouldUseNetlifyFunction()) {
+      return this.queryClaudeViaNetlify(prompt, startTime);
+    }
     
     if (!this.apiKey) {
       return this.getFallbackResponse(prompt, startTime, 'No Claude API key configured');
@@ -36,7 +50,67 @@ class RealClaudeService {
     return proxyResult;
   }
 
+  private shouldUseNetlifyFunction(): boolean {
+    // Use Netlify Function if we detect we're in a deployment environment
+    // or if the user explicitly wants to test the Netlify Function locally
+    return window.location.hostname !== 'localhost' && 
+           window.location.hostname !== '127.0.0.1';
+  }
+
+  private async queryClaudeViaNetlify(prompt: string, startTime: number): Promise<AIResult> {
+    try {
+      console.log('🌐 Using Netlify Function for Claude API...');
+      
+      const response = await fetch(`${NETLIFY_FUNCTIONS_BASE}/claude-proxy`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          prompt,
+          max_tokens: 1000
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('✅ Netlify Claude proxy successful');
+        return {
+          success: true,
+          data: {
+            ...result.data,
+            responseTime: (result.data.responseTime || Date.now() - startTime) / 1000
+          }
+        };
+      } else {
+        throw new Error(result.error || 'Netlify function returned error');
+      }
+      
+    } catch (error) {
+      console.error('❌ Netlify Claude proxy failed:', error);
+      
+      // Fallback to direct API call if Netlify Function fails
+      if (!isNetlify) {
+        console.log('🔄 Falling back to direct API call...');
+        return this.makeDirectClaudeRequest(prompt, startTime);
+      }
+      
+      return this.getFallbackResponse(prompt, startTime, `Netlify Function error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   async synthesizeResponses(originalPrompt: string, responses: AIResponse[]): Promise<SynthesisResult> {
+    // If in Netlify environment, use Netlify Function
+    if (isNetlify || this.shouldUseNetlifyFunction()) {
+      return this.synthesizeViaNetlify(originalPrompt, responses);
+    }
+    
     if (!this.apiKey || !this.apiKey.startsWith('sk-ant-api')) {
       console.log('⚠️ Claude API key not available for synthesis, using fallback');
       return {
@@ -99,6 +173,48 @@ class RealClaudeService {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown synthesis error'
+      };
+    }
+  }
+
+  private async synthesizeViaNetlify(originalPrompt: string, responses: AIResponse[]): Promise<SynthesisResult> {
+    try {
+      console.log('🌐 Using Netlify Function for Claude synthesis...');
+      
+      const response = await fetch(`${NETLIFY_FUNCTIONS_BASE}/claude-synthesis`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          originalPrompt,
+          responses: responses.filter(r => !r.error && r.content.trim())
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('✅ Netlify Claude synthesis successful');
+        return {
+          success: true,
+          data: result.data
+        };
+      } else {
+        throw new Error(result.error || 'Netlify synthesis function returned error');
+      }
+      
+    } catch (error) {
+      console.error('❌ Netlify Claude synthesis failed:', error);
+      
+      return {
+        success: false,
+        error: `Netlify synthesis error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -338,6 +454,15 @@ Would you like me to provide more specific guidance despite these limitations?`;
 
   async testConnection(): Promise<boolean> {
     if (!this.apiKey || !this.apiKey.startsWith('sk-ant-api')) {
+      // If no local API key but we might have Netlify Function, test that
+      if (isNetlify || this.shouldUseNetlifyFunction()) {
+        try {
+          const testResult = await this.queryClaudeViaNetlify('Hello', Date.now());
+          return testResult.success;
+        } catch {
+          return false;
+        }
+      }
       return false;
     }
 

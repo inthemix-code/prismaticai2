@@ -1,0 +1,35 @@
+[build]
+  # Build command and publish directory
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  # Directory for Netlify Functions
+  directory = "netlify/functions"
+
+# Environment variables that will be available to functions
+# Note: Actual values should be set in Netlify UI under Site Settings > Environment Variables
+[build.environment]
+  NODE_VERSION = "18"
+
+# Redirect rules for SPA (Single Page Application)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["*"]}
+
+# Headers for security and CORS
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
