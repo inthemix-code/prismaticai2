@@ -1,7 +1,6 @@
-import React from 'react';
 import { TrendingUp, Shield, Zap, Target } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, LineChart, Line, ResponsiveContainer, Cell } from 'recharts';
+import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, LineChart, Line, Cell } from 'recharts';
 import {
   ChartConfig,
   ChartContainer,
