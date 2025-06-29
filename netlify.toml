@@ -1,6 +1,6 @@
 [build]
   # Build command and publish directory
-  command = "npm ci && npm run build"
+  command = "npm install && npm run build"
   publish = "dist"
 
 [functions]
@@ -11,6 +11,7 @@
 # Note: Actual values should be set in Netlify UI under Site Settings > Environment Variables
 [build.environment]
   NODE_VERSION = "18"
+  NPM_VERSION = "9"
 
 # Redirect rules for SPA (Single Page Application)
 [[redirects]]

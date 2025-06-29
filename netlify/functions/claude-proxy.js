@@ -1,29 +1,28 @@
 const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
-  // Only allow POST requests
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-      },
-      body: JSON.stringify({ error: 'Method not allowed' })
-    };
-  }
+  // Add CORS headers for all responses
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
+  };
 
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-      },
+      headers,
       body: ''
+    };
+  }
+
+  // Only allow POST requests
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' })
     };
   }
 
@@ -32,12 +31,10 @@ exports.handler = async (event, context) => {
     const claudeApiKey = process.env.CLAUDE_API_KEY;
     
     if (!claudeApiKey) {
+      console.error('CLAUDE_API_KEY not found in environment variables');
       return {
         statusCode: 500,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({ 
           error: 'Claude API key not configured',
           success: false 
@@ -45,16 +42,27 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Parse request body
-    const { prompt, model = 'claude-3-sonnet-20240229', max_tokens = 1000 } = JSON.parse(event.body);
+    // Parse request body safely
+    let requestBody;
+    try {
+      requestBody = JSON.parse(event.body || '{}');
+    } catch (parseError) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ 
+          error: 'Invalid JSON in request body',
+          success: false 
+        })
+      };
+    }
+
+    const { prompt, model = 'claude-3-sonnet-20240229', max_tokens = 1000 } = requestBody;
     
     if (!prompt) {
       return {
         statusCode: 400,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({ 
           error: 'Prompt is required',
           success: false 
@@ -91,10 +99,7 @@ exports.handler = async (event, context) => {
       
       return {
         statusCode: response.status,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({ 
           error: `Claude API error: ${response.status}`,
           details: errorText,
@@ -114,10 +119,7 @@ exports.handler = async (event, context) => {
     // Return formatted response
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
-      },
+      headers,
       body: JSON.stringify({
         success: true,
         data: {
@@ -138,10 +140,7 @@ exports.handler = async (event, context) => {
     
     return {
       statusCode: 500,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
-      },
+      headers,
       body: JSON.stringify({ 
         error: 'Internal server error',
         details: error.message,
