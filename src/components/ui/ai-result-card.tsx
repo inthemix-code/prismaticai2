@@ -1,166 +1,116 @@
-"use client"
-
-import { motion } from "framer-motion"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { ExternalLink, Copy, ThumbsUp, ThumbsDown, TrendingUp, MoreVertical } from "lucide-react"
-import { cn } from "@/lib/utils"
-import type { AIResponse } from "@/types"
-
-const platformConfig = {
-  chatgpt: {
-    name: "ChatGPT",
-    url: "chatgpt.com",
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-50 dark:bg-emerald-950/20",
-    borderColor: "border-emerald-200",
-    icon: "🤖",
-  },
-  claude: {
-    name: "Claude",
-    url: "claude.ai",
-    color: "text-purple-600",
-    bgColor: "bg-purple-50 dark:bg-purple-950/20",
-    borderColor: "border-purple-200",
-    icon: "🧠",
-  },
-  gemini: {
-    name: "Gemini",
-    url: "gemini.google.com",
-    color: "text-blue-600",
-    bgColor: "bg-blue-50 dark:bg-blue-950/20",
-    borderColor: "border-blue-200",
-    icon: "✨",
-  },
-}
+import React from 'react';
+import type { AIResponse } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Copy, Clock, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 interface AIResultCardProps {
-  response: AIResponse
-  query: string
-  index: number
+  response: AIResponse;
+  className?: string;
 }
 
-export function AIResultCard({ response, query, index }: AIResultCardProps) {
-  const config = platformConfig[response.platform]
+export function AIResultCard({ response, className }: AIResultCardProps) {
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(response.content);
+  };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="group"
-    >
-      <Card className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-transparent hover:border-l-primary">
-        <CardContent className="p-6 space-y-4">
-          {/* Header with platform info */}
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-lg", config.bgColor)}>
-                {config.icon}
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className={cn("font-semibold text-lg", config.color)}>{config.name}</h3>
-                  <Badge variant="outline" className="text-xs">
-                    AI Response
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>{config.url}</span>
-                  <span>•</span>
-                  <span>{response.responseTime}ms</span>
-                  <span>•</span>
-                  <span>{response.wordCount} words</span>
-                </div>
-              </div>
-            </div>
+  const formatResponseTime = (time: number) => {
+    return `${time.toFixed(1)}s`;
+  };
 
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="gap-1">
-                <TrendingUp className="h-3 w-3" />
-                {response.confidence}%
-              </Badge>
-              <Button variant="ghost" size="sm">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </div>
+  if (response.loading) {
+    return (
+      <Card className={`h-[400px] flex flex-col bg-gray-900/50 border-gray-800 ${className}`}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-medium text-white capitalize">
+              {response.platform}
+            </CardTitle>
+            <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
           </div>
-
-          {/* Response Content */}
-          <div className="space-y-3">
-            <p className="text-base leading-relaxed text-foreground/90 line-clamp-4">{response.response}</p>
-
-            {/* Quick insights */}
-            <div className="flex flex-wrap gap-2">
-              {response.platform === "chatgpt" && (
-                <>
-                  <Badge variant="outline" className="text-xs">
-                    Encryption Risks
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    Shor's Algorithm
-                  </Badge>
-                </>
-              )}
-              {response.platform === "claude" && (
-                <>
-                  <Badge variant="outline" className="text-xs">
-                    Post-Quantum Crypto
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    Security Solutions
-                  </Badge>
-                </>
-              )}
-              {response.platform === "gemini" && (
-                <>
-                  <Badge variant="outline" className="text-xs">
-                    Quantum Interference
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    Future Computing
-                  </Badge>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Confidence Bar */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Response Confidence</span>
-              <span className={config.color}>{response.confidence}%</span>
-            </div>
-            <Progress value={response.confidence} className="h-2" />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-2 border-t">
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-                <ThumbsUp className="h-4 w-4" />
-                Helpful
-              </Button>
-              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-                <ThumbsDown className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-                <Copy className="h-4 w-4" />
-                Copy
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-2">
-                <ExternalLink className="h-4 w-4" />
-                View Full
-              </Button>
-            </div>
+        </CardHeader>
+        <CardContent className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center text-gray-500">
+            <Loader2 className="w-6 h-6 mb-2 animate-spin" />
+            <p className="text-xs text-gray-400 text-center">
+              Generating response...
+            </p>
           </div>
         </CardContent>
       </Card>
-    </motion.div>
-  )
+    );
+  }
+
+  if (response.error) {
+    return (
+      <Card className={`h-[400px] flex flex-col bg-gray-900/50 border-red-800 ${className}`}>
+        <CardHeader className="pb-3 bg-red-950/30">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-medium text-white capitalize">
+              {response.platform}
+            </CardTitle>
+            <AlertCircle className="w-4 h-4 text-red-400" />
+          </div>
+        </CardHeader>
+        <CardContent className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center text-red-400">
+            <AlertCircle className="w-6 h-6 mb-2" />
+            <p className="text-xs text-center px-2">{response.error}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className={`h-[400px] flex flex-col bg-gray-900/50 border-gray-800 ${className}`}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-white capitalize">
+              {response.platform}
+            </CardTitle>
+            <CheckCircle className="w-3 h-3 text-green-400" />
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyToClipboard}
+            className="h-6 w-6 p-0 hover:bg-gray-800"
+          >
+            <Copy className="w-3 h-3 text-gray-400" />
+          </Button>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-gray-400">Confidence</span>
+            <span className="text-xs font-semibold text-blue-400">
+              {Math.round(response.confidence * 100)}%
+            </span>
+          </div>
+          
+          <div className="flex gap-3 text-xs text-gray-500">
+            <div className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {formatResponseTime(response.responseTime)}
+            </div>
+            <div className="flex items-center gap-1">
+              <FileText className="w-3 h-3" />
+              {response.wordCount} words
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="flex-1 overflow-hidden p-4">
+        <div className="h-full overflow-y-auto custom-scrollbar pr-2">
+          <div className="text-xs text-gray-300 whitespace-pre-wrap leading-relaxed">
+            {response.content}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
