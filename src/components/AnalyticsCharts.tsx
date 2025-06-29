@@ -22,7 +22,6 @@ const metricsChartConfig = {
   confidence: {
     label: "Confidence",
     color: "#3B82F6",
-    type: "category",
   },
 } satisfies ChartConfig;
 
@@ -30,17 +29,14 @@ const sentimentChartConfig = {
   positive: {
     label: "Positive",
     color: "#10B981",
-    type: "category",
   },
   neutral: {
     label: "Neutral", 
     color: "#8B5CF6",
-    type: "category",
   },
   negative: {
     label: "Negative",
     color: "#EF4444",
-    type: "category",
   },
 } satisfies ChartConfig;
 
@@ -48,17 +44,14 @@ const keywordChartConfig = {
   grok: {
     label: "Grok",
     color: "#64748B",
-    type: "category",
   },
   claude: {
     label: "Claude",
     color: "#8B5CF6",
-    type: "category",
   },
   gemini: {
     label: "Gemini",
     color: "#3B82F6",
-    type: "category",
   },
 } satisfies ChartConfig;
 
@@ -66,12 +59,10 @@ const efficiencyChartConfig = {
   conciseness: {
     label: "Conciseness",
     color: "#10B981",
-    type: "category",
   },
   redundancy: {
     label: "Redundancy Score",
     color: "#EF4444",
-    type: "category",
   },
 } satisfies ChartConfig;
 
@@ -79,17 +70,14 @@ const riskChartConfig = {
   hallucination: {
     label: "Hallucination Risk",
     color: "#EF4444",
-    type: "category",
   },
   contradictions: {
     label: "Contradictions",
     color: "#F59E0B",
-    type: "category",
   },
   hedging: {
     label: "Confidence/Hedging",
     color: "#10B981",
-    type: "category",
   },
 } satisfies ChartConfig;
 
@@ -97,17 +85,14 @@ const differentiationChartConfig = {
   originality: {
     label: "Originality",
     color: "#8B5CF6",
-    type: "category",
   },
   divergence: {
     label: "Divergence",
     color: "#3B82F6",
-    type: "category",
   },
   contribution: {
     label: "Contribution",
     color: "#10B981",
-    type: "category",
   },
 } satisfies ChartConfig;
 
@@ -115,17 +100,14 @@ const attributionChartConfig = {
   grok: {
     label: "Grok",
     color: "#64748B",
-    type: "category",
   },
   claude: {
     label: "Claude", 
     color: "#8B5CF6",
-    type: "category",
   },
   gemini: {
     label: "Gemini",
     color: "#3B82F6",
-    type: "category",
   },
 } satisfies ChartConfig;
 
