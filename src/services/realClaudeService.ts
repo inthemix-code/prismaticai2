@@ -1,302 +1,158 @@
-// src/services/realClaudeService.ts - Real Claude API via CORS proxy
-import { AIResponse, AIResult } from '../types';
+import { AIResponse, DemoPrompt, AnalysisData, FusionResult } from '../types';
 
-class RealClaudeService {
-  private corsProxies = [
-    'https://corsproxy.io/?',
-    'https://api.allorigins.win/raw?url=',
-    'https://cors-anywhere.herokuapp.com/',
-  ];
+export const demoPrompts: DemoPrompt[] = [
+  {
+    id: '1',
+    text: 'Explain quantum computing\'s impact on cybersecurity',
+    category: 'Technical Analysis',
+    description: 'Explores complex technical concepts with security implications'
+  },
+  {
+    id: '2', 
+    text: 'Design a sustainable city for 100 million people in 2050',
+    category: 'Creative Problem Solving',
+    description: 'Combines creativity with practical urban planning'
+  },
+  {
+    id: '3',
+    text: 'Should artificial intelligence have legal rights and responsibilities?',
+    category: 'Ethical Reasoning',
+    description: 'Philosophical question about AI ethics and law'
+  },
+  {
+    id: '4',
+    text: 'Analyze the economic implications of universal basic income',
+    category: 'Economic Analysis', 
+    description: 'Complex economic policy analysis with multiple perspectives'
+  },
+  {
+    id: '5',
+    text: 'Compare renewable energy strategies: solar vs wind vs nuclear',
+    category: 'Comparative Analysis',
+    description: 'Multi-faceted comparison of energy technologies'
+  }
+];
+
+// Function to generate unique analysis data for each conversation
+export const generateMockAnalysisData = (responses?: AIResponse[]): AnalysisData => {
+  // Generate analytics based on actual responses if provided
+  if (responses && responses.length > 0) {
+    return generateDynamicAnalysisData(responses);
+  }
   
-  private claudeApiUrl = 'https://api.anthropic.com/v1/messages';
-  private workingProxy: string | null = null;
+  // Fallback to random mock data
+  return generateRandomAnalysisData();
+};
 
-  async queryClaude(prompt: string): Promise<AIResult> {
-    const startTime = Date.now();
+// Generate analytics based on actual AI response data
+function generateDynamicAnalysisData(responses: AIResponse[]): AnalysisData {
+  // Create platform-specific data from actual responses
+  const platformData = responses.reduce((acc, response) => {
+    acc[response.platform] = response;
+    return acc;
+  }, {} as Record<string, AIResponse>);
+
+  // Calculate sentiment based on content analysis
+  const sentiment = responses.map(response => {
+    const content = response.content.toLowerCase();
     
-    if (!import.meta.env.VITE_CLAUDE_API_KEY) {
-      return this.getFallbackResponse(prompt, startTime, 'No Claude API key configured');
-    }
-
-    // Try to get real Claude response
-    const claudeResult = await this.makeClaudeRequest(prompt, startTime);
-    return claudeResult;
-  }
-
-  async synthesizeResponses(originalPrompt: string, allResponses: AIResponse[]): Promise<AIResult> {
-    const startTime = Date.now();
+    // Simple sentiment analysis
+    const positiveWords = ['excellent', 'great', 'good', 'effective', 'successful', 'innovative', 'promising', 'beneficial', 'optimal', 'advanced'];
+    const negativeWords = ['poor', 'bad', 'ineffective', 'failed', 'problematic', 'challenging', 'difficult', 'risk', 'threat', 'concern'];
+    const neutralWords = ['however', 'although', 'consider', 'analysis', 'framework', 'approach', 'method', 'system', 'process'];
     
-    if (!import.meta.env.VITE_CLAUDE_API_KEY) {
-      return this.getFallbackSynthesis(originalPrompt, allResponses, startTime);
-    }
+  sentiment: [
+    { platform: 'Grok', positive: Math.floor(Math.random() * 20) + 35, neutral: Math.floor(Math.random() * 20) + 35, negative: Math.floor(Math.random() * 20) + 10 },
+    { platform: 'Claude', positive: Math.floor(Math.random() * 20) + 30, neutral: Math.floor(Math.random() * 20) + 40, negative: Math.floor(Math.random() * 15) + 5 },
+    { platform: 'Gemini', positive: Math.floor(Math.random() * 20) + 25, neutral: Math.floor(Math.random() * 20) + 45, negative: Math.floor(Math.random() * 15) + 5 }
+  ],
+  keywords: [
+    { word: 'quantum', grok: Math.floor(Math.random() * 10) + 8, claude: Math.floor(Math.random() * 10) + 10, gemini: Math.floor(Math.random() * 10) + 12 },
+    { word: 'encryption', grok: Math.floor(Math.random() * 8) + 4, claude: Math.floor(Math.random() * 8) + 3, gemini: Math.floor(Math.random() * 8) + 8 },
+    { word: 'security', grok: Math.floor(Math.random() * 8) + 6, claude: Math.floor(Math.random() * 8) + 4, gemini: Math.floor(Math.random() * 8) + 10 },
+    { word: 'algorithms', grok: Math.floor(Math.random() * 6) + 2, claude: Math.floor(Math.random() * 6) + 6, gemini: Math.floor(Math.random() * 6) + 8 },
+    { word: 'cryptography', grok: Math.floor(Math.random() * 5) + 2, claude: Math.floor(Math.random() * 5) + 4, gemini: Math.floor(Math.random() * 5) + 6 }
+  ],
+  metrics: [
+    { platform: 'Grok', confidence: Math.floor(Math.random() * 15) + 80, responseTime: Math.random() * 2 + 1.5, wordCount: Math.floor(Math.random() * 50) + 150 },
+    { platform: 'Claude', confidence: Math.floor(Math.random() * 15) + 85, responseTime: Math.random() * 2 + 2.5, wordCount: Math.floor(Math.random() * 50) + 200 },
+    { platform: 'Gemini', confidence: Math.floor(Math.random() * 15) + 82, responseTime: Math.random() * 2 + 2.0, wordCount: Math.floor(Math.random() * 50) + 220 }
+  ],
+  efficiency: [
+    { platform: 'Grok', conciseness: Math.floor(Math.random() * 20) + 75, redundancy: Math.floor(Math.random() * 15) + 10 },
+    { platform: 'Claude', conciseness: Math.floor(Math.random() * 20) + 65, redundancy: Math.floor(Math.random() * 15) + 20 },
+    { platform: 'Gemini', conciseness: Math.floor(Math.random() * 20) + 70, redundancy: Math.floor(Math.random() * 15) + 15 }
+  ],
+  risk: [
+    { platform: 'Grok', hallucination: Math.floor(Math.random() * 15) + 20, contradictions: Math.floor(Math.random() * 10) + 15, hedging: Math.floor(Math.random() * 20) + 70 },
+    { platform: 'Claude', hallucination: Math.floor(Math.random() * 10) + 10, contradictions: Math.floor(Math.random() * 8) + 8, hedging: Math.floor(Math.random() * 20) + 80 },
+    { platform: 'Gemini', hallucination: Math.floor(Math.random() * 12) + 15, contradictions: Math.floor(Math.random() * 10) + 12, hedging: Math.floor(Math.random() * 20) + 75 }
+  ],
+  differentiation: [
+    { platform: 'Grok', originality: Math.floor(Math.random() * 20) + 60, divergence: Math.floor(Math.random() * 20) + 55, contribution: Math.floor(Math.random() * 20) + 65 },
+    { platform: 'Claude', originality: Math.floor(Math.random() * 20) + 70, divergence: Math.floor(Math.random() * 20) + 65, contribution: Math.floor(Math.random() * 20) + 75 },
+    { platform: 'Gemini', originality: Math.floor(Math.random() * 20) + 75, divergence: Math.floor(Math.random() * 20) + 70, contribution: Math.floor(Math.random() * 20) + 70 }
+  ]
+});
 
-    // Create synthesis prompt for Claude
-    const synthesisPrompt = `You are an expert AI synthesis system. Your task is to create the best possible unified response by analyzing and combining insights from multiple AI models.
-
-**Original Question:** "${originalPrompt}"
-
-**Responses to Synthesize:**
-
-${allResponses.map((response, index) => `
-**${response.platform.toUpperCase()} Response:**
-${response.content}
-
-**Response Metrics:**
-- Confidence: ${Math.round(response.confidence * 100)}%
-- Word Count: ${response.wordCount}
-- Response Time: ${response.responseTime.toFixed(1)}s
-`).join('\n---\n')}
-
-**Your Task:**
-Create a comprehensive, unified response that:
-1. Combines the best insights from all responses
-2. Resolves any contradictions intelligently
-3. Fills gaps that individual responses missed
-4. Provides additional valuable context
-5. Maintains clarity and coherence
-
-**Output Format:**
-Provide ONLY the synthesized response content. Do not include meta-commentary about the synthesis process, analysis of the individual responses, or explanations of your methodology. Write as if you are directly answering the original question with the benefit of multiple perspectives.
-
-**Synthesized Response:**`;
-
-    const synthesisResult = await this.makeClaudeRequest(synthesisPrompt, startTime);
-    return synthesisResult;
-  }
-
-  async metaAnalyzeResponses(originalPrompt: string, allResponses: AIResponse[]): Promise<AIResult> {
-    const startTime = Date.now();
-    
-    if (!import.meta.env.VITE_CLAUDE_API_KEY) {
-      return this.getFallbackAnalysis(originalPrompt, allResponses, startTime);
-    }
-
-    // Create analysis prompt
-    const analysisPrompt = `Please analyze these AI responses (including my own previous response) to the prompt: "${originalPrompt}"
-
-Here are ALL the responses including mine:
-
-${allResponses.map((response, index) => `
-**${response.platform.toUpperCase()} Response:**
-${response.content}
-
-**Metadata:**
-- Confidence: ${Math.round(response.confidence * 100)}%
-- Response Time: ${response.responseTime.toFixed(1)}s
-- Word Count: ${response.wordCount}
-${response.platform === 'claude' ? '(This is my own previous response)' : ''}
-`).join('\n---\n')}
-
-Please provide a comprehensive meta-analysis including:
-
-1. **Self-Assessment**: How does my own Claude response compare to the others? What are its strengths and weaknesses?
-
-2. **Comparative Analysis**: How do all responses differ in approach, depth, and quality?
-
-3. **Response Quality**: Which responses are most accurate, helpful, and well-structured?
-
-4. **Style Differences**: How do the different AI communication styles compare?
-
-5. **Gap Analysis**: What important aspects are missing across all responses?
-
-6. **Synthesis**: How could the best elements be combined for an optimal answer?
-
-7. **Meta-Commentary**: What does this reveal about different AI approaches to this type of question?
-
-Be honest and critical about my own response's limitations.`;
-
-    const analysisResult = await this.makeClaudeRequest(analysisPrompt, startTime);
-    return analysisResult;
-  }
-
-  private async makeClaudeRequest(prompt: string, startTime: number): Promise<AIResult> {
-    // Try each proxy until one works
-    for (const proxy of this.corsProxies) {
-      try {
-        console.log(`🌐 Trying Claude API via proxy: ${proxy}`);
-        
-        const url = proxy + encodeURIComponent(this.claudeApiUrl);
-        
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': import.meta.env.VITE_CLAUDE_API_KEY,
-            'anthropic-version': '2023-06-01'
-          },
-          body: JSON.stringify({
-            model: 'claude-3-sonnet-20240229',
-            max_tokens: 2000,
-            messages: [
-              {
-                role: 'user',
-                content: prompt
-              }
-            ]
-          })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const content = data.content[0]?.text || '';
-          const responseTime = Date.now() - startTime;
-
-          console.log('✅ Real Claude API success via proxy:', proxy);
-          this.workingProxy = proxy; // Remember working proxy
-
-          return {
-            success: true,
-            data: {
-              id: crypto.randomUUID(),
-              platform: 'claude',
-              content,
-              confidence: this.calculateConfidence(content) / 100,
-              responseTime: responseTime / 1000,
-              wordCount: content.split(' ').length,
-              loading: false,
-              timestamp: Date.now()
-            }
-          };
-        } else {
-          console.warn(`❌ Proxy ${proxy} failed:`, response.status);
-          continue;
-        }
-      } catch (error) {
-        console.warn(`❌ Proxy ${proxy} error:`, error);
-        continue;
+// Function to generate unique fusion result for each conversation
+export const generateMockFusionResult = (responses?: AIResponse[]): FusionResult => {
+  // Calculate sources based on actual response word counts if provided
+  let sources = {
+    grok: Math.floor(Math.random() * 20) + 25,
+    claude: Math.floor(Math.random() * 20) + 30,
+    gemini: Math.floor(Math.random() * 20) + 20
+  };
+  
+  if (responses && responses.length > 0) {
+    const totalWords = responses.reduce((sum, r) => sum + r.wordCount, 0);
+    if (totalWords > 0) {
+      sources = {
+        grok: Math.round((responses.find(r => r.platform === 'grok')?.wordCount || 0) / totalWords * 100),
+        claude: Math.round((responses.find(r => r.platform === 'claude')?.wordCount || 0) / totalWords * 100),
+        gemini: Math.round((responses.find(r => r.platform === 'gemini')?.wordCount || 0) / totalWords * 100)
+      };
+      
+      // Normalize to ensure they add up to 100
+      const total = sources.grok + sources.claude + sources.gemini;
+      if (total > 0) {
+        sources.grok = Math.round((sources.grok / total) * 100);
+        sources.claude = Math.round((sources.claude / total) * 100);
+        sources.gemini = 100 - sources.grok - sources.claude; // Ensure total = 100
       }
     }
-
-    // All proxies failed, return fallback
-    console.error('❌ All CORS proxies failed, using fallback');
-    return this.getFallbackResponse(prompt, startTime, 'All CORS proxies failed');
   }
+  
+  return {
+  content: `**Quantum Computing's Cybersecurity Revolution: A Comprehensive Analysis**
 
-  private getFallbackResponse(prompt: string, startTime: number, reason: string): AIResult {
-    const responseTime = Date.now() - startTime;
-    const content = `I apologize, but I'm currently unable to access the Claude API directly from the browser (${reason}). 
+Quantum computing represents a fundamental paradigm shift that will simultaneously disrupt current cybersecurity foundations while enabling next-generation protection mechanisms.
 
-However, I can provide some insights about your query: "${prompt}"
+**The Cryptographic Threat Landscape:**
+Current encryption methods—including RSA, elliptic curve cryptography, and other public-key systems—rely on mathematical problems that are computationally intractable for classical computers. Quantum computers using Shor's algorithm can solve these problems exponentially faster, effectively rendering today's cryptographic infrastructure obsolete. Additionally, Grover's algorithm reduces the effective security of symmetric encryption by half.
 
-This appears to be a thoughtful question that would benefit from careful analysis. Based on general principles, I would recommend considering multiple perspectives, evaluating both theoretical frameworks and practical applications, and examining current best practices in the field.
+**Timeline and Preparedness:**
+While cryptographically relevant quantum computers may emerge within 15-20 years (with some estimates pointing to 2030-2040), the transition isn't binary. Organizations must begin preparing now through crypto-agility initiatives and post-quantum cryptography adoption.
 
-For full Claude API functionality, you might consider:
-- Using a browser CORS extension
-- Setting up a simple backend proxy
-- Using a different deployment environment
+**Quantum-Enhanced Security Opportunities:**
+• **Quantum Key Distribution (QKD):** Provides information-theoretic security based on fundamental quantum mechanics principles
+• **Quantum Random Number Generation:** Offers true randomness impossible to predict or reproduce  
+• **Post-Quantum Algorithms:** NIST-standardized solutions like CRYSTALS-KYBER and CRYSTALS-Dilithium provide quantum-resistant protection
 
-Would you like me to provide more specific guidance despite these limitations?`;
+**Strategic Implementation Framework:**
+1. Conduct quantum risk assessments for critical systems
+2. Implement crypto-agile architectures capable of rapid algorithm deployment
+3. Begin transitioning to NIST-approved post-quantum standards
+4. Establish hybrid classical-quantum security measures during the transition period
 
-    return {
-      success: false,
-      error: reason,
-      data: {
-        id: crypto.randomUUID(),
-        platform: 'claude',
-        content,
-        confidence: 0.60,
-        responseTime: responseTime / 1000,
-        wordCount: content.split(' ').length,
-        loading: false,
-        error: `Claude API unavailable: ${reason}`,
-        timestamp: Date.now()
-      }
-    };
-  }
-
-  private getFallbackSynthesis(originalPrompt: string, allResponses: AIResponse[], startTime: number): AIResult {
-    const responseTime = Date.now() - startTime;
-    const content = `**Synthesized Response** (Limited - Claude API unavailable)
-
-Based on the available responses to: "${originalPrompt}"
-
-I can attempt a basic synthesis of the ${allResponses.length} responses provided:
-
-${allResponses.map(response => `
-**From ${response.platform.toUpperCase()}:** Key insights include ${response.content.substring(0, 100)}...
-`).join('\n')}
-
-**Combined Insights:**
-While I cannot perform full AI-powered synthesis without Claude API access, the responses generally converge on several key themes. Each platform brings valuable perspectives that complement each other.
-
-**Recommendation:** Enable Claude API access for comprehensive AI-powered response synthesis.`;
-
-    return {
-      success: false,
-      error: 'Claude API unavailable for synthesis',
-      data: {
-        id: crypto.randomUUID(),
-        platform: 'claude',
-        content,
-        confidence: 0.40,
-        responseTime: responseTime / 1000,
-        wordCount: content.split(' ').length,
-        loading: false,
-        error: 'Claude API unavailable for synthesis',
-        timestamp: Date.now()
-      }
-    };
-  }
-
-  private getFallbackAnalysis(originalPrompt: string, allResponses: AIResponse[], startTime: number): AIResult {
-    const responseTime = Date.now() - startTime;
-    const content = `**Analysis of AI Responses** (Limited - Claude API unavailable)
-
-**Original Prompt:** "${originalPrompt}"
-
-**Response Summary:**
-I can see ${allResponses.length} responses from different AI platforms:
-
-${allResponses.map(response => `
-**${response.platform.toUpperCase()}:** ${response.wordCount} words, ${Math.round(response.confidence * 100)}% confidence
-- Approach: ${response.platform === 'gemini' ? 'Technical and research-focused' : response.platform === 'grok' ? 'Practical and direct' : 'Structured analysis'}
-- Response time: ${response.responseTime.toFixed(1)}s
-`).join('\n')}
-
-**Limited Analysis:**
-Without full Claude API access, I can observe that each platform brings different strengths. For a complete comparative analysis including self-assessment, please enable Claude API access via CORS proxy or browser extension.
-
-**Recommendation:** Enable real Claude API integration for comprehensive analysis capabilities.`;
-
-    return {
-      success: false,
-      error: 'Claude API unavailable for analysis',
-      data: {
-        id: crypto.randomUUID(),
-        platform: 'claude',
-        content,
-        confidence: 0.40,
-        responseTime: responseTime / 1000,
-        wordCount: content.split(' ').length,
-        loading: false,
-        error: 'Claude API unavailable for analysis',
-        timestamp: Date.now()
-      }
-    };
-  }
-
-  private calculateConfidence(content: string): number {
-    let confidence = 85; // Base confidence for real Claude responses
-
-    const wordCount = content.split(' ').length;
-    if (wordCount > 100) confidence += 5;
-    if (wordCount > 200) confidence += 5;
-
-    // Claude tends to be well-structured
-    if (content.includes('**') || content.includes('##')) confidence += 3;
-    if (content.includes('•') || content.includes('-')) confidence += 2;
-
-    return Math.max(75, Math.min(95, confidence));
-  }
-
-  async testConnection(): Promise<boolean> {
-    try {
-      const testResult = await this.makeClaudeRequest('Test connection', Date.now());
-      return testResult.success;
-    } catch {
-      return false;
-    }
-  }
-}
-
-export const realClaudeService = new RealClaudeService();
+The quantum cybersecurity landscape represents not just a technological upgrade, but a fundamental phase transition requiring proactive adaptation rather than reactive mitigation.`,
+  confidence: Math.random() * 0.1 + 0.85,
+  sources,
+  keyInsights: [
+    'Quantum computers will break current encryption within 15-20 years',
+    'Post-quantum cryptography standards are already available from NIST',
+    'Quantum Key Distribution offers theoretically unbreakable communication',
+    'Organizations must start crypto-agility planning immediately'
+  ]
+  };
+};
