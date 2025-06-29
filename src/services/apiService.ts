@@ -510,7 +510,7 @@ The evidence suggests that this field is experiencing significant evolution, wit
 3. Continuous monitoring and adaptive management
 4. Cross-functional collaboration and knowledge sharing
 
-The complexity of this domain requires nuanced thinking and careful planning to achieve optimal results.`,
+The complexity of this domain requires nuanced thinking and careful planning to achieve optimal results.\`,
 
       grok: \`Grok's unfiltered take on "${promptPreview}":
 
