@@ -61,6 +61,23 @@ body {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     --radius: 0.75rem;
+    
+    /* Chart color variables for analytics */
+    --color-confidence: #3B82F6;
+    --color-grok: #64748B;
+    --color-claude: #8B5CF6;
+    --color-gemini: #3B82F6;
+    --color-positive: #10B981;
+    --color-neutral: #8B5CF6;
+    --color-negative: #EF4444;
+    --color-conciseness: #10B981;
+    --color-redundancy: #EF4444;
+    --color-hallucination: #EF4444;
+    --color-contradictions: #F59E0B;
+    --color-hedging: #10B981;
+    --color-originality: #8B5CF6;
+    --color-divergence: #3B82F6;
+    --color-contribution: #10B981;
   }
 }
 

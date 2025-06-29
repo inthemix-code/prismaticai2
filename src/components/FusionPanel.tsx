@@ -6,6 +6,7 @@ import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
+  ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Copy, Shield, Clock, Zap, Target, Lightbulb } from 'lucide-react';
 import { FusionResult } from '../types';
