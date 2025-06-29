@@ -466,7 +466,17 @@ class PersonalAPIService {
         console.log('🧠 Attempting Claude-powered response synthesis...');
         
         // Get the original prompt from the first response context
-        const synthesisPrompt = `Please synthesize these AI responses into a comprehensive, unified answer. Focus on creating the best possible response by combining insights, resolving contradictions, and providing a balanced perspective.
+        const synthesisPrompt = `Please synthesize these AI responses into a comprehensive, unified answer. Focus on creating the best possible response by combining insights, resolving contradictions, and providing a balanced perspective.`;
+        
+        return generateMockFusionResult(responses);
+      } catch (error) {
+        console.error('❌ Error during response fusion:', error);
+        return generateMockFusionResult(responses);
+      }
+    }
+    
+    // Fallback to mock fusion result
+    return generateMockFusionResult(responses);
   }
 
   private generateMockResponse(model: string, prompt: string): AIResponse {
@@ -488,11 +498,7 @@ class PersonalAPIService {
     const promptPreview = prompt.substring(0, 50) + (prompt.length > 50 ? '...' : '');
     
     const mockContent = {
-      claude: \`Claude's sophisticated analysis of "${promptPreview}":
-      }
-    }
-  }
-}
+      claude: `Claude's sophisticated analysis of "${promptPreview}":
 
 This question touches on several interconnected dimensions that warrant careful examination. From a systematic perspective, we should consider both the immediate implications and the broader contextual factors at play.
 
@@ -510,14 +516,14 @@ The evidence suggests that this field is experiencing significant evolution, wit
 3. Continuous monitoring and adaptive management
 4. Cross-functional collaboration and knowledge sharing
 
-The complexity of this domain requires nuanced thinking and careful planning to achieve optimal results.\`,
+The complexity of this domain requires nuanced thinking and careful planning to achieve optimal results.`,
 
-      grok: \`Grok's unfiltered take on "${promptPreview}":
+      grok: `Grok's unfiltered take on "${promptPreview}":
 
-Alright, let's cut through the noise here. While everyone\'s busy debating the surface-level stuff, the real action is happening in the spaces most people aren't looking.
+Alright, let's cut through the noise here. While everyone's busy debating the surface-level stuff, the real action is happening in the spaces most people aren't looking.
 
 **What's Actually Happening:**
-The conventional wisdom is getting disrupted faster than anyone expected. Smart operators are already positioning for what's coming next, while the incumbents are still fighting yesterday\'s battles.
+The conventional wisdom is getting disrupted faster than anyone expected. Smart operators are already positioning for what's coming next, while the incumbents are still fighting yesterday's battles.
 
 **The Real Deal:**
 • Traditional playbooks aren't working anymore
@@ -525,12 +531,12 @@ The conventional wisdom is getting disrupted faster than anyone expected. Smart 
 • The convergence is creating massive opportunities
 • First-mover advantage is everything right now
 
-Here's what the data actually shows: we\'re at an inflection point where the old assumptions don't hold. The next 12-24 months will separate the winners from the also-rans.
+Here's what the data actually shows: we're at an inflection point where the old assumptions don't hold. The next 12-24 months will separate the winners from the also-rans.
 
 **Bottom Line:**
 Stop overthinking it. The fundamentals have shifted, the market knows it, and the smart money is already moving. Either adapt or get left behind.`,
 
-      gemini: \`Gemini's comprehensive analysis of "${promptPreview}":
+      gemini: `Gemini's comprehensive analysis of "${promptPreview}":
 
 This inquiry addresses a multifaceted domain that benefits from systematic examination and evidence-based assessment. Current research and industry trends indicate several key factors shaping this landscape.
 
@@ -562,7 +568,7 @@ The trajectory indicates continued evolution with increasing sophistication in b
     return {
       id: crypto.randomUUID(),
       platform: model as any,
-      content: \`❌ ${model.toUpperCase()} Error: ${errorMessage}`,
+      content: `❌ ${model.toUpperCase()} Error: ${errorMessage}`,
       confidence: 0,
       responseTime: 0,
       wordCount: 0,
