@@ -174,8 +174,10 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
                   variant="ghost"
                   size="sm"
                   onClick={() => toggleModel('claude')}
-                  className={`text-muted-foreground hover:text-foreground hover:bg-muted/60 chat-input-transition font-medium text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8 ${
-                    selectedModels.claude ? 'bg-muted/60 text-foreground' : ''
+                  className={`bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:bg-white/10 transition-colors font-medium text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8 ${
+                    selectedModels.claude 
+                      ? 'bg-white/15 text-white border-white/20' 
+                      : 'text-muted-foreground hover:text-white'
                   }`}
                   disabled={isLoading}
                 >
@@ -188,8 +190,10 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
                   variant="ghost"
                   size="sm"
                   onClick={() => toggleModel('grok')}
-                  className={`text-muted-foreground hover:text-foreground hover:bg-muted/60 chat-input-transition font-medium text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8 ${
-                    selectedModels.grok ? 'bg-muted/60 text-foreground' : ''
+                   className={`bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:bg-white/10 transition-colors font-medium text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8 ${
+                     selectedModels.grok 
+                       ? 'bg-white/15 text-white border-white/20' 
+                       : 'text-muted-foreground hover:text-white'
                   }`}
                   disabled={isLoading}
                 >
@@ -202,8 +206,10 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
                   variant="ghost"
                   size="sm"
                   onClick={() => toggleModel('gemini')}
-                  className={`text-muted-foreground hover:text-foreground hover:bg-muted/60 chat-input-transition font-medium text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8 ${
-                    selectedModels.gemini ? 'bg-muted/60 text-foreground' : ''
+                   className={`bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:bg-white/10 transition-colors font-medium text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8 ${
+                     selectedModels.gemini 
+                       ? 'bg-white/15 text-white border-white/20' 
+                       : 'text-muted-foreground hover:text-white'
                   }`}
                   disabled={isLoading}
                 >
