@@ -1,4 +1,4 @@
-import { AIResponse, AIResult } from '../types';
+import { AIResult } from '../types';
 
 interface AIServiceConfig {
   claude: {

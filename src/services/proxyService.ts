@@ -1,16 +1,8 @@
 // src/services/proxyService.ts - Browser-compatible AI service
-import { AIResponse, AIResult } from '../types';
+import { AIResult } from '../types';
 import { realClaudeService } from './realClaudeService';
 
 class ProxyService {
-  private config = {
-    // Using public CORS proxies - NOT for production!
-    corsProxy: 'https://cors-anywhere.herokuapp.com/',
-    // Alternative proxies you can try:
-    // corsProxy: 'https://api.allorigins.win/raw?url=',
-    // corsProxy: 'https://corsproxy.io/?',
-  };
-
   async queryClaude(prompt: string): Promise<AIResult> {
     const startTime = Date.now();
     

@@ -1,13 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList } from 'recharts';
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Copy, Shield, Clock, Zap, Target, Lightbulb } from 'lucide-react';
 import { FusionResult } from '../types';
@@ -27,7 +25,7 @@ const confidenceChartConfig = {
 } satisfies ChartConfig;
 
 // Dynamic icons for key insights
-const getInsightIcon = (insight: string, index: number) => {
+const getInsightIcon = (insight: string, _index: number) => {
   const lowerInsight = insight.toLowerCase();
   
   if (lowerInsight.includes('quantum') || lowerInsight.includes('break') || lowerInsight.includes('encryption')) {
