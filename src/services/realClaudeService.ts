@@ -13,6 +13,130 @@ class RealClaudeService {
   private readonly apiKey = import.meta.env.VITE_CLAUDE_API_KEY;
   private readonly debugMode = import.meta.env.VITE_DEBUG_MODE === 'true';
 
+    if (!this.apiKey) {
+      return {
+        success: false,
+        error: 'Claude API key not available',
+        data: {
+          id: crypto.randomUUID(),
+          platform: 'claude' as const,
+          content: '',
+          confidence: 0,
+          responseTime: 0,
+          wordCount: 0,
+          loading: false,
+          error: 'Claude API key not available',
+          timestamp: Date.now()
+        }
+      };
+    }
+
+    if (!this.apiKey.startsWith('sk-ant-api')) {
+      return {
+        success: false,
+        error: 'Invalid Claude API key format',
+        data: {
+          id: crypto.randomUUID(),
+          platform: 'claude' as const,
+          content: '',
+          confidence: 0,
+          responseTime: 0,
+          wordCount: 0,
+          loading: false,
+          error: 'Invalid Claude API key format',
+          timestamp: Date.now()
+        }
+      };
+    }
+
+    try {
+      if (this.debugMode) {
+        console.log('🤖 Calling real Claude API for query...');
+      }
+
+      const startTime = Date.now();
+      
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-sonnet-20240229',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Real Claude API Error:', response.status, errorText);
+        
+        return {
+          success: false,
+          error: `Claude API error: ${response.status}`,
+          data: {
+            id: crypto.randomUUID(),
+            platform: 'claude' as const,
+            content: '',
+            confidence: 0,
+            responseTime: (Date.now() - startTime) / 1000,
+            wordCount: 0,
+            loading: false,
+            error: `Claude API error: ${response.status}`,
+            timestamp: Date.now()
+          }
+        };
+      }
+
+      const data = await response.json();
+      const responseTime = Date.now() - startTime;
+      const content = data.content[0]?.text || 'No response';
+
+      if (this.debugMode) {
+        console.log('✅ Real Claude API response received:', {
+          responseTime: `${responseTime}ms`,
+          contentLength: content.length,
+          wordCount: content.split(' ').length
+        });
+      }
+
+      return {
+        success: true,
+        data: {
+          id: crypto.randomUUID(),
+          platform: 'claude' as const,
+          content,
+          confidence: 0.92,
+          responseTime: responseTime / 1000,
+          wordCount: content.split(' ').length,
+          loading: false,
+          timestamp: Date.now()
+        }
+      };
+    } catch (error) {
+      console.error('❌ Real Claude API Error:', error);
+      
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        data: {
+          id: crypto.randomUUID(),
+          platform: 'claude' as const,
+          content: '',
+          confidence: 0,
+          responseTime: 0,
+          wordCount: 0,
+          loading: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: Date.now()
+        }
+      };
+    }
+  }
+
   async synthesizeResponses(originalPrompt: string, responses: AIResponse[]): Promise<SynthesisResult> {
     if (!this.apiKey) {
       return {

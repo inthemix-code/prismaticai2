@@ -174,15 +174,32 @@ class PersonalAPIService {
   }
 
   async getFusionResult(responses: AIResponse[]): Promise<FusionResult> {
+    console.log('🔄 getFusionResult called with responses:', responses.length);
+    
     // Try to use real Claude for intelligent synthesis
     if (import.meta.env.VITE_CLAUDE_API_KEY && responses.length > 0) {
       try {
-        console.log('🧠 Attempting Claude-powered response synthesis...');
+        // This is a fallback - the main synthesis should happen in the store with proper prompt context
+        console.log('⚠️ getFusionResult: No prompt provided, using fallback mock data');
+        return generateMockFusionResult(responses);
+      } catch (error) {
+        console.error('❌ Error during response fusion:', error);
+      }
+    }
+    
+    console.log('📝 Using mock fusion result');
+    return generateMockFusionResult(responses);
+  }
+
+  async getFusionResultWithPrompt(prompt: string, responses: AIResponse[]): Promise<FusionResult> {
+    console.log('🔄 getFusionResultWithPrompt called:', { prompt: prompt.substring(0, 50) + '...', responses: responses.length });
+    
+    // Try to use real Claude for intelligent synthesis
+    if (import.meta.env.VITE_CLAUDE_API_KEY && responses.length > 0 && prompt) {
+      try {
+        console.log('🧠 Attempting Claude-powered response synthesis with prompt context...');
         
-        // Extract the original prompt (we'll need to pass this from the store)
-        const originalPrompt = 'Query'; // This should be passed from the calling context
-        
-        const synthesisResult = await realClaudeService.synthesizeResponses(originalPrompt, responses);
+        const synthesisResult = await realClaudeService.synthesizeResponses(prompt, responses);
         
         if (synthesisResult.success) {
           console.log('✅ Claude synthesis successful');
@@ -213,14 +230,14 @@ class PersonalAPIService {
             keyInsights
           };
         } else {
-          console.warn('⚠️ Claude synthesis failed, falling back to mock:', synthesisResult.error);
+          console.warn('⚠️ Claude synthesis failed, falling back to mock data:', synthesisResult.error);
         }
       } catch (error) {
         console.error('❌ Error during response fusion:', error);
       }
     }
     
-    console.log('📝 Using mock fusion result');
+    console.log('📝 Using mock fusion result (no Claude API key or no responses)');
     return generateMockFusionResult(responses);
   }
 

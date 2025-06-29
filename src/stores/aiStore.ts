@@ -194,45 +194,8 @@ export const useAIStore = create<AIStore>((set, get) => ({
       const responses = await apiService.queryAllModels(prompt, selectedModels || { claude: true, grok: true, gemini: true });
       const analysisData = await apiService.getAnalysisData(responses);
       
-      // Pass the original prompt to getFusionResult for better synthesis
-      const fusionResult = await apiService.getFusionResult(responses);
-      
-      // If we have Claude API and real responses, attempt real synthesis
-      if (import.meta.env.VITE_CLAUDE_API_KEY && responses.length > 0) {
-        try {
-          console.log('🔄 Attempting real Claude synthesis with prompt context...');
-          
-          // Create a context-aware synthesis using realClaudeService
-          const { realClaudeService } = await import('../services/realClaudeService');
-          const synthesisResult = await realClaudeService.synthesizeResponses(prompt, responses);
-          
-          if (synthesisResult.success) {
-            // Update fusion result with real synthesis
-            const totalWords = responses.reduce((sum, r) => sum + r.wordCount, 0);
-            const sources = {
-              grok: Math.round((responses.find(r => r.platform === 'grok')?.wordCount || 0) / totalWords * 100),
-              claude: Math.round((responses.find(r => r.platform === 'claude')?.wordCount || 0) / totalWords * 100),
-              gemini: Math.round((responses.find(r => r.platform === 'gemini')?.wordCount || 0) / totalWords * 100)
-            };
-            
-            // Normalize sources
-            const total = sources.grok + sources.claude + sources.gemini;
-            if (total > 0) {
-              sources.grok = Math.round((sources.grok / total) * 100);
-              sources.claude = Math.round((sources.claude / total) * 100);
-              sources.gemini = 100 - sources.grok - sources.claude;
-            }
-            
-            fusionResult.content = synthesisResult.data.content;
-            fusionResult.confidence = synthesisResult.data.confidence;
-            fusionResult.sources = sources;
-            
-            console.log('✅ Real Claude synthesis successful');
-          }
-        } catch (error) {
-          console.warn('⚠️ Real synthesis failed, using mock:', error);
-        }
-      }
+      // Use the new method that passes prompt context for real synthesis
+      const fusionResult = await apiService.getFusionResultWithPrompt(prompt, responses);
       
       // Update the store with the responses
       set(state => {
