@@ -13,6 +13,7 @@ class RealClaudeService {
   private readonly apiKey = import.meta.env.VITE_CLAUDE_API_KEY;
   private readonly debugMode = import.meta.env.VITE_DEBUG_MODE === 'true';
 
+  async getResponse(prompt: string): Promise<AIResponse> {
     if (!this.apiKey) {
       return {
         success: false,
