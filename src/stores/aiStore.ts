@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { AIResponse, ConversationTurn, Conversation } from '../types';
 import { apiService } from '../services/apiService';
+import { validateSearchRequest } from '../utils/validation';
 
 interface AIStore {
   // State
