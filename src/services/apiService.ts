@@ -454,9 +454,16 @@ class PersonalAPIService {
   }
 
   async getAnalysisData(): Promise<AnalysisData> {
-    // For now, always return mock analysis data as this requires complex NLP processing
+    // This will be called with responses from the store
     await new Promise(resolve => setTimeout(resolve, 500));
-    return generateMockAnalysisData();
+    // Fallback - in practice this should receive responses from the store
+    return generateMockAnalysisData([]);
+  }
+
+  async getAnalysisDataFromResponses(responses: AIResponse[]): Promise<AnalysisData> {
+    // Generate dynamic analysis based on actual AI responses
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return generateMockAnalysisData(responses);
   }
 
   async getFusionResult(responses: AIResponse[]): Promise<FusionResult> {

@@ -192,7 +192,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
     try {
       // Use the API service wrapper
       const responses = await apiService.queryAllModels(prompt, selectedModels || { claude: true, grok: true, gemini: true });
-      const analysisData = await apiService.getAnalysisData();
+      const analysisData = await apiService.getAnalysisDataFromResponses(responses);
       const fusionResult = await apiService.getFusionResult(responses);
       
       // Update the store with the responses
