@@ -10,7 +10,7 @@
 # Environment variables that will be available to functions
 # Note: Actual values should be set in Netlify UI under Site Settings > Environment Variables
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "20.14.0"
 
 # Redirect rules for SPA (Single Page Application)
 [[redirects]]
