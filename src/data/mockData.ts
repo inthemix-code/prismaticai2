@@ -70,7 +70,34 @@ export const generateMockAnalysisData = (): AnalysisData => ({
 });
 
 // Function to generate unique fusion result for each conversation
-export const generateMockFusionResult = (): FusionResult => ({
+export const generateMockFusionResult = (responses?: AIResponse[]): FusionResult => {
+  // Calculate sources based on actual response word counts if provided
+  let sources = {
+    grok: Math.floor(Math.random() * 20) + 25,
+    claude: Math.floor(Math.random() * 20) + 30,
+    gemini: Math.floor(Math.random() * 20) + 20
+  };
+  
+  if (responses && responses.length > 0) {
+    const totalWords = responses.reduce((sum, r) => sum + r.wordCount, 0);
+    if (totalWords > 0) {
+      sources = {
+        grok: Math.round((responses.find(r => r.platform === 'grok')?.wordCount || 0) / totalWords * 100),
+        claude: Math.round((responses.find(r => r.platform === 'claude')?.wordCount || 0) / totalWords * 100),
+        gemini: Math.round((responses.find(r => r.platform === 'gemini')?.wordCount || 0) / totalWords * 100)
+      };
+      
+      // Normalize to ensure they add up to 100
+      const total = sources.grok + sources.claude + sources.gemini;
+      if (total > 0) {
+        sources.grok = Math.round((sources.grok / total) * 100);
+        sources.claude = Math.round((sources.claude / total) * 100);
+        sources.gemini = 100 - sources.grok - sources.claude; // Ensure total = 100
+      }
+    }
+  }
+  
+  return {
   content: `**Quantum Computing's Cybersecurity Revolution: A Comprehensive Analysis**
 
 Quantum computing represents a fundamental paradigm shift that will simultaneously disrupt current cybersecurity foundations while enabling next-generation protection mechanisms.
@@ -94,15 +121,12 @@ While cryptographically relevant quantum computers may emerge within 15-20 years
 
 The quantum cybersecurity landscape represents not just a technological upgrade, but a fundamental phase transition requiring proactive adaptation rather than reactive mitigation.`,
   confidence: Math.random() * 0.1 + 0.85,
-  sources: {
-    grok: Math.floor(Math.random() * 20) + 25,
-    claude: Math.floor(Math.random() * 20) + 30,
-    gemini: Math.floor(Math.random() * 20) + 20
-  },
+  sources,
   keyInsights: [
     'Quantum computers will break current encryption within 15-20 years',
     'Post-quantum cryptography standards are already available from NIST',
     'Quantum Key Distribution offers theoretically unbreakable communication',
     'Organizations must start crypto-agility planning immediately'
   ]
-});
+  };
+};

@@ -23,7 +23,48 @@ class RealClaudeService {
     return claudeResult;
   }
 
-  async analyzeAllResponses(originalPrompt: string, allResponses: AIResponse[]): Promise<AIResult> {
+  async synthesizeResponses(originalPrompt: string, allResponses: AIResponse[]): Promise<AIResult> {
+    const startTime = Date.now();
+    
+    if (!import.meta.env.VITE_CLAUDE_API_KEY) {
+      return this.getFallbackSynthesis(originalPrompt, allResponses, startTime);
+    }
+
+    // Create synthesis prompt for Claude
+    const synthesisPrompt = `You are an expert AI synthesis system. Your task is to create the best possible unified response by analyzing and combining insights from multiple AI models.
+
+**Original Question:** "${originalPrompt}"
+
+**Responses to Synthesize:**
+
+${allResponses.map((response, index) => `
+**${response.platform.toUpperCase()} Response:**
+${response.content}
+
+**Response Metrics:**
+- Confidence: ${Math.round(response.confidence * 100)}%
+- Word Count: ${response.wordCount}
+- Response Time: ${response.responseTime.toFixed(1)}s
+`).join('\n---\n')}
+
+**Your Task:**
+Create a comprehensive, unified response that:
+1. Combines the best insights from all responses
+2. Resolves any contradictions intelligently
+3. Fills gaps that individual responses missed
+4. Provides additional valuable context
+5. Maintains clarity and coherence
+
+**Output Format:**
+Provide ONLY the synthesized response content. Do not include meta-commentary about the synthesis process, analysis of the individual responses, or explanations of your methodology. Write as if you are directly answering the original question with the benefit of multiple perspectives.
+
+**Synthesized Response:**`;
+
+    const synthesisResult = await this.makeClaudeRequest(synthesisPrompt, startTime);
+    return synthesisResult;
+  }
+
+  async metaAnalyzeResponses(originalPrompt: string, allResponses: AIResponse[]): Promise<AIResult> {
     const startTime = Date.now();
     
     if (!import.meta.env.VITE_CLAUDE_API_KEY) {
@@ -40,8 +81,8 @@ ${allResponses.map((response, index) => `
 ${response.content}
 
 **Metadata:**
-- Confidence: ${response.confidence}%
-- Response Time: ${response.responseTime}ms
+- Confidence: ${Math.round(response.confidence * 100)}%
+- Response Time: ${response.responseTime.toFixed(1)}s
 - Word Count: ${response.wordCount}
 ${response.platform === 'claude' ? '(This is my own previous response)' : ''}
 `).join('\n---\n')}
@@ -158,6 +199,40 @@ Would you like me to provide more specific guidance despite these limitations?`;
         wordCount: content.split(' ').length,
         loading: false,
         error: `Claude API unavailable: ${reason}`,
+        timestamp: Date.now()
+      }
+    };
+  }
+
+  private getFallbackSynthesis(originalPrompt: string, allResponses: AIResponse[], startTime: number): AIResult {
+    const responseTime = Date.now() - startTime;
+    const content = `**Synthesized Response** (Limited - Claude API unavailable)
+
+Based on the available responses to: "${originalPrompt}"
+
+I can attempt a basic synthesis of the ${allResponses.length} responses provided:
+
+${allResponses.map(response => `
+**From ${response.platform.toUpperCase()}:** Key insights include ${response.content.substring(0, 100)}...
+`).join('\n')}
+
+**Combined Insights:**
+While I cannot perform full AI-powered synthesis without Claude API access, the responses generally converge on several key themes. Each platform brings valuable perspectives that complement each other.
+
+**Recommendation:** Enable Claude API access for comprehensive AI-powered response synthesis.`;
+
+    return {
+      success: false,
+      error: 'Claude API unavailable for synthesis',
+      data: {
+        id: crypto.randomUUID(),
+        platform: 'claude',
+        content,
+        confidence: 0.40,
+        responseTime: responseTime / 1000,
+        wordCount: content.split(' ').length,
+        loading: false,
+        error: 'Claude API unavailable for synthesis',
         timestamp: Date.now()
       }
     };
