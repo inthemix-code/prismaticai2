@@ -15,7 +15,7 @@ class GeminiSynthesisService {
   private readonly debugMode = import.meta.env.VITE_DEBUG_MODE === 'true';
 
   async synthesizeResponses(originalPrompt: string, responses: AIResponse[]): Promise<SynthesisResult> {
-    if (!this.apiKey || !this.apiKey.startsWith('AIza')) {
+    if (!this.apiKey || (!this.apiKey.startsWith('AIzaSy') && !this.apiKey.startsWith('AIza')) || this.apiKey.includes('your-gemini-key-here')) {
       console.log('⚠️ Gemini API key not available for synthesis');
       return {
         success: false,
@@ -35,38 +35,24 @@ class GeminiSynthesisService {
 
       const startTime = Date.now();
 
-      // Call Gemini API
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${this.apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: synthesisPrompt
-                }
-              ]
-            }
-          ],
-          generationConfig: {
-            maxOutputTokens: 2000,
-            temperature: 0.7
-          }
-        })
-      });
+      // Try Gemini 1.5 Flash first
+      let response = await this.callGeminiAPI('gemini-1.5-flash', synthesisPrompt);
+      
+      // If Flash fails, try Pro model
+      if (!response || !response.ok) {
+        console.log('🔄 Gemini Flash failed, trying Pro model...');
+        response = await this.callGeminiAPI('gemini-1.5-pro', synthesisPrompt);
+      }
 
       const responseTime = Date.now() - startTime;
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Gemini synthesis API error:', response.status, errorText);
+      if (!response || !response.ok) {
+        const errorText = response ? await response.text() : 'No response';
+        console.error('❌ Gemini synthesis API error:', response?.status, errorText);
         
         return {
           success: false,
-          error: `Gemini synthesis API error: ${response.status}`
+          error: `Gemini synthesis API error: ${response?.status || 'No response'}`
         };
       }
 
@@ -99,13 +85,9 @@ class GeminiSynthesisService {
     }
   }
 
-  async testConnection(): Promise<boolean> {
-    if (!this.apiKey || !this.apiKey.startsWith('AIza')) {
-      return false;
-    }
-
+  private async callGeminiAPI(model: string, prompt: string): Promise<Response | null> {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${this.apiKey}`, {
+      return await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -115,18 +97,31 @@ class GeminiSynthesisService {
             {
               parts: [
                 {
-                  text: 'Hello'
+                  text: prompt
                 }
               ]
             }
           ],
           generationConfig: {
-            maxOutputTokens: 10
+            maxOutputTokens: 2000,
+            temperature: 0.7
           }
         })
       });
+    } catch (error) {
+      console.error(`❌ Error calling Gemini ${model}:`, error);
+      return null;
+    }
+  }
 
-      return response.ok;
+  async testConnection(): Promise<boolean> {
+    if (!this.apiKey || (!this.apiKey.startsWith('AIzaSy') && !this.apiKey.startsWith('AIza')) || this.apiKey.includes('your-gemini-key-here')) {
+      return false;
+    }
+
+    try {
+      const response = await this.callGeminiAPI('gemini-1.5-flash', 'Hello');
+      return response?.ok || false;
     } catch {
       return false;
     }

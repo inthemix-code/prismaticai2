@@ -32,11 +32,27 @@ exports.handler = async (event, context) => {
     
     if (!claudeApiKey) {
       console.error('CLAUDE_API_KEY not found in environment variables');
+      console.log('Available env vars:', Object.keys(process.env).filter(key => key.includes('CLAUDE')));
+      
       return {
         statusCode: 500,
         headers,
         body: JSON.stringify({ 
-          error: 'Claude API key not configured',
+          error: 'Claude API key not configured in Netlify environment variables. Please add CLAUDE_API_KEY to your site settings.',
+          success: false,
+          hint: 'Go to Netlify Dashboard > Site Settings > Environment Variables and add CLAUDE_API_KEY'
+        })
+      };
+    }
+
+    // Validate Claude API key format
+    if (!claudeApiKey.startsWith('sk-ant-api')) {
+      console.error('Invalid Claude API key format');
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ 
+          error: 'Invalid Claude API key format. Key should start with sk-ant-api',
           success: false 
         })
       };
@@ -73,7 +89,10 @@ exports.handler = async (event, context) => {
     console.log('🤖 Claude proxy: Making API request...');
     const startTime = Date.now();
 
-    // Call Claude API
+    // Call Claude API with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -88,9 +107,11 @@ exports.handler = async (event, context) => {
           role: 'user', 
           content: prompt 
         }]
-      })
+      }),
+      signal: controller.signal
     });
 
+    clearTimeout(timeoutId);
     const responseTime = Date.now() - startTime;
 
     if (!response.ok) {
@@ -137,6 +158,18 @@ exports.handler = async (event, context) => {
 
   } catch (error) {
     console.error('❌ Claude proxy error:', error);
+    
+    // Handle timeout specifically
+    if (error.name === 'AbortError') {
+      return {
+        statusCode: 408,
+        headers,
+        body: JSON.stringify({ 
+          error: 'Request timeout - Claude API took too long to respond',
+          success: false 
+        })
+      };
+    }
     
     return {
       statusCode: 500,

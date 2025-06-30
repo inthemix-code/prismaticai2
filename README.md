@@ -26,10 +26,15 @@ Create a `.env` file with your API keys:
 ```env
 # Copy from .env.example and add your actual keys
 VITE_CLAUDE_API_KEY=sk-ant-api-your-key-here
-VITE_GROK_API_KEY=xai-your-key-here
+VITE_GROQ_API_KEY=gsk_your-key-here
 VITE_GEMINI_API_KEY=AIza-your-key-here
-VITE_GROQ_API_KEY=gsk_your-groq-key-here
 ```
+
+**Important Notes:**
+- Use valid API keys from the respective providers
+- For Groq API: Get your key from [Groq Console](https://console.groq.com/)
+- For Gemini API: The app now uses `gemini-1.5-flash` and `gemini-1.5-pro` models
+- Invalid or placeholder keys will automatically fall back to mock responses
 
 ## Deployment to Netlify
 
@@ -54,7 +59,20 @@ CLAUDE_API_KEY=sk-ant-api-your-actual-key-here
 - Don't expose real API keys in frontend environment variables
 - The Netlify Function will securely handle Claude API calls
 
-### 3. Netlify Functions
+### 3. Setting Up Netlify Environment Variables
+
+1. Go to your Netlify dashboard
+2. Select your site
+3. Navigate to **Site Settings**
+4. Click on **Environment Variables** in the left sidebar
+5. Click **Add a variable**
+6. Add:
+   - Variable name: `CLAUDE_API_KEY`
+   - Value: Your actual Claude API key (starts with `sk-ant-api`)
+7. Click **Save**
+8. Redeploy your site for changes to take effect
+
+### 4. Netlify Functions
 
 The project includes two Netlify Functions:
 - `claude-proxy`: Handles direct Claude API queries
@@ -62,12 +80,45 @@ The project includes two Netlify Functions:
 
 These functions automatically solve CORS issues and keep API keys secure.
 
-### 4. Deploy
+### 5. Deploy
 
 1. Connect your repository to Netlify
 2. Build command: `npm run build`
 3. Publish directory: `dist`
-4. Deploy!
+4. Set environment variables as described above
+5. Deploy!
+
+## Troubleshooting
+
+### Common Issues
+
+1. **502 Error from Netlify Functions**
+   - Ensure `CLAUDE_API_KEY` is set in Netlify environment variables
+   - Check that the API key starts with `sk-ant-api`
+   - Redeploy after setting environment variables
+
+2. **401 Error from Groq API**
+   - Verify your `VITE_GROQ_API_KEY` in `.env` file
+   - Ensure the key starts with `gsk_`
+   - Get a new key from [Groq Console](https://console.groq.com/)
+
+3. **404 Error from Gemini API**
+   - The app now uses updated model names: `gemini-1.5-flash` and `gemini-1.5-pro`
+   - Verify your `VITE_GEMINI_API_KEY` is valid
+   - Ensure the key starts with `AIza`
+
+4. **Mock Data Fallbacks**
+   - If API keys are invalid or missing, the app automatically uses mock responses
+   - This ensures the app remains functional for demonstration purposes
+   - Real API responses provide better synthesis quality
+
+### Checking Netlify Function Logs
+
+1. Go to your Netlify dashboard
+2. Select your site
+3. Click on **Functions** in the top navigation
+4. Click on the function name (e.g., `claude-proxy`)
+5. View the logs to see detailed error messages
 
 ## Architecture
 
@@ -92,7 +143,7 @@ For local development with real APIs:
 - **State Management**: Zustand
 - **Charts**: Recharts
 - **Deployment**: Netlify with Functions
-- **APIs**: Claude, Grok/Groq, Gemini
+- **APIs**: Claude, Groq (for Grok functionality), Gemini
 
 ## Development Scripts
 

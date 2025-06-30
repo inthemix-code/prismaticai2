@@ -32,11 +32,27 @@ exports.handler = async (event, context) => {
     
     if (!claudeApiKey) {
       console.error('CLAUDE_API_KEY not found in environment variables');
+      console.log('Available env vars:', Object.keys(process.env).filter(key => key.includes('CLAUDE')));
+      
       return {
         statusCode: 500,
         headers,
         body: JSON.stringify({ 
-          error: 'Claude API key not configured',
+          error: 'Claude API key not configured in Netlify environment variables. Please add CLAUDE_API_KEY to your site settings.',
+          success: false,
+          hint: 'Go to Netlify Dashboard > Site Settings > Environment Variables and add CLAUDE_API_KEY'
+        })
+      };
+    }
+
+    // Validate Claude API key format
+    if (!claudeApiKey.startsWith('sk-ant-api')) {
+      console.error('Invalid Claude API key format');
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ 
+          error: 'Invalid Claude API key format. Key should start with sk-ant-api',
           success: false 
         })
       };
@@ -76,7 +92,10 @@ exports.handler = async (event, context) => {
     // Create synthesis prompt
     const synthesisPrompt = createSynthesisPrompt(originalPrompt, responses);
 
-    // Call Claude API for synthesis
+    // Call Claude API for synthesis with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 second timeout for synthesis
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -91,9 +110,11 @@ exports.handler = async (event, context) => {
           role: 'user', 
           content: synthesisPrompt 
         }]
-      })
+      }),
+      signal: controller.signal
     });
 
+    clearTimeout(timeoutId);
     const responseTime = Date.now() - startTime;
 
     if (!response.ok) {
@@ -120,7 +141,7 @@ exports.handler = async (event, context) => {
     console.log('✅ Claude synthesis: Success', {
       responseTime: `${responseTime}ms`,
       contentLength: content.length,
-      confidence: `${confidence}%`
+      confidence: `${Math.round(confidence * 100)}%`
     });
 
     // Return synthesis result
@@ -131,13 +152,25 @@ exports.handler = async (event, context) => {
         success: true,
         data: {
           content,
-          confidence: confidence / 100
+          confidence
         }
       })
     };
 
   } catch (error) {
     console.error('❌ Claude synthesis error:', error);
+    
+    // Handle timeout specifically
+    if (error.name === 'AbortError') {
+      return {
+        statusCode: 408,
+        headers,
+        body: JSON.stringify({ 
+          error: 'Synthesis timeout - Claude API took too long to respond',
+          success: false 
+        })
+      };
+    }
     
     return {
       statusCode: 500,
@@ -154,7 +187,7 @@ exports.handler = async (event, context) => {
 // Helper function to create synthesis prompt
 function createSynthesisPrompt(originalPrompt, responses) {
   const responseTexts = responses
-    .filter(r => !r.error && r.content.trim())
+    .filter(r => !r.error && r.content && r.content.trim())
     .map(r => `**${r.platform.toUpperCase()} Response:**\n${r.content.trim()}`)
     .join('\n\n---\n\n');
 
@@ -181,28 +214,28 @@ Create a unified response that:
 
 // Helper function to calculate synthesis confidence
 function calculateSynthesisConfidence(content, responses) {
-  let confidence = 80; // Base confidence for successful real synthesis
+  let confidence = 0.80; // Base confidence for successful real synthesis
 
   // Content quality indicators
-  if (content.length > 1000) confidence += 5;
-  if (content.length > 2000) confidence += 3;
+  if (content.length > 1000) confidence += 0.05;
+  if (content.length > 2000) confidence += 0.03;
   
   // Structure quality (headings, bullets, formatting)
-  if (content.includes('**') || content.includes('##')) confidence += 4;
-  if (content.includes('•') || content.includes('1.') || content.includes('-')) confidence += 3;
+  if (content.includes('**') || content.includes('##')) confidence += 0.04;
+  if (content.includes('•') || content.includes('1.') || content.includes('-')) confidence += 0.03;
   
   // Number of source responses
-  confidence += Math.min(responses.length * 1, 5);
+  confidence += Math.min(responses.length * 0.01, 0.05);
   
   // Balanced analysis indicators
   const balanceWords = ['however', 'although', 'while', 'whereas', 'on the other hand'];
   const hasBalance = balanceWords.some(word => content.toLowerCase().includes(word));
-  if (hasBalance) confidence += 2;
+  if (hasBalance) confidence += 0.02;
   
   // Actionable content indicators
   const actionWords = ['recommend', 'should', 'implement', 'consider', 'strategy'];
   const hasAction = actionWords.some(word => content.toLowerCase().includes(word));
-  if (hasAction) confidence += 2;
+  if (hasAction) confidence += 0.02;
 
-  return Math.min(confidence, 96); // Cap at 96% for real synthesis
+  return Math.min(confidence, 0.96); // Cap at 96% for real synthesis
 }

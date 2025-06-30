@@ -84,12 +84,21 @@ This analysis reflects current understanding while acknowledging areas of ongoin
     const startTime = Date.now();
     
     try {
+      // Check if we have a valid Groq API key
+      const groqApiKey = import.meta.env.VITE_GROQ_API_KEY;
+      if (!groqApiKey || !groqApiKey.startsWith('gsk_') || groqApiKey.includes('your-groq-key-here')) {
+        console.log('⚠️ Invalid or missing Groq API key, using mock response');
+        throw new Error('Invalid Groq API key');
+      }
+
+      console.log('🔄 Attempting Groq API call...');
+      
       // Try Groq API (which sometimes works better with CORS)
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}` // Note: GROQ not GROK
+          'Authorization': `Bearer ${groqApiKey}`
         },
         body: JSON.stringify({
           model: 'llama3-8b-8192',
@@ -105,6 +114,8 @@ This analysis reflects current understanding while acknowledging areas of ongoin
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Groq API error:', response.status, errorText);
         throw new Error(`Groq API error: ${response.status}`);
       }
 
@@ -112,6 +123,7 @@ This analysis reflects current understanding while acknowledging areas of ongoin
       const responseTime = Date.now() - startTime;
       const content = data.choices[0].message.content;
 
+      console.log('✅ Groq API successful');
       return {
         success: true,
         data: {
@@ -126,6 +138,7 @@ This analysis reflects current understanding while acknowledging areas of ongoin
         }
       };
     } catch (error) {
+      console.log('📝 Using enhanced Grok mock response');
       // Fall back to enhanced mock data
       return this.getMockGroqResponse(prompt, startTime);
     }
@@ -135,8 +148,17 @@ This analysis reflects current understanding while acknowledging areas of ongoin
     const startTime = Date.now();
     
     try {
-      // Gemini API works better from browser
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`, {
+      // Check if we have a valid Gemini API key
+      const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!geminiApiKey || (!geminiApiKey.startsWith('AIzaSy') && !geminiApiKey.startsWith('AIza')) || geminiApiKey.includes('your-gemini-key-here')) {
+        console.log('⚠️ Invalid or missing Gemini API key, using mock response');
+        throw new Error('Invalid Gemini API key');
+      }
+
+      console.log('🔄 Attempting Gemini API call...');
+      
+      // Updated to use the correct Gemini model
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -159,13 +181,62 @@ This analysis reflects current understanding while acknowledging areas of ongoin
       });
 
       if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Gemini API error:', response.status, errorText);
+        
+        // Try with the pro model as fallback
+        console.log('🔄 Trying Gemini Pro model as fallback...');
+        const proResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${geminiApiKey}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: prompt
+                  }
+                ]
+              }
+            ],
+            generationConfig: {
+              maxOutputTokens: 1000,
+              temperature: 0.7
+            }
+          })
+        });
+
+        if (!proResponse.ok) {
+          throw new Error(`Gemini API error: ${response.status}`);
+        }
+
+        const proData = await proResponse.json();
+        const responseTime = Date.now() - startTime;
+        const content = proData.candidates[0].content.parts[0].text;
+
+        console.log('✅ Gemini Pro API successful');
+        return {
+          success: true,
+          data: {
+            id: crypto.randomUUID(),
+            platform: 'gemini',
+            content,
+            confidence: Math.floor(Math.random() * 12) + 85,
+            responseTime: responseTime / 1000,
+            wordCount: content.split(' ').length,
+            loading: false,
+            timestamp: Date.now()
+          }
+        };
       }
 
       const data = await response.json();
       const responseTime = Date.now() - startTime;
       const content = data.candidates[0].content.parts[0].text;
 
+      console.log('✅ Gemini Flash API successful');
       return {
         success: true,
         data: {
@@ -180,6 +251,7 @@ This analysis reflects current understanding while acknowledging areas of ongoin
         }
       };
     } catch (error) {
+      console.log('📝 Using enhanced Gemini mock response');
       // Fall back to enhanced mock data
       return this.getMockGeminiResponse(prompt, startTime);
     }
@@ -286,7 +358,8 @@ Don't overthink it, but definitely don't oversimplify it either.`;
             responseTime: (Date.now() - startTime) / 1000,
             wordCount: content.split(' ').length,
             loading: false,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            isMock: true
           }
         });
       }, 1000 + Math.random() * 1500);
@@ -337,31 +410,55 @@ This analysis reveals both immediate opportunities and longer-term consideration
             responseTime: (Date.now() - startTime) / 1000,
             wordCount: content.split(' ').length,
             loading: false,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            isMock: true
           }
         });
       }, 1200 + Math.random() * 1800);
     });
   }
 
-
   hasValidKeys(): boolean {
-    return !!(import.meta.env.VITE_CLAUDE_API_KEY || import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_GEMINI_API_KEY);
+    const claudeKey = import.meta.env.VITE_CLAUDE_API_KEY;
+    const groqKey = import.meta.env.VITE_GROQ_API_KEY;
+    const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+    const hasValidClaude = !!(claudeKey && claudeKey.startsWith('sk-ant-api') && !claudeKey.includes('your-claude-key-here'));
+    const hasValidGroq = !!(groqKey && groqKey.startsWith('gsk_') && !groqKey.includes('your-groq-key-here'));
+    const hasValidGemini = !!(geminiKey && (geminiKey.startsWith('AIzaSy') || geminiKey.startsWith('AIza')) && !geminiKey.includes('your-gemini-key-here'));
+
+    return hasValidClaude || hasValidGroq || hasValidGemini;
   }
 
   getAvailableServices(): string[] {
     const services: string[] = [];
-    if (import.meta.env.VITE_CLAUDE_API_KEY) services.push('claude');
-    if (import.meta.env.VITE_GROQ_API_KEY) services.push('groq');
-    if (import.meta.env.VITE_GEMINI_API_KEY) services.push('gemini');
+    
+    const claudeKey = import.meta.env.VITE_CLAUDE_API_KEY;
+    const groqKey = import.meta.env.VITE_GROQ_API_KEY;
+    const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+    if (claudeKey && claudeKey.startsWith('sk-ant-api') && !claudeKey.includes('your-claude-key-here')) {
+      services.push('claude');
+    }
+    if (groqKey && groqKey.startsWith('gsk_') && !groqKey.includes('your-groq-key-here')) {
+      services.push('groq');
+    }
+    if (geminiKey && (geminiKey.startsWith('AIzaSy') || geminiKey.startsWith('AIza')) && !geminiKey.includes('your-gemini-key-here')) {
+      services.push('gemini');
+    }
+    
     return services;
   }
 
   getApiKeyStatus(): Record<string, boolean> {
+    const claudeKey = import.meta.env.VITE_CLAUDE_API_KEY;
+    const groqKey = import.meta.env.VITE_GROQ_API_KEY;
+    const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
     return {
-      claude: !!import.meta.env.VITE_CLAUDE_API_KEY,
-      grok: !!import.meta.env.VITE_GROQ_API_KEY, // Note: Using GROQ API for Grok functionality
-      gemini: !!import.meta.env.VITE_GEMINI_API_KEY
+      claude: !!(claudeKey && claudeKey.startsWith('sk-ant-api') && !claudeKey.includes('your-claude-key-here')),
+      grok: !!(groqKey && groqKey.startsWith('gsk_') && !groqKey.includes('your-groq-key-here')),
+      gemini: !!(geminiKey && (geminiKey.startsWith('AIzaSy') || geminiKey.startsWith('AIza')) && !geminiKey.includes('your-gemini-key-here'))
     };
   }
 }
