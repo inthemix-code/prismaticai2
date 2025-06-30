@@ -1,3 +1,4 @@
+import boltBadge from '../assets/image copy copy copy.png';
 import { Triangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from "@/components/ui/separator";
@@ -27,7 +28,10 @@ const PrismFeatures = () => {
   return (
     <div className="text-center py-8 sm:py-12">
       <div className="mb-8">
-        <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2 font-inter px-4">Ask anything, get the best answer</h3>
+        <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2 font-inter px-4 flex items-center justify-center gap-2">
+          <img src={boltBadge} alt="Built with Bolt" className="w-6 h-6 inline-block" />
+          Ask anything, get the best answer
+        </h3>
         <p className="text-sm sm:text-base text-muted-foreground font-medium leading-relaxed max-w-md mx-auto text-balance mb-4 px-4">
           One input. Multiple outputs.
         </p>
