@@ -111,8 +111,3 @@ export function AnalyticsChartsSkeleton() {
     </div>
   );
 }
-</thinking>
-
-I'll implement the labeled skeleton loaders to replace the loading animation. This will provide a better user experience by showing the structure of content that\'s being prepared.
-
-<boltArtifact id="labeled-skeleton-loaders" title="Implement labeled skeleton loaders">
