@@ -58,6 +58,7 @@ exports.handler = async (event, context) => {
     }
 
     const { prompt, model = 'claude-3-sonnet-20240229', max_tokens = 1000 } = requestBody;
+    const { prompt, model = 'claude-3-5-sonnet-20241022', max_tokens = 1000 } = requestBody;
     
     if (!prompt) {
       return {
