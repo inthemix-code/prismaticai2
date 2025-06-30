@@ -157,19 +157,30 @@ export function ResultsPage() {
                   </div>
                   <ArrowLeft className="w-2 h-2 text-gray-500" />
                 </Button>
-                <div className="bg-white/10 border border-white/20 backdrop-blur-sm rounded-lg w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center flex-shrink-0">
-                  <Triangle className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
-                </div>
-                <div className="flex flex-col min-w-0 flex-1">
-                  {showHeaderText ? (
-                    <span className="text-xs sm:text-sm text-white font-medium line-clamp-1">
-                      {currentTurnPrompt}
-                    </span>
-                  ) : (
-                    <span className="text-xs sm:text-sm text-white font-medium">
-                      Prismatic
-                    </span>
-                  )}
+                
+                {/* Clickable logo area */}
+                <button
+                  onClick={handleNewQuery}
+                  className="flex items-center gap-2 sm:gap-3 group hover:bg-white/5 rounded-lg px-2 py-1 transition-all duration-200 cursor-pointer"
+                >
+                  <div className="bg-white/10 border border-white/20 backdrop-blur-sm rounded-lg w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center flex-shrink-0 group-hover:bg-white/20 group-hover:border-white/30 transition-all duration-200">
+                    <Triangle className="w-3 h-3 sm:w-4 sm:h-4 text-white/80 group-hover:text-white transition-colors duration-200" />
+                  </div>
+                  <div className="flex flex-col min-w-0 flex-1">
+                    {showHeaderText ? (
+                      <span className="text-xs sm:text-sm text-white font-medium line-clamp-1 group-hover:text-blue-200 transition-colors duration-200">
+                        {currentTurnPrompt}
+                      </span>
+                    ) : (
+                      <span className="text-xs sm:text-sm text-white font-medium group-hover:text-blue-200 transition-colors duration-200">
+                        Prismatic
+                      </span>
+                    )}
+                  </div>
+                </button>
+                
+                <div className="flex-1 min-w-0">
+                  {/* Empty space for layout */}
                 </div>
               </div>
               
