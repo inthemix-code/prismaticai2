@@ -105,7 +105,7 @@ function generateDynamicAnalysisData(responses: AIResponse[]): AnalysisData {
   // Use actual response metrics
   const metrics = responses.map(response => ({
     platform: response.platform,
-    confidence: Math.round(response.confidence > 1 ? response.confidence : response.confidence * 100),
+    confidence: Math.round(response.confidence * 100),
     responseTime: response.responseTime,
     wordCount: response.wordCount
   }));

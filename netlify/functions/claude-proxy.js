@@ -147,7 +147,7 @@ exports.handler = async (event, context) => {
           id: `claude-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           platform: 'claude',
           content,
-          confidence: calculateConfidence(content),
+          confidence: calculateConfidence(content) / 100,
           responseTime,
           wordCount: content.split(' ').length,
           loading: false,
@@ -185,7 +185,7 @@ exports.handler = async (event, context) => {
 
 // Helper function to calculate confidence
 function calculateConfidence(content) {
-  let confidence = 85; // Base confidence for real Claude responses
+  let confidence = 85; // Base confidence percentage for real Claude responses
 
   const wordCount = content.split(' ').length;
   if (wordCount > 100) confidence += 5;

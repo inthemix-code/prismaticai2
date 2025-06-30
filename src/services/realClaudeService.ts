@@ -164,7 +164,7 @@ class RealClaudeService {
         success: true,
         data: {
           content,
-          confidence
+          confidence: this.calculateConfidence(content) / 100,
         }
       };
     } catch (error) {
@@ -388,7 +388,7 @@ Would you like me to provide more specific guidance despite these limitations?`;
         id: crypto.randomUUID(),
         platform: 'claude',
         content,
-        confidence: 60,
+        confidence: 0.60,
         responseTime,
         wordCount: content.split(' ').length,
         loading: false,
