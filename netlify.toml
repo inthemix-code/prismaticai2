@@ -2,31 +2,21 @@
   # Build command and publish directory
   command = "npm install && npm run build"
   publish = "dist"
+  
+  # Environment variables for build (non-sensitive only)
+  # IMPORTANT: Set actual API keys in Netlify UI under Site Settings > Environment Variables
+  [build.environment]
+    NODE_VERSION = "18"
+    NPM_VERSION = "9"
 
 [functions]
   # Directory for Netlify Functions
   directory = "netlify/functions"
 
-# Environment variables for build (non-sensitive only)
-# IMPORTANT: Set actual API keys in Netlify UI under Site Settings > Environment Variables
-[build.environment]
-  NODE_VERSION = "18"
-  NPM_VERSION = "9"
-
 # Configure secrets scanning to ignore placeholder values
-[build]
-  environment = [
-    "NODE_VERSION",
-    "NPM_VERSION"
-  ]
-
-# Secrets scanning configuration to ignore placeholder API keys
-SECRETS_SCAN_OMIT_KEYS = [
-  "sk-ant-your-claude-key-here",
-  "xai-your-grok-key-here", 
-  "AIza-your-gemini-key-here",
-  "gsk_your-groq-key-here"
-]
+# These are the placeholder values from .env.example that should be ignored
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "sk-ant-your-claude-key-here,xai-your-grok-key-here,AIza-your-gemini-key-here,gsk_your-groq-key-here"
 
 # Redirect rules for SPA (Single Page Application)
 [[redirects]]
