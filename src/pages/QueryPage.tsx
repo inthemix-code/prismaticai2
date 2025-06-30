@@ -120,34 +120,6 @@ export function QueryPage() {
             </div>
           </div>
         </div>
-
-        {/* Call to Action */}
-        <div className="text-center py-6 sm:py-8">
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 sm:p-8 mx-4 sm:mx-0">
-                <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 mx-auto mb-4" />
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">Ready to Get Started?</h3>
-                <p className="text-sm sm:text-base text-gray-400 mb-6">
-                  Enter your question above and watch as multiple AI platforms provide their unique perspectives, 
-                  complete with detailed analysis and intelligent synthesis.
-                </p>
-                <div className="flex flex-wrap justify-center gap-3 text-sm text-gray-500">
-                  <span className="flex items-center gap-1 text-xs sm:text-sm">
-                    <div className="w-2 h-2 bg-slate-400 rounded-full" />
-                    Grok
-                  </span>
-                  <span className="flex items-center gap-1 text-xs sm:text-sm">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full" />
-                    Claude
-                  </span>
-                  <span className="flex items-center gap-1 text-xs sm:text-sm">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full" />
-                    Gemini
-                  </span>
-                </div>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   );
