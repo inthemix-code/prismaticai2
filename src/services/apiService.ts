@@ -226,6 +226,8 @@ class PersonalAPIService {
       return generateMockFusionResult(responses);
     }
 
+    console.log('🔄 getFusionResultWithPrompt called:', { prompt: prompt.substring(0, 50) + '...', responses: responses.length });
+    
     try {
       // Only proceed with synthesis if we have actual responses
       const validResponses = responses.filter(r => r && r.content);
@@ -233,7 +235,120 @@ class PersonalAPIService {
         throw new Error('No valid responses to synthesize');
       }
 
-      // Calculate source contributions based on response length
+      // Try to use real Claude for intelligent synthesis
+      if (import.meta.env.VITE_CLAUDE_API_KEY && validResponses.length > 0 && prompt) {
+        try {
+          console.log('🧠 Attempting Claude-powered response synthesis with prompt context...');
+          
+          const synthesisResult = await realClaudeService.synthesizeResponses(prompt, validResponses);
+          
+          if (synthesisResult.success && synthesisResult.data) {
+            console.log('✅ Claude synthesis successful');
+            
+            // Calculate sources based on response word counts
+            const totalWords = validResponses.reduce((sum, r) => sum + r.wordCount, 0);
+            const sources = {
+              grok: Math.round((validResponses.find(r => r.platform === 'grok')?.wordCount || 0) / totalWords * 100),
+              claude: Math.round((validResponses.find(r => r.platform === 'claude')?.wordCount || 0) / totalWords * 100),
+              gemini: Math.round((validResponses.find(r => r.platform === 'gemini')?.wordCount || 0) / totalWords * 100)
+            };
+            
+            // Normalize to ensure they add up to 100
+            const total = sources.grok + sources.claude + sources.gemini;
+            if (total > 0) {
+              sources.grok = Math.round((sources.grok / total) * 100);
+              sources.claude = Math.round((sources.claude / total) * 100);
+              sources.gemini = 100 - sources.grok - sources.claude; // Ensure total = 100
+            }
+            
+            // Extract key insights from the synthesized content
+            const keyInsights = this.extractKeyInsights(synthesisResult.data?.content || '');
+            
+            return {
+              content: synthesisResult.data?.content || '',
+              confidence: synthesisResult.data?.confidence || 0.5,
+              sources,
+              keyInsights
+            };
+          } else {
+            console.warn('⚠️ Claude synthesis failed, falling back to mock data:', synthesisResult.error);
+          }
+        } catch (error) {
+          console.error('❌ Error during response fusion:', error);
+        }
+      }
+      
+      console.log('📝 Using mock fusion result (no Claude API key or synthesis failed)');
+      
+      // Fallback to mock data if Claude synthesis fails
+      return generateMockFusionResult(validResponses);
+      
+    } catch (error) {
+      console.error('Error in fusion process:', error);
+      
+      // Final fallback to mock data
+      return generateMockFusionResult(responses);
+    }
+  }
+
+  private extractKeyInsights(content: string): string[] {
+    // Simple extraction of bullet points and numbered items
+    const insights: string[] = [];
+    
+    // Look for bullet points
+    const bulletMatches = content.match(/[•\-\*]\s+([^\n]+)/g);
+    if (bulletMatches) {
+      insights.push(...bulletMatches.map(match => 
+        match.replace(/^[•\-\*]\s+/, '').trim()
+      ).slice(0, 2));
+    }
+    
+    // Look for numbered points
+    const numberedMatches = content.match(/\d+\.\s+([^\n]+)/g);
+    if (numberedMatches) {
+      insights.push(...numberedMatches.map(match => 
+        match.replace(/^\d+\.\s+/, '').trim()
+      ).slice(0, 2));
+    }
+    
+    // Look for sentences with strong indicators
+    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
+    const strongIndicators = ['key', 'important', 'critical', 'essential', 'significant', 'primary', 'fundamental'];
+    
+    for (const sentence of sentences) {
+      if (strongIndicators.some(indicator => 
+        sentence.toLowerCase().includes(indicator)) && insights.length < 4
+      ) {
+        insights.push(sentence.trim());
+      }
+    }
+    
+    // Fallback: use first few sentences if no insights found
+    if (insights.length === 0) {
+      insights.push(...sentences.slice(0, 3).map(s => s.trim()));
+    }
+    
+    return insights.slice(0, 4).filter(insight => insight.length > 10);
+  }
+
+  // Remove the old getFusionResultWithPrompt method content and replace with the above
+  async getFusionResultWithPrompt_OLD_REMOVED(prompt: string, responses: AIResponse[]): Promise<FusionResult> {
+    // This method has been replaced with the new implementation above
+    throw new Error('This method has been replaced');
+  }
+
+  private async getFusionResultWithPrompt_OLD(prompt: string, responses: AIResponse[]): Promise<FusionResult> {
+    if (this._isMockMode) {
+      return generateMockFusionResult(responses);
+    }
+
+    try {
+      // Only proceed with synthesis if we have actual responses
+      const validResponses = responses.filter(r => r && r.content);
+      if (validResponses.length === 0) {
+        throw new Error('No valid responses to synthesize');
+      }
+
       const sources = {
         grok: 0,
         claude: 0,
@@ -255,19 +370,8 @@ class PersonalAPIService {
         });
       }
 
-      // Create a synthesis of the responses
-      const synthesis = validResponses.map(r => r.content || '').join('\n\n') + '\n\n' +
-        'Based on these responses, here is a synthesized conclusion:\n\n' +
-        validResponses.map(r => r.content || '').join('\n\n') + '\n\n' +
-        'Key insights from all responses:\n\n' +
-        validResponses.map(r => r.content || '').join('\n\n');
-
-      return {
-        content: synthesis,
-        confidence: 0.85, // High confidence for real data
-        sources,
-        keyInsights: this.extractKeyInsights(synthesis)
-      };
+      // This old implementation has been moved to the new method above
+      return generateMockFusionResult(responses);
     } catch (error) {
       console.error('Error in fusion process:', error);
       throw error;
