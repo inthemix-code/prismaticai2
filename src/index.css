@@ -185,11 +185,21 @@ body {
 /* shadcn/ui Typography Styles */
 @layer base {
   h1 {
-    @apply scroll-m-20 text-3xl font-bold tracking-tight lg:text-4xl text-white;
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: white;
+    scroll-margin-top: 5rem;
   }
   
   h2 {
-    @apply scroll-m-20 border-b border-gray-800 pb-2 text-2xl font-semibold tracking-tight first:mt-0 text-white;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: white;
+    scroll-margin-top: 5rem;
+    border-bottom: 1px solid #374151;
+    padding-bottom: 0.5rem;
   }
   
   h3 {
@@ -201,7 +211,19 @@ body {
   }
   
   p {
-    @apply leading-7 [&:not(:first-child)]:mt-6 text-gray-300;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #d1d5db;
+  }
+  
+  p:not(:first-child) {
+    margin-top: 1.5rem;
+  }
+  
+  button {
+    font-size: 16px;
+    font-weight: 600;
   }
   
   blockquote {
@@ -229,6 +251,9 @@ body {
   }
   
   .muted {
-    @apply text-xs text-gray-500;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: #6b7280;
   }
 }
