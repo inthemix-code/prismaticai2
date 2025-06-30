@@ -1,5 +1,6 @@
 // src/services/realClaudeService.ts - Real Claude API service
 import { AIResponse, AIResult } from '../types';
+import { createSynthesisPrompt, calculateSynthesisConfidence } from '../utils/aiSynthesisUtils';
 
 // Detect if running in Netlify environment
 const isNetlify = window.location.hostname.includes('netlify') || 
@@ -123,7 +124,7 @@ class RealClaudeService {
       console.log('🧠 Starting Claude-powered synthesis...');
       
       // Create synthesis prompt
-      const synthesisPrompt = this.createSynthesisPrompt(originalPrompt, responses);
+      const synthesisPrompt = createSynthesisPrompt(originalPrompt, responses);
       
       if (this.debugMode) {
         console.log('📝 Synthesis prompt created:', synthesisPrompt.substring(0, 200) + '...');
@@ -152,13 +153,13 @@ class RealClaudeService {
       const content = data.content[0]?.text || 'No synthesis available';
 
       console.log('✅ Claude synthesis successful:', {
-        responseTime: `${responseTime}ms`,
+      const confidence = calculateSynthesisConfidence(content, responses);
         contentLength: content.length,
         wordCount: content.split(' ').length
       });
 
       // Calculate confidence based on synthesis quality
-      const confidence = this.calculateSynthesisConfidence(content, responses);
+      const confidence = calculateSynthesisConfidence(content, responses);
 
       return {
         success: true,
@@ -350,60 +351,6 @@ class RealClaudeService {
     }
 
     return this.getFallbackResponse(prompt, startTime, 'All CORS proxies failed');
-  }
-
-  private createSynthesisPrompt(originalPrompt: string, responses: AIResponse[]): string {
-    const responseTexts = responses
-      .filter(r => !r.error && r.content.trim())
-      .map(r => `**${r.platform.toUpperCase()} Response:**\n${r.content.trim()}`)
-      .join('\n\n---\n\n');
-
-    return `You are an expert AI analyst creating a comprehensive synthesis response. Your goal is to combine the best insights from multiple AI responses into a single, superior answer.
-
-**Original Question:** "${originalPrompt}"
-
-**AI Responses to Synthesize:**
-${responseTexts}
-
-**Your Task:**
-Create a unified response that:
-1. Combines the best insights and information from all responses
-2. Resolves any contradictions with balanced analysis
-3. Is more comprehensive and valuable than any individual response
-4. Uses clear structure with headings and bullet points
-5. Provides actionable insights and recommendations
-6. Maintains accuracy while improving clarity
-
-**Important:** Write as if you are providing the definitive answer to the original question, not as if you are analyzing other AI responses. The user should see this as THE answer, not a meta-analysis.
-
-**Synthesized Response:**`;
-  }
-
-  private calculateSynthesisConfidence(content: string, responses: AIResponse[]): number {
-    let confidence = 0.80; // Base confidence for successful real synthesis
-
-    // Content quality indicators
-    if (content.length > 1000) confidence += 0.05;
-    if (content.length > 2000) confidence += 0.03;
-    
-    // Structure quality (headings, bullets, formatting)
-    if (content.includes('**') || content.includes('##')) confidence += 0.04;
-    if (content.includes('•') || content.includes('1.') || content.includes('-')) confidence += 0.03;
-    
-    // Number of source responses
-    confidence += Math.min(responses.length * 0.01, 0.05);
-    
-    // Balanced analysis indicators
-    const balanceWords = ['however', 'although', 'while', 'whereas', 'on the other hand'];
-    const hasBalance = balanceWords.some(word => content.toLowerCase().includes(word));
-    if (hasBalance) confidence += 0.02;
-    
-    // Actionable content indicators
-    const actionWords = ['recommend', 'should', 'implement', 'consider', 'strategy'];
-    const hasAction = actionWords.some(word => content.toLowerCase().includes(word));
-    if (hasAction) confidence += 0.02;
-
-    return Math.min(confidence, 0.96); // Cap at 96% for real synthesis
   }
 
   private calculateConfidence(content: string): number {
