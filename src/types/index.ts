@@ -8,6 +8,7 @@ export interface AIResponse {
   loading: boolean;
   error?: string;
   timestamp: number;
+  isMock?: boolean;
 }
 
 // New type for API results
