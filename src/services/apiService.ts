@@ -324,7 +324,8 @@ The trajectory indicates continued evolution with increasing sophistication in b
       wordCount: 0,
       loading: false,
       error: errorMessage,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isMock: true
     };
   }
 

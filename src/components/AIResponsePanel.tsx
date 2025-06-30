@@ -177,6 +177,11 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
                 className={cn('w-3 h-3 rounded-full', config.color)} 
               />
               <h4 className="text-white text-xs sm:text-sm font-medium">{config.name}</h4>
+              {response.isMock && (
+                <Badge variant="secondary" className="text-xs bg-yellow-900/50 text-yellow-400 border-yellow-700">
+                  Mock Data
+                </Badge>
+              )}
               <motion.div
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}

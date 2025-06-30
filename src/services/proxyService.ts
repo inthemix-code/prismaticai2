@@ -73,7 +73,8 @@ This analysis reflects current understanding while acknowledging areas of ongoin
           wordCount: 0,
           loading: false,
           error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          isMock: true
         }
       };
     }
