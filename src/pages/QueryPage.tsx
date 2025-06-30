@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Separator } from "@/components/ui/separator";
 import { Sparkles, TrendingUp, BarChart3, Zap } from 'lucide-react';
@@ -9,6 +10,11 @@ import PrismFeature from '../components/prismfeature';
 export function QueryPage() {
   const navigate = useNavigate();
   const { startNewConversation } = useAIStore();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handlePromptSubmit = async (prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => {
     await startNewConversation(prompt, selectedModels);
