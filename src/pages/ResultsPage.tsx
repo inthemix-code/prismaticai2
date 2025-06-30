@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquare, Clock, BarChart3, ArrowDown, Users, ArrowLeft, Triangle } from 'lucide-react';
+import { MessageSquare, Clock, BarChart3, ArrowDown, Users, ArrowLeft, Triangle, Database } from 'lucide-react';
 import { AnalyticsCharts } from '../components/AnalyticsCharts';
 import { FusionPanel } from '../components/FusionPanel';
 import { FusionPanelSkeleton } from '../components/FusionPanelSkeleton';
@@ -274,15 +274,17 @@ export function ResultsPage() {
                   <div className="mt-8 sm:mt-12">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                       <h3 className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+                        <Database className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
                         Reference Material
                         <span className="text-sm text-gray-500 font-normal">(Preparing...)</span>
                       </h3>
                       <div className="bg-gray-800 border-gray-700 rounded-lg p-1 flex w-full sm:w-auto">
                         <div className="flex-1 sm:flex-none px-3 py-1.5 bg-gray-700 text-white rounded text-xs sm:text-sm text-center">
+                          <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 inline" />
                           Analytics
                         </div>
                         <div className="flex-1 sm:flex-none px-3 py-1.5 text-gray-400 rounded text-xs sm:text-sm text-center">
+                          <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 inline" />
                           AI Responses
                         </div>
                       </div>
@@ -322,16 +324,18 @@ export function ResultsPage() {
               {!turn.loading && turn.analysisData && (
                 <div className="mt-8 sm:mt-12">
                   <Tabs defaultValue="analytics" className="w-full">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                      <h3 className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+                    <div className="flex flex-col items-center sm:items-start gap-4 mb-6">
+                      <h3 className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2 self-center">
+                        <Database className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
                         Reference Material
                       </h3>
-                      <TabsList className="bg-gray-800 border-gray-700 w-full sm:w-auto">
+                      <TabsList className="bg-gray-800 border-gray-700 w-full sm:w-auto justify-start self-start">
                         <TabsTrigger value="analytics" className="text-xs sm:text-sm">
+                          <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                           Analytics
                         </TabsTrigger>
                         <TabsTrigger value="responses" className="text-xs sm:text-sm">
+                          <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                           AI Responses
                         </TabsTrigger>
                       </TabsList>
