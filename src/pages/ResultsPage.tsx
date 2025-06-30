@@ -134,9 +134,6 @@ export function ResultsPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-900">
-      {/* API Status Indicator */}
-      <ApiStatusIndicator />
-      
       {/* Fixed Header - Hide when latest turn is loading */}
       {!isLatestTurnLoading && (
         <header className="border-b border-gray-800 backdrop-blur-md sticky top-0 z-50 bg-gray-900/90">

@@ -18,9 +18,6 @@ export function QueryPage() {
 
   return (
     <div className="min-h-screen">
-      {/* API Status Indicator */}
-      <ApiStatusIndicator />
-      
       {/* Header */}
       <header>
         <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
