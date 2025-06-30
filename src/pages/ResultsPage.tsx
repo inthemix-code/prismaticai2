@@ -155,7 +155,7 @@ export function ResultsPage() {
                     <span className="hidden sm:inline">New Conversation</span>
                     <span className="sm:hidden">New</span>
                   </div>
-                  <ArrowLeft className="w-2 h-2 text-gray-500" />
+                  <ArrowLeft className="w-4 h-4 text-gray-300" />
                 </Button>
                 
                 {/* Clickable logo area */}
