@@ -6,9 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageSquare, Clock, BarChart3, ArrowDown, Users, ArrowLeft, Triangle } from 'lucide-react';
 import { AnalyticsCharts } from '../components/AnalyticsCharts';
 import { FusionPanel } from '../components/FusionPanel';
+import { FusionPanelSkeleton } from '../components/FusionPanelSkeleton';
+import { AnalyticsChartsSkeleton } from '../components/AnalyticsChartsSkeleton';
+import { AIResponsePanelSkeleton } from '../components/AIResponsePanelSkeleton';
 import SearchInput from '../components/SearchInput';
 import { AIResponsePanel } from '../components/AIResponsePanel';
-import { TriangleLoader } from '../components/TriangleLoader';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAIStore } from '../stores/aiStore';
 import { ApiStatusIndicator } from '../components/ApiStatusIndicator';
 
@@ -109,11 +112,6 @@ export function ResultsPage() {
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
     return date.toLocaleDateString();
-  };
-
-  // Calculate loading progress for incomplete turns
-  const getLoadingProgress = (turn: any) => {
-    return turn.progress || 0;
   };
 
   if (!currentConversation) {
@@ -243,11 +241,63 @@ export function ResultsPage() {
 
               {/* Loading State */}
               {turn.loading && (
-                <div className="flex justify-center py-8 sm:py-12">
-                  <TriangleLoader 
-                    size="lg" 
-                    progress={getLoadingProgress(turn)}
-                  />
+                <div className="space-y-8 sm:space-y-12">
+                  {/* Prompt skeleton */}
+                  <div className="bg-gray-800/30 rounded-lg border border-gray-700/50 p-4 sm:p-6">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                        <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 text-white/70" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm sm:text-base font-medium text-white mb-2">Your Question</h3>
+                        <p className="text-sm sm:text-base text-gray-300 leading-relaxed break-words">
+                          {turn.prompt}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fusion Panel Skeleton */}
+                  <FusionPanelSkeleton />
+
+                  {/* Analytics Section Skeleton */}
+                  <div className="mt-8 sm:mt-12">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                      <h3 className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+                        Reference Material
+                        <span className="text-sm text-gray-500 font-normal">(Preparing...)</span>
+                      </h3>
+                      <div className="bg-gray-800 border-gray-700 rounded-lg p-1 flex w-full sm:w-auto">
+                        <div className="flex-1 sm:flex-none px-3 py-1.5 bg-gray-700 text-white rounded text-xs sm:text-sm text-center">
+                          Analytics
+                        </div>
+                        <div className="flex-1 sm:flex-none px-3 py-1.5 text-gray-400 rounded text-xs sm:text-sm text-center">
+                          AI Responses
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Analytics Charts Skeleton */}
+                    <AnalyticsChartsSkeleton />
+                    
+                    {/* AI Responses Section Skeleton */}
+                    <div className="mt-8 space-y-4 sm:space-y-6">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <Users className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
+                          <h5 className="text-sm sm:text-base font-semibold text-white">Individual AI Responses</h5>
+                          <span className="text-xs text-gray-500">(Loading...)</span>
+                        </div>
+                        <p className="text-xs text-gray-500">Compare how each platform approaches your query</p>
+                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                        {turn.responses.map((response) => (
+                          <AIResponsePanelSkeleton key={response.id} platform={response.platform} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
