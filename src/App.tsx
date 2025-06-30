@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AnimatePresence } from 'framer-motion';
 import ErrorBoundary from './components/ErrorBoundary';
 import { QueryPage } from './pages/QueryPage';
+import { Footer } from './components/Footer';
 import { ResultsPage } from './pages/ResultsPage';
 import './App.css';
 
@@ -24,6 +25,7 @@ function App() {
       <Router>
         <AnimatedRoutes />
       </Router>
+      <Footer />
     </ErrorBoundary>
   );
 }
