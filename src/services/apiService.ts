@@ -166,37 +166,10 @@ class PersonalAPIService {
     }
 
     try {
-      // Try Claude synthesis first
-      if (import.meta.env.VITE_CLAUDE_API_KEY && validResponses.length > 0 && prompt) {
-        try {
-          console.log('🧠 Attempting Claude-powered response synthesis...');
-          
-          const claudeSynthesis = await realClaudeService.synthesizeResponses(prompt, validResponses);
-          
-          if (claudeSynthesis.success && claudeSynthesis.data) {
-            console.log('✅ Claude synthesis successful');
-            
-            const sources = calculateSourceAttribution(validResponses);
-            const keyInsights = extractKeyInsights(claudeSynthesis.data.content);
-            
-            return {
-              content: claudeSynthesis.data.content,
-              confidence: claudeSynthesis.data.confidence,
-              sources,
-              keyInsights
-            };
-          } else {
-            console.warn('⚠️ Claude synthesis failed:', claudeSynthesis.error);
-          }
-        } catch (error) {
-          console.error('❌ Claude synthesis error:', error);
-        }
-      }
-
-      // Try Gemini synthesis as fallback
+      // Try Gemini synthesis first (faster and more reliable)
       if (import.meta.env.VITE_GEMINI_API_KEY && validResponses.length > 0 && prompt) {
         try {
-          console.log('🔷 Attempting Gemini-powered response synthesis as fallback...');
+          console.log('🔷 Attempting Gemini-powered response synthesis...');
           
           const geminiSynthesis = await geminiSynthesisService.synthesizeResponses(prompt, validResponses);
           
@@ -219,8 +192,35 @@ class PersonalAPIService {
           console.error('❌ Gemini synthesis error:', error);
         }
       }
+
+      // Try Claude synthesis as fallback
+      if (import.meta.env.VITE_CLAUDE_API_KEY && validResponses.length > 0 && prompt) {
+        try {
+          console.log('🧠 Attempting Claude-powered response synthesis as fallback...');
+          
+          const claudeSynthesis = await realClaudeService.synthesizeResponses(prompt, validResponses);
+          
+          if (claudeSynthesis.success && claudeSynthesis.data) {
+            console.log('✅ Claude synthesis successful');
+            
+            const sources = calculateSourceAttribution(validResponses);
+            const keyInsights = extractKeyInsights(claudeSynthesis.data.content);
+            
+            return {
+              content: claudeSynthesis.data.content,
+              confidence: claudeSynthesis.data.confidence,
+              sources,
+              keyInsights
+            };
+          } else {
+            console.warn('⚠️ Claude synthesis failed:', claudeSynthesis.error);
+          }
+        } catch (error) {
+          console.error('❌ Claude synthesis error:', error);
+        }
+      }
       
-      console.log('📝 Both Claude and Gemini synthesis failed, using enhanced mock data');
+      console.log('📝 Both Gemini and Claude synthesis failed, using enhanced mock data');
       return generateMockFusionResult(validResponses);
       
     } catch (error) {
