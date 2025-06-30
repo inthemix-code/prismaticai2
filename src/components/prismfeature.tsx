@@ -29,7 +29,7 @@ const PrismFeatures = () => {
     <div className="text-center py-8 sm:py-12">
       {/* Fixed Bolt badge in top left corner */}
       <div className="fixed top-4 left-4 z-50">
-        <img src={boltBadge} alt="Built with Bolt" className="w-9 h-9" />
+        <img src={boltBadge} alt="Built with Bolt" className="w-10 h-10" />
       </div>
       
       <div className="mb-8">
