@@ -14,45 +14,21 @@ class PersonalAPIService {
   private debugMode = import.meta.env.VITE_DEBUG_MODE === 'true';
 
   constructor() {
-    // Smart initialization logic:
-    // 1. First check if user has a saved preference in localStorage
-    const savedPreference = localStorage.getItem('useMockData');
+    // Always use real APIs in production
+    this.useMockData = false;
     
-    if (savedPreference !== null) {
-      // User has a saved preference, use it
-      this.useMockData = savedPreference === 'true';
-    } else {
-      // No saved preference, determine initial state intelligently
-      // Check environment variable first
-      if (import.meta.env.VITE_ENABLE_MOCK_DATA === 'true') {
-        this.useMockData = true;
-      } else {
-        // Default to mock mode only if no valid API keys are available
-        this.useMockData = !this.hasValidKeys();
-      }
-      
-      // Save this initial determination to localStorage
-      localStorage.setItem('useMockData', this.useMockData.toString());
-    }
-    
-    // Force mock mode if no valid API keys are available, regardless of saved preference
-    if (!this.hasValidKeys() && import.meta.env.VITE_ENABLE_MOCK_DATA !== 'false') {
+    // Force mock mode only if explicitly requested
+    if (import.meta.env.VITE_ENABLE_MOCK_DATA === 'true') {
       this.useMockData = true;
-      localStorage.setItem('useMockData', 'true');
     }
-    
+
     // Debug logging
     if (this.debugMode) {
       console.log('🔧 API Service initialized:', {
         mockMode: this.useMockData,
         hasClaudeKey: !!this.apiKeys.claude,
         hasGrokKey: !!this.apiKeys.grok,
-        hasGeminiKey: !!this.apiKeys.gemini,
-        savedPreference,
-        envVars: {
-          VITE_ENABLE_MOCK_DATA: import.meta.env.VITE_ENABLE_MOCK_DATA,
-          VITE_DEBUG_MODE: import.meta.env.VITE_DEBUG_MODE
-        }
+        hasGeminiKey: !!this.apiKeys.gemini
       });
     }
   }
@@ -63,9 +39,9 @@ class PersonalAPIService {
   ): Promise<AIResponse> {
     
     // Always check if we should use mock data before making API calls
-    if (this.useMockData || !this.hasValidKeys()) {
+    if (this.useMockData) {
       if (this.debugMode) {
-        console.log(`📝 Using mock data for ${model} (useMockData: ${this.useMockData}, hasValidKeys: ${this.hasValidKeys()})`);
+        console.log(`📝 Using mock data for ${model} (useMockData: ${this.useMockData})`);
       }
       return this.generateMockResponse(model, prompt);
     }
@@ -83,13 +59,13 @@ class PersonalAPIService {
       let result;
       switch (model) {
         case 'claude':
-          result = await proxyService.queryClaude(prompt);
+          result = await this.queryClaude(prompt);
           break;
         case 'grok':
-          result = await proxyService.queryGroq(prompt);
+          result = await this.queryGrok(prompt);
           break;
         case 'gemini':
-          result = await proxyService.queryGemini(prompt);
+          result = await this.queryGemini(prompt);
           break;
         default:
           throw new Error(`Unknown model: ${model}`);
@@ -105,38 +81,24 @@ class PersonalAPIService {
   async queryAllModels(
     prompt: string,
     selectedModels: { claude: boolean; grok: boolean; gemini: boolean }
-  ): Promise<AIResponse[]> {
-    if (this.debugMode) {
-      console.log('🚀 Querying all models:', {
-        selectedModels,
-        mockMode: this.useMockData,
-        prompt: prompt.substring(0, 50) + '...'
-      });
-    }
-
-    // Use the proxy service for better API handling and mock responses
+  ): Promise<any> {
     try {
-      const results = await proxyService.queryMultiple(prompt, selectedModels);
-      const responses = results.map(result => result.data);
-      
-      if (this.debugMode) {
-        console.log('✅ All models completed:', {
-          totalResponses: responses.length,
-          successfulResponses: responses.filter(r => !r.error).length,
-          errorResponses: responses.filter(r => r.error).length
-        });
-      }
+      // Always try real API calls first
+      const [claudeResult, grokResult, geminiResult] = await Promise.all([
+        selectedModels.claude ? this.queryClaude(prompt) : null,
+        selectedModels.grok ? this.queryGrok(prompt) : null,
+        selectedModels.gemini ? this.queryGemini(prompt) : null
+      ]);
 
-      return responses;
+      // Return results from real APIs
+      return {
+        claude: claudeResult,
+        grok: grokResult,
+        gemini: geminiResult
+      };
     } catch (error) {
-      console.error('❌ Error querying models:', error);
-      
-      // Fallback to mock responses if proxy service fails
-      const enabledModels = Object.entries(selectedModels)
-        .filter(([_, enabled]) => enabled)
-        .map(([model, _]) => model as 'claude' | 'grok' | 'gemini');
-      
-      return enabledModels.map(model => this.createErrorResponse(model, 'Service temporarily unavailable'));
+      console.error('Failed to query real APIs:', error);
+      throw error;
     }
   }
 
@@ -351,6 +313,45 @@ The trajectory indicates continued evolution with increasing sophistication in b
       error: errorMessage,
       timestamp: Date.now()
     };
+  }
+
+  async queryClaude(prompt: string): Promise<any> {
+    if (!this.apiKeys.claude) {
+      throw new Error('Claude API key not configured');
+    }
+
+    try {
+      return await proxyService.queryClaude(prompt);
+    } catch (error) {
+      console.error('Claude API error:', error);
+      throw error;
+    }
+  }
+
+  async queryGrok(prompt: string): Promise<any> {
+    if (!this.apiKeys.grok) {
+      throw new Error('Grok API key not configured');
+    }
+
+    try {
+      return await proxyService.queryGroq(prompt);
+    } catch (error) {
+      console.error('Grok API error:', error);
+      throw error;
+    }
+  }
+
+  async queryGemini(prompt: string): Promise<any> {
+    if (!this.apiKeys.gemini) {
+      throw new Error('Gemini API key not configured');
+    }
+
+    try {
+      return await proxyService.queryGemini(prompt);
+    } catch (error) {
+      console.error('Gemini API error:', error);
+      throw error;
+    }
   }
 
   // Utility methods

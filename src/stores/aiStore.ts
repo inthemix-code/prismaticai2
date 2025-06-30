@@ -190,8 +190,45 @@ export const useAIStore = create<AIStore>((set, get) => ({
     }
     
     try {
-      // Use the API service wrapper
-      const responses = await apiService.queryAllModels(prompt, selectedModels);
+      // Use the API service wrapper - now returns an object instead of array
+      const apiResults = await apiService.queryAllModels(prompt, selectedModels);
+      
+      // Convert the object results to an array of responses
+      const responses: AIResponse[] = [];
+      
+      if (selectedModels.claude && apiResults.claude) {
+        responses.push(apiResults.claude.data || apiResults.claude);
+      }
+      
+      if (selectedModels.grok && apiResults.grok) {
+        responses.push(apiResults.grok.data || apiResults.grok);
+      }
+      
+      if (selectedModels.gemini && apiResults.gemini) {
+        responses.push(apiResults.gemini.data || apiResults.gemini);
+      }
+      
+      // If no responses were successful, create error responses
+      if (responses.length === 0) {
+        const enabledModels = Object.entries(selectedModels)
+          .filter(([_, enabled]) => enabled)
+          .map(([model, _]) => model as 'claude' | 'grok' | 'gemini');
+        
+        for (const model of enabledModels) {
+          responses.push({
+            id: crypto.randomUUID(),
+            platform: model,
+            content: `❌ ${model.toUpperCase()} Error: API call failed`,
+            confidence: 0,
+            responseTime: 0,
+            wordCount: 0,
+            loading: false,
+            error: 'API call failed',
+            timestamp: Date.now()
+          });
+        }
+      }
+      
       const analysisData = await apiService.getAnalysisData(responses);
       
       // Use the new method that passes prompt context for real synthesis
@@ -229,17 +266,30 @@ export const useAIStore = create<AIStore>((set, get) => ({
       
       // Handle error - set error state for the turn
       set(state => {
+        // Create error responses for selected models
+        const enabledModels = Object.entries(selectedModels)
+          .filter(([_, enabled]) => enabled)
+          .map(([model, _]) => model as 'claude' | 'grok' | 'gemini');
+        
+        const errorResponses = enabledModels.map(model => ({
+          id: crypto.randomUUID(),
+          platform: model,
+          content: `❌ ${model.toUpperCase()} Error: Failed to process AI responses`,
+          confidence: 0,
+          responseTime: 0,
+          wordCount: 0,
+          loading: false,
+          error: 'Failed to process AI responses',
+          timestamp: Date.now()
+        }));
+        
         const updateTurnWithError = (turn: ConversationTurn) =>
           turn.id === turnId
             ? {
                 ...turn,
                 loading: false,
                 completed: true,
-                responses: turn.responses.map(response => ({
-                  ...response,
-                  loading: false,
-                  error: 'Failed to process AI responses'
-                })),
+                responses: errorResponses,
                 progress: 0
               }
             : turn;
