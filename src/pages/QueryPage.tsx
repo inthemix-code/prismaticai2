@@ -60,9 +60,9 @@ export function QueryPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 sm:px-6 pb-12 space-y-8 sm:space-y-16">
+      <main className="container mx-auto px-4 sm:px-6 pb-12 space-y-6 sm:space-y-12">
         {/* Prompt Input */}
-        <div className="max-w-4xl mx-auto mt-8 sm:mt-16">
+        <div className="max-w-4xl mx-auto">
           <SearchInput onSearch={handlePromptSubmit} isLoading={false} />
         </div>
 
