@@ -5,7 +5,6 @@ import SearchInput from '../components/SearchInput';
 import { Triangle } from 'lucide-react';
 import { useAIStore } from '../stores/aiStore';
 import PrismFeature from '../components/prismfeature';
-import { ApiStatusIndicator } from '../components/ApiStatusIndicator';
 
 export function QueryPage() {
   const navigate = useNavigate();

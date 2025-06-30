@@ -12,7 +12,6 @@ import { AIResponsePanelSkeleton } from '../components/AIResponsePanelSkeleton';
 import SearchInput from '../components/SearchInput';
 import { AIResponsePanel } from '../components/AIResponsePanel';
 import { useAIStore } from '../stores/aiStore';
-import { ApiStatusIndicator } from '../components/ApiStatusIndicator';
 
 export function ResultsPage() {
   const navigate = useNavigate();
