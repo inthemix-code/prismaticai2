@@ -33,15 +33,13 @@ const PrismFeatures = () => {
       </div>
       
       <div className="mb-8">
-        <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2 font-inter px-4">
+        <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-4 font-inter px-4">
           Ask anything, get the best answer
         </h3>
-        <p className="text-sm sm:text-base text-muted-foreground font-medium leading-relaxed max-w-md mx-auto text-balance mb-4 px-4">
+        <p className="text-sm sm:text-base text-muted-foreground font-medium leading-relaxed max-w-md mx-auto text-balance mt-0 mb-4 px-4">
           One input. Multiple outputs.
         </p>
-        <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium leading-relaxed max-w-lg mx-auto text-balance mb-8 sm:mb-16 px-4">
-        </p>
-        <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium leading-relaxed max-w-lg mx-auto text-balance mb-6 sm:mb-8 px-4">
+        <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium leading-relaxed max-w-lg mx-auto text-balance mt-0 mb-0 px-4">
           Our AI synthesis engine analyzes responses from multiple models to give you the most comprehensive answer
         </p>
       </div>
