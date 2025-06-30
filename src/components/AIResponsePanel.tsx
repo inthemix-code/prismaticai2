@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Copy, Clock, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { AIResponse } from '../types';
