@@ -11,7 +11,6 @@ import { AnalyticsChartsSkeleton } from '../components/AnalyticsChartsSkeleton';
 import { AIResponsePanelSkeleton } from '../components/AIResponsePanelSkeleton';
 import SearchInput from '../components/SearchInput';
 import { AIResponsePanel } from '../components/AIResponsePanel';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useAIStore } from '../stores/aiStore';
 import { ApiStatusIndicator } from '../components/ApiStatusIndicator';
 
