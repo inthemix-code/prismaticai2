@@ -221,7 +221,7 @@ const PrismFeatures = () => {
             </div>
           </div>
 
-          <div className="absolute right-20 top-[-5px] w-96 z-10">
+          <div className="absolute right-20 bottom-[-5px] w-96 z-10">
             <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-colors">
               <div className="space-y-3">
                 <div>
