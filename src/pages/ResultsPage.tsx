@@ -148,11 +148,14 @@ export function ResultsPage() {
                   variant="ghost"
                   size="sm"
                   onClick={handleNewQuery}
-                  className="flex items-center gap-1 sm:gap-2 text-gray-400 hover:text-white hover:bg-gray-800 flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3"
+                  className="flex flex-col items-center gap-0.5 text-gray-400 hover:text-white hover:bg-gray-800 flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3 py-1.5"
                 >
-                  <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">New Conversation</span>
-                  <span className="sm:hidden">New</span>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">New Conversation</span>
+                    <span className="sm:hidden">New</span>
+                  </div>
+                  <ArrowLeft className="w-2 h-2 text-gray-500" />
                 </Button>
                 <div className="bg-white/10 border border-white/20 backdrop-blur-sm rounded-lg w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center flex-shrink-0">
                   <Triangle className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
