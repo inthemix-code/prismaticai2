@@ -188,58 +188,101 @@ This analysis reflects current understanding while acknowledging areas of ongoin
     prompt: string, 
     selectedModels: { claude: boolean; grok: boolean; gemini: boolean }
   ): Promise<AIResult[]> {
-    const promises: Promise<AIResult>[] = [];
+    // Create promises for all selected models
+    const modelPromises: { platform: string; promise: Promise<AIResult> }[] = [];
 
-    // Get non-Claude responses first
     if (selectedModels.grok) {
-      promises.push(this.queryGroq(prompt));
+      modelPromises.push({
+        platform: 'grok',
+        promise: this.queryGroq(prompt)
+      });
     }
 
     if (selectedModels.gemini) {
-      promises.push(this.queryGemini(prompt));
+      modelPromises.push({
+        platform: 'gemini',
+        promise: this.queryGemini(prompt)
+      });
     }
 
-    const otherResults = await Promise.all(promises);
-    
-    // If Claude is selected, do the complete workflow
     if (selectedModels.claude) {
-      console.log('🤖 Starting Claude complete workflow...');
-      
-      // Step 1: Get Claude's response to the original prompt
-      const claudeResponse = await this.queryClaude(prompt);
-      
-      // Step 2: Get Claude's analysis of ALL responses (including its own)
-      if (claudeResponse.success) {
-        const allResponses = [...otherResults.map(r => r.data), claudeResponse.data];
-        
-        console.log('🔍 Getting Claude analysis of all responses...');
-        const analysisResult = await realClaudeService.synthesizeResponses(prompt, allResponses);
-        
-        if (analysisResult.success) {
-          // Replace Claude's content with analysis + original response
-          claudeResponse.data.content = `**My Response to Your Question:**
+      modelPromises.push({
+        platform: 'claude',
+        promise: this.queryClaude(prompt)
+      });
+    }
 
-${claudeResponse.data.content}
+    // Use Promise.allSettled to ensure all promises complete regardless of individual failures
+    const settledResults = await Promise.allSettled(modelPromises.map(mp => mp.promise));
+    
+    // Map settled results back to AIResult objects
+    const results: AIResult[] = settledResults.map((result, index) => {
+      const platform = modelPromises[index].platform;
+      
+      if (result.status === 'fulfilled') {
+        return result.value;
+      } else {
+        // Create an error AIResult for rejected promises
+        console.error(`❌ ${platform} query failed:`, result.reason);
+        return {
+          success: false,
+          error: result.reason instanceof Error ? result.reason.message : 'Unknown error',
+          data: {
+            id: crypto.randomUUID(),
+            platform: platform as 'claude' | 'grok' | 'gemini',
+            content: '',
+            confidence: 0,
+            responseTime: 0,
+            wordCount: 0,
+            loading: false,
+            error: `${platform} query failed: ${result.reason instanceof Error ? result.reason.message : 'Unknown error'}`,
+            timestamp: Date.now()
+          }
+        };
+      }
+    });
+
+    // If Claude was selected and successful, try to get synthesis
+    const claudeResult = results.find(r => r.data.platform === 'claude');
+    if (claudeResult && claudeResult.success && selectedModels.claude) {
+      console.log('🤖 Starting Claude synthesis workflow...');
+      
+      // Get all successful responses for synthesis
+      const successfulResponses = results
+        .filter(r => r.success && r.data.content.trim())
+        .map(r => r.data);
+      
+      if (successfulResponses.length > 1) {
+        console.log('🔍 Getting Claude analysis of all responses...');
+        try {
+          const analysisResult = await realClaudeService.synthesizeResponses(prompt, successfulResponses);
+          
+          if (analysisResult.success && analysisResult.data) {
+            // Enhance Claude's response with synthesis
+            claudeResult.data.content = `**My Response to Your Question:**
+
+${claudeResult.data.content}
 
 ---
 
 **My Analysis of All Responses (Including Self-Assessment):**
 
-${analysisResult.data?.content || 'Synthesis unavailable'}`;
-          
-          claudeResponse.data.wordCount = claudeResponse.data.content.split(' ').length;
-          
-          // Update confidence if synthesis was successful
-          if (analysisResult.data?.confidence) {
-            claudeResponse.data.confidence = analysisResult.data.confidence;
+${analysisResult.data.content}`;
+            
+            claudeResult.data.wordCount = claudeResult.data.content.split(' ').length;
+            
+            // Update confidence if synthesis was successful
+            if (analysisResult.data.confidence) {
+              claudeResult.data.confidence = analysisResult.data.confidence;
+            }
           }
+        } catch (error) {
+          console.warn('⚠️ Claude synthesis failed, continuing with individual responses:', error);
         }
       }
-      
-      return [...otherResults, claudeResponse];
     }
 
-    return otherResults;
+    return results;
   }
 
   private getMockGroqResponse(prompt: string, startTime: number): Promise<AIResult> {

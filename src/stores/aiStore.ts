@@ -189,87 +189,40 @@ export const useAIStore = create<AIStore>((set, get) => ({
       });
     }
     
-    try {
-      // Use the API service wrapper - now returns an array
-      const responses = await apiService.queryAllModels(prompt, selectedModels);
-      
-      const analysisData = await apiService.getAnalysisData(responses);
-      
-      // Use the new method that passes prompt context for real synthesis
-      const fusionResult = await apiService.getFusionResultWithPrompt(prompt, responses);
-      
-      // Update the store with the responses
-      set(state => {
-        const updateTurn = (turn: ConversationTurn) =>
-          turn.id === turnId
-            ? {
-                ...turn,
-                responses,
-                loading: false,
-                completed: true,
-                progress: 100,
-                analysisData,
-                fusionResult
-              }
-            : turn;
+    // Use the API service wrapper - now always returns responses (with error states for failures)
+    const responses = await apiService.queryAllModels(prompt, selectedModels);
+    
+    const analysisData = await apiService.getAnalysisData(responses);
+    
+    // Use the new method that passes prompt context for real synthesis
+    const fusionResult = await apiService.getFusionResultWithPrompt(prompt, responses);
+    
+    // Update the store with the responses
+    set(state => {
+      const updateTurn = (turn: ConversationTurn) =>
+        turn.id === turnId
+          ? {
+              ...turn,
+              responses,
+              loading: false,
+              completed: true,
+              progress: 100,
+              analysisData,
+              fusionResult
+            }
+          : turn;
 
-        return {
-          currentConversation: state.currentConversation ? {
-            ...state.currentConversation,
-            turns: state.currentConversation.turns.map(updateTurn)
-          } : null,
-          conversationHistory: state.conversationHistory.map(conv => ({
-            ...conv,
-            turns: conv.turns.map(updateTurn)
-          }))
-        };
-      });
-      
-    } catch (error) {
-      console.error('Error processing AI responses:', error);
-      
-      // Handle error - set error state for the turn
-      set(state => {
-        // Create error responses for selected models
-        const enabledModels = Object.entries(selectedModels)
-          .filter(([_, enabled]) => enabled)
-          .map(([model, _]) => model as 'claude' | 'grok' | 'gemini');
-        
-        const errorResponses = enabledModels.map(model => ({
-          id: crypto.randomUUID(),
-          platform: model,
-          content: `❌ ${model.toUpperCase()} Error: Failed to process AI responses`,
-          confidence: 0,
-          responseTime: 0,
-          wordCount: 0,
-          loading: false,
-          error: 'Failed to process AI responses',
-          timestamp: Date.now()
-        }));
-        
-        const updateTurnWithError = (turn: ConversationTurn) =>
-          turn.id === turnId
-            ? {
-                ...turn,
-                loading: false,
-                completed: true,
-                responses: errorResponses,
-                progress: 0
-              }
-            : turn;
-
-        return {
-          currentConversation: state.currentConversation ? {
-            ...state.currentConversation,
-            turns: state.currentConversation.turns.map(updateTurnWithError)
-          } : null,
-          conversationHistory: state.conversationHistory.map(conv => ({
-            ...conv,
-            turns: conv.turns.map(updateTurnWithError)
-          }))
-        };
-      });
-    }
+      return {
+        currentConversation: state.currentConversation ? {
+          ...state.currentConversation,
+          turns: state.currentConversation.turns.map(updateTurn)
+        } : null,
+        conversationHistory: state.conversationHistory.map(conv => ({
+          ...conv,
+          turns: conv.turns.map(updateTurn)
+        }))
+      };
+    });
   },
 
   setResponse: (turnId: string, responseId: string, responseUpdate: Partial<AIResponse>) => {

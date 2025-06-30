@@ -116,30 +116,19 @@ class PersonalAPIService {
       });
     }
 
-    // Use the proxy service for better API handling and mock responses
-    try {
-      const results = await proxyService.queryMultiple(prompt, selectedModels);
-      const responses = results.map(result => result.data);
-      
-      if (this.debugMode) {
-        console.log('✅ All models completed:', {
-          totalResponses: responses.length,
-          successfulResponses: responses.filter(r => !r.error).length,
-          errorResponses: responses.filter(r => r.error).length
-        });
-      }
-
-      return responses;
-    } catch (error) {
-      console.error('❌ Error querying models:', error);
-      
-      // Fallback to mock responses if proxy service fails
-      const enabledModels = Object.entries(selectedModels)
-        .filter(([_, enabled]) => enabled)
-        .map(([model, _]) => model as 'claude' | 'grok' | 'gemini');
-      
-      return enabledModels.map(model => this.createErrorResponse(model, 'Service temporarily unavailable'));
+    // Use the proxy service - now always returns results (with error states for failures)
+    const results = await proxyService.queryMultiple(prompt, selectedModels);
+    const responses = results.map(result => result.data);
+    
+    if (this.debugMode) {
+      console.log('✅ All models completed:', {
+        totalResponses: responses.length,
+        successfulResponses: responses.filter(r => !r.error).length,
+        errorResponses: responses.filter(r => r.error).length
+      });
     }
+
+    return responses;
   }
 
   async getAnalysisData(responses: AIResponse[]): Promise<AnalysisData> {
