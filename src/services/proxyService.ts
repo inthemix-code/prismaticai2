@@ -242,46 +242,6 @@ This analysis reflects current understanding while acknowledging areas of ongoin
       }
     });
 
-    // If Claude was selected and successful, try to get synthesis
-    const claudeResult = results.find(r => r.data.platform === 'claude');
-    if (claudeResult && claudeResult.success && selectedModels.claude) {
-      console.log('🤖 Starting Claude synthesis workflow...');
-      
-      // Get all successful responses for synthesis
-      const successfulResponses = results
-        .filter(r => r.success && r.data.content.trim())
-        .map(r => r.data);
-      
-      if (successfulResponses.length > 1) {
-        console.log('🔍 Getting Claude analysis of all responses...');
-        try {
-          const analysisResult = await realClaudeService.synthesizeResponses(prompt, successfulResponses);
-          
-          if (analysisResult.success && analysisResult.data) {
-            // Enhance Claude's response with synthesis
-            claudeResult.data.content = `**My Response to Your Question:**
-
-${claudeResult.data.content}
-
----
-
-**My Analysis of All Responses (Including Self-Assessment):**
-
-${analysisResult.data.content}`;
-            
-            claudeResult.data.wordCount = claudeResult.data.content.split(' ').length;
-            
-            // Update confidence if synthesis was successful
-            if (analysisResult.data.confidence) {
-              claudeResult.data.confidence = analysisResult.data.confidence;
-            }
-          }
-        } catch (error) {
-          console.warn('⚠️ Claude synthesis failed, continuing with individual responses:', error);
-        }
-      }
-    }
-
     return results;
   }
 
