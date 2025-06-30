@@ -150,8 +150,9 @@ export function ResultsPage() {
                   onClick={handleNewQuery}
                   className="flex items-center gap-1 sm:gap-2 text-gray-400 hover:text-white hover:bg-gray-800 flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3"
                 >
-                  <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">New</span>
+                  <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">New Conversation</span>
+                  <span className="sm:hidden">New</span>
                 </Button>
                 <div className="bg-white/10 border border-white/20 backdrop-blur-sm rounded-lg w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center flex-shrink-0">
                   <Triangle className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" />
