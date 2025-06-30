@@ -344,29 +344,6 @@ This analysis reveals both immediate opportunities and longer-term consideration
     });
   }
 
-  private calculateConfidence(content: string): number {
-    // Simple confidence calculation based on content characteristics
-    let confidence = 0.5; // Base confidence
-
-    // Length factor (longer responses generally more confident)
-    const wordCount = content.split(' ').length;
-    if (wordCount > 50) confidence += 0.1;
-    if (wordCount > 100) confidence += 0.1;
-
-    // Certainty markers
-    const uncertainWords = ['maybe', 'perhaps', 'might', 'could', 'possibly', 'unclear'];
-    const certainWords = ['definitely', 'certainly', 'clearly', 'obviously', 'undoubtedly'];
-    
-    const uncertainCount = uncertainWords.reduce((count, word) => 
-      count + (content.toLowerCase().match(new RegExp(word, 'g')) || []).length, 0);
-    const certainCount = certainWords.reduce((count, word) => 
-      count + (content.toLowerCase().match(new RegExp(word, 'g')) || []).length, 0);
-
-    confidence += (certainCount * 0.05) - (uncertainCount * 0.05);
-
-    // Clamp between 0 and 1, then convert to percentage
-    return Math.max(0, Math.min(1, confidence)) * 100;
-  }
 
   hasValidKeys(): boolean {
     return !!(import.meta.env.VITE_CLAUDE_API_KEY || import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_GEMINI_API_KEY);
