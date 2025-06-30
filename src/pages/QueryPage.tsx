@@ -72,7 +72,7 @@ export function QueryPage() {
         </div>
 
         {/* Features Section */}
-        <div className="max-w-6xl mx-auto px-2 sm:px-0">
+        <div className="max-w-6xl mx-auto px-2 sm:px-0 mt-[-4] sm:mt-[-8]">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
               Compare AI Responses Like Never Before
