@@ -15,21 +15,21 @@ export const demoPrompts: DemoPrompt[] = [
   },
   {
     id: '3',
-    text: 'Should artificial intelligence have legal rights and responsibilities?',
+    text: 'Should AI have feelings?',
     category: 'Ethical Reasoning',
-    description: 'Philosophical question about AI ethics and law'
+    description: 'Exploring AI consciousness and emotional capacity'
   },
   {
     id: '4',
-    text: 'Analyze the economic implications of universal basic income',
+    text: 'What if money grew on trees?',
     category: 'Economic Analysis', 
-    description: 'Complex economic policy analysis with multiple perspectives'
+    description: 'Playful exploration of economics and resource scarcity'
   },
   {
     id: '5',
-    text: 'Compare renewable energy strategies: solar vs wind vs nuclear',
+    text: 'Cats vs. dogs: which is better?',
     category: 'Comparative Analysis',
-    description: 'Multi-faceted comparison of energy technologies'
+    description: 'The age-old debate with scientific reasoning'
   }
 ];
 
