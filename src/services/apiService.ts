@@ -236,7 +236,7 @@ class PersonalAPIService {
       id: crypto.randomUUID(),
       platform: model as any,
       content: mockContent,
-      confidence: 0.8 + Math.random() * 0.15,
+      confidence: Math.floor(Math.random() * 15) + 80,
       responseTime: 1000 + Math.random() * 2000,
       wordCount: mockContent.split(' ').length,
       loading: false,
