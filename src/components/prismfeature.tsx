@@ -29,7 +29,7 @@ const PrismFeatures = () => {
     <div className="text-center py-8 sm:py-12">
       <div className="mb-8">
         <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2 font-inter px-4 flex items-center justify-center gap-2">
-          <img src={boltBadge} alt="Built with Bolt" className="w-18 h-18 inline-block" />
+          <img src={boltBadge} alt="Built with Bolt" className="w-9 h-9 inline-block mr-3" />
           Ask anything, get the best answer
         </h3>
         <p className="text-sm sm:text-base text-muted-foreground font-medium leading-relaxed max-w-md mx-auto text-balance mb-4 px-4">
