@@ -28,7 +28,7 @@ const PrismFeatures = () => {
   return (
     <div className="text-center pt-8 sm:pt-12 pb-2 sm:pb-4">
       {/* Fixed Bolt badge in top left corner */}
-      <div className="fixed top-4 left-4 z-50">
+      <div className="fixed top-[calc(1rem+5px)] left-4 z-50">
         <img src={boltBadge} alt="Built with Bolt" className="w-10 h-10" />
       </div>
       
