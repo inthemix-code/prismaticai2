@@ -8,7 +8,7 @@ import { extractKeyInsights, calculateSourceAttribution } from '../utils/aiSynth
 class PersonalAPIService {
   private readonly apiKeys = {
     claude: import.meta.env.VITE_CLAUDE_API_KEY,
-    grok: import.meta.env.VITE_GROK_API_KEY,
+    grok: import.meta.env.VITE_GROQ_API_KEY,
     gemini: import.meta.env.VITE_GEMINI_API_KEY
   };
 
@@ -378,10 +378,10 @@ The trajectory indicates continued evolution with increasing sophistication in b
 
   private isValidGrokKey(key: string): boolean {
     return !!(key && 
-      key.startsWith('xai-') && 
-      !key.includes('your-grok-key-here') && 
-      !key.includes('xai-your-grok-key-here') &&
-      key.length > 10);
+      key.startsWith('gsk_') && 
+      !key.includes('your-groq-key-here') && 
+      !key.includes('gsk_your-groq-key-here') &&
+      key.length > 20);
   }
 
   private isValidGeminiKey(key: string): boolean {
