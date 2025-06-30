@@ -151,15 +151,14 @@ class RealClaudeService {
       const data = await response.json();
       const responseTime = Date.now() - startTime;
       const content = data.content[0]?.text || 'No synthesis available';
+      const confidence = calculateSynthesisConfidence(content, responses);
 
       console.log('✅ Claude synthesis successful:', {
-      const confidence = calculateSynthesisConfidence(content, responses);
         contentLength: content.length,
-        wordCount: content.split(' ').length
+        wordCount: content.split(' ').length,
+        confidence,
+        responseTime
       });
-
-      // Calculate confidence based on synthesis quality
-      const confidence = calculateSynthesisConfidence(content, responses);
 
       return {
         success: true,
