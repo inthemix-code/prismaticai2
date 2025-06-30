@@ -1,8 +1,10 @@
 import { AIResponse, AnalysisData, FusionResult } from '../types';
 import { proxyService } from './proxyService';
 import { realClaudeService } from './realClaudeService';
+import { generateMockAnalysisData, generateMockFusionResult } from '../data/mockData';
 
 class PersonalAPIService {
+  private _isMockMode: boolean;
   private readonly apiKeys = {
     claude: import.meta.env.VITE_CLAUDE_API_KEY,
     grok: import.meta.env.VITE_GROK_API_KEY,
@@ -12,6 +14,12 @@ class PersonalAPIService {
   private debugMode = import.meta.env.VITE_DEBUG_MODE === 'true';
 
   constructor() {
+    // Initialize mock mode from localStorage or environment variable
+    const storedMockMode = localStorage.getItem('mockMode');
+    this._isMockMode = storedMockMode ? 
+      JSON.parse(storedMockMode) : 
+      import.meta.env.VITE_ENABLE_MOCK_DATA === 'true';
+
     // Debug logging
     if (this.debugMode) {
       console.log('🔧 API Service initialized:', {
@@ -22,11 +30,33 @@ class PersonalAPIService {
     }
   }
 
+  isMockMode(): boolean {
+    return this._isMockMode;
+  }
+
+  toggleMockMode(): void {
+    this._isMockMode = !this._isMockMode;
+    localStorage.setItem('mockMode', JSON.stringify(this._isMockMode));
+  }
+
   async queryModel(
     model: 'claude' | 'grok' | 'gemini',
     prompt: string
   ): Promise<AIResponse> {
-    // Skip mock data check and always use real API
+    // Check if mock mode is enabled
+    if (this._isMockMode) {
+      // Return mock data
+      await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1200));
+      return {
+        platform: model,
+        content: `Mock response from ${model}: This is a simulated response for the prompt "${prompt.substring(0, 50)}..."`,
+        confidence: 0.75 + Math.random() * 0.2,
+        error: undefined,
+        wordCount: 50 + Math.floor(Math.random() * 100),
+        timestamp: new Date().toISOString()
+      };
+    }
+
     try {
       if (!this.apiKeys[model]) {
         throw new Error(`No API key configured for ${model}`);
@@ -55,7 +85,48 @@ class PersonalAPIService {
     selectedModels: { claude: boolean; grok: boolean; gemini: boolean }
   ): Promise<Record<string, AIResponse>> {
     try {
-      // Always try real API calls first
+      // Check if mock mode is enabled
+      if (this._isMockMode) {
+        // Return mock responses
+        const mockResponses: Record<string, AIResponse> = {};
+        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+        
+        if (selectedModels.claude) {
+          mockResponses.claude = {
+            platform: 'claude',
+            content: `Mock Claude response: This is a simulated response from Claude for the prompt "${prompt.substring(0, 50)}..."`,
+            confidence: 0.8 + Math.random() * 0.15,
+            error: undefined,
+            wordCount: 60 + Math.floor(Math.random() * 80),
+            timestamp: new Date().toISOString()
+          };
+        }
+        
+        if (selectedModels.grok) {
+          mockResponses.grok = {
+            platform: 'grok',
+            content: `Mock Grok response: This is a simulated response from Grok for the prompt "${prompt.substring(0, 50)}..."`,
+            confidence: 0.75 + Math.random() * 0.2,
+            error: undefined,
+            wordCount: 55 + Math.floor(Math.random() * 90),
+            timestamp: new Date().toISOString()
+          };
+        }
+        
+        if (selectedModels.gemini) {
+          mockResponses.gemini = {
+            platform: 'gemini',
+            content: `Mock Gemini response: This is a simulated response from Gemini for the prompt "${prompt.substring(0, 50)}..."`,
+            confidence: 0.78 + Math.random() * 0.17,
+            error: undefined,
+            wordCount: 45 + Math.floor(Math.random() * 95),
+            timestamp: new Date().toISOString()
+          };
+        }
+        
+        return mockResponses;
+      }
+
       const [claudeResult, grokResult, geminiResult] = await Promise.all([
         selectedModels.claude ? this.queryModel('claude', prompt) : null,
         selectedModels.grok ? this.queryModel('grok', prompt) : null,
@@ -75,6 +146,10 @@ class PersonalAPIService {
   }
 
   async getAnalysisData(responses: AIResponse[]): Promise<AnalysisData> {
+    if (this._isMockMode) {
+      return generateMockAnalysisData();
+    }
+
     // Generate dynamic analysis data based on actual AI responses
     await new Promise(resolve => setTimeout(resolve, 500));
     // TO DO: implement real analysis data generation
@@ -82,6 +157,10 @@ class PersonalAPIService {
   }
 
   async getFusionResult(responses: AIResponse[]): Promise<FusionResult> {
+    if (this._isMockMode) {
+      return generateMockFusionResult();
+    }
+
     console.log('🔄 getFusionResult called with responses:', responses.length);
     
     // Try to use real Claude for intelligent synthesis
@@ -102,6 +181,10 @@ class PersonalAPIService {
   }
 
   async getFusionResultWithPrompt(prompt: string, responses: AIResponse[]): Promise<FusionResult> {
+    if (this._isMockMode) {
+      return generateMockFusionResult();
+    }
+
     try {
       // Only proceed with synthesis if we have actual responses
       const validResponses = responses.filter(r => r && r.content);
