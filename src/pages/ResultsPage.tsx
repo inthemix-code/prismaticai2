@@ -322,12 +322,17 @@ export function ResultsPage() {
               {!turn.loading && turn.analysisData && (
                 <div className="mt-8 sm:mt-12">
                   <Tabs defaultValue="analytics" className="w-full">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                      <h3 className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+                    <div className="flex items-center justify-between w-full">
+                      {/* Icon on the far left */}
+                      <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+                      
+                      {/* Reference Material centered */}
+                      <h3 className="text-lg sm:text-xl font-semibold text-white flex-1 text-center">
                         Reference Material
                       </h3>
-                      <TabsList className="bg-gray-800 border-gray-700 w-full sm:w-auto">
+                      
+                      {/* Tabs on the right */}
+                      <TabsList className="bg-gray-800 border-gray-700">
                         <TabsTrigger value="analytics" className="text-xs sm:text-sm">
                           Analytics
                         </TabsTrigger>
