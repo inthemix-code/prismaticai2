@@ -98,8 +98,8 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
 
   return (
     <div className={cn("w-full max-w-4xl mx-auto space-y-6 relative", className)}>
-      {/* Blur layer positioned behind the search card */}
-      <div className="absolute inset-[-20px] z-[-1] rounded-xl bg-white/5 backdrop-blur-xl pointer-events-none" />
+      {/* Blur layer positioned behind the search card - smaller with gradient */}
+      <div className="absolute inset-[-10px] z-[-1] rounded-xl radial-blur-gradient backdrop-blur-lg pointer-events-none" />
       
       <Card className={`chat-input-transition relative overflow-hidden ${
         isFocused 

@@ -182,6 +182,17 @@ body {
   animation: glow-pulse 2s ease-in-out infinite;
 }
 
+/* Radial gradient for blur effect */
+.radial-blur-gradient {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(255, 255, 255, 0.02) 70%,
+    transparent 100%
+  );
+}
+
 /* shadcn/ui Typography Styles */
 @layer base {
   h1 {
