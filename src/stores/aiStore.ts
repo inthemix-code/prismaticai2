@@ -190,44 +190,8 @@ export const useAIStore = create<AIStore>((set, get) => ({
     }
     
     try {
-      // Use the API service wrapper - now returns an object instead of array
-      const apiResults = await apiService.queryAllModels(prompt, selectedModels);
-      
-      // Convert the object results to an array of responses
-      const responses: AIResponse[] = [];
-      
-      if (selectedModels.claude && apiResults.claude) {
-        responses.push(apiResults.claude.data || apiResults.claude);
-      }
-      
-      if (selectedModels.grok && apiResults.grok) {
-        responses.push(apiResults.grok.data || apiResults.grok);
-      }
-      
-      if (selectedModels.gemini && apiResults.gemini) {
-        responses.push(apiResults.gemini.data || apiResults.gemini);
-      }
-      
-      // If no responses were successful, create error responses
-      if (responses.length === 0) {
-        const enabledModels = Object.entries(selectedModels)
-          .filter(([_, enabled]) => enabled)
-          .map(([model, _]) => model as 'claude' | 'grok' | 'gemini');
-        
-        for (const model of enabledModels) {
-          responses.push({
-            id: crypto.randomUUID(),
-            platform: model,
-            content: `❌ ${model.toUpperCase()} Error: API call failed`,
-            confidence: 0,
-            responseTime: 0,
-            wordCount: 0,
-            loading: false,
-            error: 'API call failed',
-            timestamp: Date.now()
-          });
-        }
-      }
+      // Use the API service wrapper - now returns an array
+      const responses = await apiService.queryAllModels(prompt, selectedModels);
       
       const analysisData = await apiService.getAnalysisData(responses);
       

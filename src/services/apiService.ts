@@ -48,12 +48,15 @@ class PersonalAPIService {
       // Return mock data
       await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1200));
       return {
+        id: crypto.randomUUID(),
         platform: model,
         content: `Mock response from ${model}: This is a simulated response for the prompt "${prompt.substring(0, 50)}..."`,
         confidence: 0.75 + Math.random() * 0.2,
+        responseTime: 1.5 + Math.random() * 2,
         error: undefined,
+        loading: false,
         wordCount: 50 + Math.floor(Math.random() * 100),
-        timestamp: new Date().toISOString()
+        timestamp: Date.now()
       };
     }
 
@@ -63,82 +66,123 @@ class PersonalAPIService {
       }
 
       // Directly call the proxy service
-      const result = await proxyService[`query${model.charAt(0).toUpperCase() + model.slice(1)}`](prompt);
+      let result;
+      switch(model) {
+        case 'claude':
+          result = await proxyService.queryClaude(prompt);
+          break;
+        case 'grok':
+          result = await proxyService.queryGroq(prompt);
+          break;
+        case 'gemini':
+          result = await proxyService.queryGemini(prompt);
+          break;
+        default:
+          throw new Error(`Unknown model: ${model}`);
+      }
       
-      // Convert proxy result to AIResponse format
-      return {
-        platform: model,
-        content: result.data?.content || '',
-        confidence: result.data?.confidence || 0.8,
-        error: result.error,
-        wordCount: result.data?.content?.split(' ').length || 0,
-        timestamp: new Date().toISOString()
-      };
+      if (result.success && result.data) {
+        return result.data;
+      } else {
+        // Return error response
+        return {
+          id: crypto.randomUUID(),
+          platform: model,
+          content: `❌ ${model.toUpperCase()} Error: ${result.error || 'API call failed'}`,
+          confidence: 0,
+          responseTime: 0,
+          wordCount: 0,
+          loading: false,
+          error: result.error || 'API call failed',
+          timestamp: Date.now()
+        };
+      }
     } catch (error) {
       console.error(`Error querying ${model}:`, error);
-      throw error;
+      return {
+        id: crypto.randomUUID(),
+        platform: model,
+        content: `❌ ${model.toUpperCase()} Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        confidence: 0,
+        responseTime: 0,
+        wordCount: 0,
+        loading: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: Date.now()
+      };
     }
   }
 
   async queryAllModels(
     prompt: string,
     selectedModels: { claude: boolean; grok: boolean; gemini: boolean }
-  ): Promise<Record<string, AIResponse>> {
+  ): Promise<AIResponse[]> {
     try {
       // Check if mock mode is enabled
       if (this._isMockMode) {
-        // Return mock responses
-        const mockResponses: Record<string, AIResponse> = {};
+        // Return mock responses as array
+        const mockResponses: AIResponse[] = [];
         await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
         
         if (selectedModels.claude) {
-          mockResponses.claude = {
+          mockResponses.push({
+            id: crypto.randomUUID(),
             platform: 'claude',
             content: `Mock Claude response: This is a simulated response from Claude for the prompt "${prompt.substring(0, 50)}..."`,
             confidence: 0.8 + Math.random() * 0.15,
+            responseTime: 1.8 + Math.random() * 1.5,
             error: undefined,
+            loading: false,
             wordCount: 60 + Math.floor(Math.random() * 80),
-            timestamp: new Date().toISOString()
-          };
+            timestamp: Date.now()
+          });
         }
         
         if (selectedModels.grok) {
-          mockResponses.grok = {
+          mockResponses.push({
+            id: crypto.randomUUID(),
             platform: 'grok',
             content: `Mock Grok response: This is a simulated response from Grok for the prompt "${prompt.substring(0, 50)}..."`,
             confidence: 0.75 + Math.random() * 0.2,
+            responseTime: 1.2 + Math.random() * 1.8,
             error: undefined,
+            loading: false,
             wordCount: 55 + Math.floor(Math.random() * 90),
-            timestamp: new Date().toISOString()
-          };
+            timestamp: Date.now()
+          });
         }
         
         if (selectedModels.gemini) {
-          mockResponses.gemini = {
+          mockResponses.push({
+            id: crypto.randomUUID(),
             platform: 'gemini',
             content: `Mock Gemini response: This is a simulated response from Gemini for the prompt "${prompt.substring(0, 50)}..."`,
             confidence: 0.78 + Math.random() * 0.17,
+            responseTime: 1.5 + Math.random() * 2.2,
             error: undefined,
+            loading: false,
             wordCount: 45 + Math.floor(Math.random() * 95),
-            timestamp: new Date().toISOString()
-          };
+            timestamp: Date.now()
+          });
         }
         
         return mockResponses;
       }
 
+      // Query real APIs
       const [claudeResult, grokResult, geminiResult] = await Promise.all([
         selectedModels.claude ? this.queryModel('claude', prompt) : null,
         selectedModels.grok ? this.queryModel('grok', prompt) : null,
         selectedModels.gemini ? this.queryModel('gemini', prompt) : null
       ]);
 
-      // Return results from real APIs
-      return {
-        claude: claudeResult,
-        grok: grokResult,
-        gemini: geminiResult
-      };
+      // Return results from real APIs as array
+      const responses: AIResponse[] = [];
+      if (claudeResult) responses.push(claudeResult);
+      if (grokResult) responses.push(grokResult);
+      if (geminiResult) responses.push(geminiResult);
+      
+      return responses;
     } catch (error) {
       console.error('Failed to query real APIs:', error);
       throw error;
@@ -147,18 +191,17 @@ class PersonalAPIService {
 
   async getAnalysisData(responses: AIResponse[]): Promise<AnalysisData> {
     if (this._isMockMode) {
-      return generateMockAnalysisData();
+      return generateMockAnalysisData(responses);
     }
 
     // Generate dynamic analysis data based on actual AI responses
     await new Promise(resolve => setTimeout(resolve, 500));
-    // TO DO: implement real analysis data generation
-    return {} as AnalysisData;
+    return generateMockAnalysisData(responses);
   }
 
   async getFusionResult(responses: AIResponse[]): Promise<FusionResult> {
     if (this._isMockMode) {
-      return generateMockFusionResult();
+      return generateMockFusionResult(responses);
     }
 
     console.log('🔄 getFusionResult called with responses:', responses.length);
@@ -168,21 +211,19 @@ class PersonalAPIService {
       try {
         // This is a fallback - the main synthesis should happen in the store with proper prompt context
         console.log('⚠️ getFusionResult: No prompt provided, using fallback mock data');
-        // TO DO: implement real fusion result generation
-        return {} as FusionResult;
+        return generateMockFusionResult(responses);
       } catch (error) {
         console.error('❌ Error during response fusion:', error);
       }
     }
     
     console.log('📝 Using mock fusion result');
-    // TO DO: implement real fusion result generation
-    return {} as FusionResult;
+    return generateMockFusionResult(responses);
   }
 
   async getFusionResultWithPrompt(prompt: string, responses: AIResponse[]): Promise<FusionResult> {
     if (this._isMockMode) {
-      return generateMockFusionResult();
+      return generateMockFusionResult(responses);
     }
 
     try {
