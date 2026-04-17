@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Loader2, Triangle, Bot, Zap, Diamond, Sparkles } from 'lucide-react';
+import { Loader as Loader2, Triangle, Bot, Zap, Diamond, Sparkles } from 'lucide-react';
 import { demoPrompts } from '../data/mockData';
 import { DemoPrompt } from '../types';
 import { validateSearchRequest } from '../utils/validation';
@@ -19,10 +19,14 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [charCount, setCharCount] = useState(0);
-  const [selectedModels, setSelectedModels] = useState({
-    claude: true,
-    grok: true,
-    gemini: true
+  const [selectedModels, setSelectedModels] = useState(() => {
+    try {
+      const saved = localStorage.getItem('selectedModels');
+      if (saved) return JSON.parse(saved) as { claude: boolean; grok: boolean; gemini: boolean };
+    } catch {
+      // ignore
+    }
+    return { claude: true, grok: true, gemini: true };
   });
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -77,10 +81,11 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
   }, [query]);
 
   const toggleModel = (model: keyof typeof selectedModels) => {
-    setSelectedModels(prev => ({
-      ...prev,
-      [model]: !prev[model]
-    }));
+    setSelectedModels(prev => {
+      const updated = { ...prev, [model]: !prev[model] };
+      try { localStorage.setItem('selectedModels', JSON.stringify(updated)); } catch { /* ignore */ }
+      return updated;
+    });
   };
 
   // Calculate selected models count and order

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquare, Clock, BarChart3, ArrowDown, Users, ArrowLeft, Triangle, Database } from 'lucide-react';
+import { MessageSquare, Clock, ChartBar as BarChart3, ArrowDown, Users, ArrowLeft, Triangle, Database } from 'lucide-react';
 import { AnalyticsCharts } from '../components/AnalyticsCharts';
 import { FusionPanel } from '../components/FusionPanel';
 import { FusionPanelSkeleton } from '../components/FusionPanelSkeleton';
@@ -323,7 +323,7 @@ export function ResultsPage() {
               {/* Analytics Tabs */}
               {!turn.loading && turn.analysisData && (
                 <div className="mt-8 sm:mt-12">
-                  <Tabs defaultValue="analytics" className="w-full">
+                  <Tabs defaultValue="responses" className="w-full">
                     <div className="flex flex-col items-center sm:items-start gap-4 mb-6">
                       <h3 className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2 self-center">
                         <Database className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />

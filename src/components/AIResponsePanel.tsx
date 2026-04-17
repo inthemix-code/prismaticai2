@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Copy, Clock, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Copy, Clock, FileText, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Loader as Loader2 } from 'lucide-react';
 import { AIResponse } from '../types';
 import { cn } from '@/lib/utils';
 
@@ -199,9 +199,10 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
                 variant="ghost"
                 size="sm"
                 onClick={copyToClipboard}
+                aria-label={`Copy ${config.name} response`}
                 className="h-5 w-5 sm:h-6 sm:w-6 p-0 hover:bg-gray-800"
               >
-                <Copy className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400" />
+                <Copy className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400" aria-hidden="true" />
               </Button>
             </motion.div>
           </div>
