@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import ErrorBoundary from './components/ErrorBoundary';
 import { QueryPage } from './pages/QueryPage';
 import { ResultsPage } from './pages/ResultsPage';
+import { Toaster } from 'sonner';
 import './App.css';
 
 function AnimatedRoutes() {
@@ -23,6 +24,17 @@ function App() {
     <ErrorBoundary>
       <Router>
         <AnimatedRoutes />
+        <Toaster
+          theme="dark"
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: '#0F1420',
+              border: '1px solid #1f2937',
+              color: '#e5e7eb',
+            },
+          }}
+        />
       </Router>
     </ErrorBoundary>
   );

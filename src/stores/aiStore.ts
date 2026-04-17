@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { AIResponse, ConversationTurn, Conversation } from '../types';
 import { validateSearchRequest } from '../utils/validation';
 import { apiService } from '../services/apiService';
+import { conversationPersistence } from '../services/conversationPersistence';
 
 interface AIStore {
   currentConversation: Conversation | null;
@@ -14,9 +15,17 @@ interface AIStore {
   clearResults: () => void;
   addToHistory: (prompt: string) => void;
   loadConversation: (conversationId: string) => void;
+  setActiveConversation: (conversation: Conversation) => void;
   processAIResponses: (turnId: string, prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => Promise<void>;
 
   getCurrentTurn: () => ConversationTurn | null;
+}
+
+function makeId(prefix: string): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function buildLoadingResponses(turnId: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }): AIResponse[] {
@@ -64,8 +73,8 @@ export const useAIStore = create<AIStore>((set, get) => ({
     }
 
     const sanitizedPrompt = validation.sanitizedPrompt ?? prompt;
-    const conversationId = `conv-${Date.now()}`;
-    const turnId = `turn-${Date.now()}`;
+    const conversationId = makeId('conv');
+    const turnId = makeId('turn');
 
     get().addToHistory(sanitizedPrompt);
 
@@ -93,6 +102,9 @@ export const useAIStore = create<AIStore>((set, get) => ({
       conversationHistory: [newConversation, ...state.conversationHistory],
     }));
 
+    void conversationPersistence.upsertConversation(newConversation);
+    void conversationPersistence.upsertTurn(conversationId, newTurn, 0);
+
     get().processAIResponses(turnId, sanitizedPrompt, models);
   },
 
@@ -109,7 +121,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
       return get().startNewConversation(sanitizedPrompt, models);
     }
 
-    const turnId = `turn-${Date.now()}`;
+    const turnId = makeId('turn');
     get().addToHistory(sanitizedPrompt);
 
     const newTurn: ConversationTurn = {
@@ -138,6 +150,13 @@ export const useAIStore = create<AIStore>((set, get) => ({
       ),
     }));
 
+    const newIndex = currentConv.turns.length;
+    const updated = get().currentConversation;
+    if (updated) {
+      void conversationPersistence.upsertConversation(updated);
+    }
+    void conversationPersistence.upsertTurn(currentConv.id, newTurn, newIndex);
+
     get().processAIResponses(turnId, sanitizedPrompt, models);
   },
 
@@ -158,6 +177,16 @@ export const useAIStore = create<AIStore>((set, get) => ({
         fusionResult,
       }))
     );
+
+    const convo = get().currentConversation;
+    if (convo) {
+      const idx = convo.turns.findIndex(t => t.id === turnId);
+      const turn = convo.turns[idx];
+      if (turn) {
+        void conversationPersistence.upsertConversation({ ...convo, updatedAt: Date.now() });
+        void conversationPersistence.upsertTurn(convo.id, turn, idx);
+      }
+    }
   },
 
   setResponse: (turnId, responseId, responseUpdate) => {
@@ -184,6 +213,18 @@ export const useAIStore = create<AIStore>((set, get) => ({
   loadConversation: (conversationId) => {
     const conversation = get().conversationHistory.find(c => c.id === conversationId);
     if (conversation) set({ currentConversation: conversation });
+  },
+
+  setActiveConversation: (conversation) => {
+    set(state => {
+      const exists = state.conversationHistory.some(c => c.id === conversation.id);
+      return {
+        currentConversation: conversation,
+        conversationHistory: exists
+          ? state.conversationHistory.map(c => (c.id === conversation.id ? conversation : c))
+          : [conversation, ...state.conversationHistory],
+      };
+    });
   },
 
   getCurrentTurn: () => {

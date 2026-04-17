@@ -6,8 +6,10 @@ import {
   ChartContainer,
   ChartTooltip,
 } from '@/components/ui/chart';
-import { Copy, Shield, Clock, Zap, Target, Lightbulb } from 'lucide-react';
+import { Copy, Shield, Clock, Zap, Target, Lightbulb, Check, Share2 } from 'lucide-react';
 import { FusionResult } from '../types';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface FusionPanelProps {
   fusion: FusionResult;
@@ -49,8 +51,31 @@ const getInsightIcon = (insight: string, index: number) => {
 };
 
 export function FusionPanel({ fusion }: FusionPanelProps) {
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(fusion.content);
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(fusion.content);
+      setCopied(true);
+      toast.success('Synthesis copied to clipboard');
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      toast.error('Unable to copy. Please try again.');
+    }
+  };
+
+  const shareResponse = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'Prismatic synthesis', text: fusion.content.slice(0, 240), url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success('Link copied to clipboard');
+      }
+    } catch {
+      // user cancelled share; no feedback needed
+    }
   };
 
   // Prepare data for the confidence chart
@@ -120,14 +145,30 @@ export function FusionPanel({ fusion }: FusionPanelProps) {
                 ))}
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={copyToClipboard}
-              className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-gray-800"
-            >
-              <Copy className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={shareResponse}
+                aria-label="Share synthesis"
+                className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-gray-800"
+              >
+                <Share2 className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={copyToClipboard}
+                aria-label="Copy synthesis"
+                className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-gray-800 relative"
+              >
+                {copied ? (
+                  <Check className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-400" />
+                ) : (
+                  <Copy className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                )}
+              </Button>
+            </div>
           </div>
           
           <div className="space-y-1">
