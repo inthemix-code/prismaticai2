@@ -6,13 +6,16 @@ import {
   ChartContainer,
   ChartTooltip,
 } from '@/components/ui/chart';
-import { Copy, Shield, Clock, Zap, Target, Lightbulb, Check, Share2 } from 'lucide-react';
+import { Copy, Shield, Clock, Zap, Target, Lightbulb, Check, Share2, Download, FileDown } from 'lucide-react';
 import { FusionResult } from '../types';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { Markdown } from '../utils/markdown';
+import { conversationPersistence } from '../services/conversationPersistence';
 
 interface FusionPanelProps {
   fusion: FusionResult;
+  conversationId?: string;
 }
 
 const confidenceChartConfig = {
@@ -50,8 +53,34 @@ const getInsightIcon = (insight: string, index: number) => {
   return defaultIcons[index % defaultIcons.length];
 };
 
-export function FusionPanel({ fusion }: FusionPanelProps) {
+export function FusionPanel({ fusion, conversationId }: FusionPanelProps) {
   const [copied, setCopied] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!exportOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (!exportRef.current?.contains(e.target as Node)) setExportOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExportOpen(false);
+    };
+    window.addEventListener('mousedown', onClick);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('mousedown', onClick);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [exportOpen]);
+
+  const buildMarkdown = () =>
+    `# Prismatic synthesis\n\n` +
+    `> Confidence: ${Math.round(fusion.confidence * 100)}%\n\n` +
+    (fusion.keyInsights.length
+      ? `## Key insights\n\n${fusion.keyInsights.map((k) => `- ${k}`).join('\n')}\n\n`
+      : '') +
+    `## Response\n\n${fusion.content}\n`;
 
   const copyToClipboard = async () => {
     try {
@@ -64,14 +93,45 @@ export function FusionPanel({ fusion }: FusionPanelProps) {
     }
   };
 
-  const shareResponse = async () => {
-    const url = typeof window !== 'undefined' ? window.location.href : '';
+  const copyAsMarkdown = async () => {
     try {
+      await navigator.clipboard.writeText(buildMarkdown());
+      toast.success('Copied as markdown');
+      setExportOpen(false);
+    } catch {
+      toast.error('Unable to copy markdown.');
+    }
+  };
+
+  const downloadMarkdown = () => {
+    const blob = new Blob([buildMarkdown()], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'prismatic-synthesis.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setExportOpen(false);
+    toast.success('Downloaded prismatic-synthesis.md');
+  };
+
+  const shareResponse = async () => {
+    try {
+      let url = typeof window !== 'undefined' ? window.location.href : '';
+      if (conversationId) {
+        const shared = await conversationPersistence.setShared(conversationId, true);
+        if (shared) {
+          const origin = typeof window !== 'undefined' ? window.location.origin : '';
+          url = `${origin}/results?c=${conversationId}`;
+        }
+      }
       if (navigator.share) {
         await navigator.share({ title: 'Prismatic synthesis', text: fusion.content.slice(0, 240), url });
       } else {
         await navigator.clipboard.writeText(url);
-        toast.success('Link copied to clipboard');
+        toast.success(conversationId ? 'Share link copied' : 'Link copied to clipboard');
       }
     } catch {
       // user cancelled share; no feedback needed
@@ -145,13 +205,47 @@ export function FusionPanel({ fusion }: FusionPanelProps) {
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 relative" ref={exportRef}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setExportOpen((v) => !v)}
+                aria-haspopup="menu"
+                aria-expanded={exportOpen}
+                aria-label="Export synthesis"
+                className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-gray-800 focus-visible:ring-1 focus-visible:ring-cyan-400/60 focus-visible:outline-none"
+              >
+                <Download className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+              </Button>
+              {exportOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full mt-1 min-w-[180px] rounded-lg border border-gray-700 bg-gray-900/95 backdrop-blur-sm shadow-2xl z-50 overflow-hidden"
+                >
+                  <button
+                    role="menuitem"
+                    onClick={copyAsMarkdown}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-200 hover:bg-gray-800 text-left"
+                  >
+                    <Copy className="w-3.5 h-3.5 text-gray-400" />
+                    Copy as markdown
+                  </button>
+                  <button
+                    role="menuitem"
+                    onClick={downloadMarkdown}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-200 hover:bg-gray-800 text-left border-t border-gray-800"
+                  >
+                    <FileDown className="w-3.5 h-3.5 text-gray-400" />
+                    Download .md file
+                  </button>
+                </div>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={shareResponse}
                 aria-label="Share synthesis"
-                className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-gray-800"
+                className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-gray-800 focus-visible:ring-1 focus-visible:ring-cyan-400/60 focus-visible:outline-none"
               >
                 <Share2 className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
               </Button>
@@ -160,7 +254,7 @@ export function FusionPanel({ fusion }: FusionPanelProps) {
                 size="sm"
                 onClick={copyToClipboard}
                 aria-label="Copy synthesis"
-                className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-gray-800 relative"
+                className="h-6 w-6 sm:h-8 sm:w-8 p-0 hover:bg-gray-800 relative focus-visible:ring-1 focus-visible:ring-cyan-400/60 focus-visible:outline-none"
               >
                 {copied ? (
                   <Check className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-400" />
@@ -314,9 +408,9 @@ export function FusionPanel({ fusion }: FusionPanelProps) {
             </div>
           </div>
 
-          {/* Main Content - Left aligned text */}
-          <div className="text-xs sm:text-sm leading-relaxed text-gray-300 whitespace-pre-wrap font-light tracking-wide text-left">
-            {fusion.content}
+          {/* Main Content - Left aligned markdown */}
+          <div className="text-xs sm:text-sm leading-relaxed text-gray-300 font-light tracking-wide text-left max-w-[72ch]">
+            <Markdown>{fusion.content}</Markdown>
           </div>
         </CardContent>
       </Card>

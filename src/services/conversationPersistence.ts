@@ -6,6 +6,8 @@ export interface StoredConversationRow {
   title: string;
   created_at: string;
   updated_at: string;
+  is_shared?: boolean;
+  turn_count?: number;
 }
 
 export interface StoredTurnRow {
@@ -60,17 +62,39 @@ export const conversationPersistence = {
     }
   },
 
-  async listConversations(limit = 30): Promise<StoredConversationRow[]> {
+  async listConversations(limit = 50): Promise<StoredConversationRow[]> {
     const { data, error } = await supabase
       .from('conversations')
-      .select('id, title, created_at, updated_at')
+      .select('id, title, created_at, updated_at, is_shared, conversation_turns(count)')
       .order('updated_at', { ascending: false })
       .limit(limit);
     if (error) {
       console.warn('[persistence] listConversations failed:', error.message);
       return [];
     }
-    return (data ?? []) as StoredConversationRow[];
+    type Row = Omit<StoredConversationRow, 'turn_count'> & {
+      conversation_turns?: Array<{ count: number }>;
+    };
+    return ((data ?? []) as Row[]).map((r) => ({
+      id: r.id,
+      title: r.title,
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+      is_shared: r.is_shared,
+      turn_count: r.conversation_turns?.[0]?.count ?? 0,
+    }));
+  },
+
+  async setShared(id: string, shared: boolean): Promise<boolean> {
+    const { error } = await supabase
+      .from('conversations')
+      .update({ is_shared: shared })
+      .eq('id', id);
+    if (error) {
+      console.warn('[persistence] setShared failed:', error.message);
+      return false;
+    }
+    return true;
   },
 
   async loadConversation(id: string): Promise<Conversation | null> {

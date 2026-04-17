@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquare, Clock, ChartBar as BarChart3, Users, ArrowLeft, Triangle, Database, Check } from 'lucide-react';
+import { MessageSquare, Clock, ChartBar as BarChart3, Users, ArrowLeft, Triangle, Database, Check, Eye } from 'lucide-react';
 import { AnalyticsCharts } from '../components/AnalyticsCharts';
 import { FusionPanel } from '../components/FusionPanel';
 import { FusionPanelSkeleton } from '../components/FusionPanelSkeleton';
@@ -16,18 +16,64 @@ import { AIResponsePanel } from '../components/AIResponsePanel';
 import { BackToTopButton } from '../components/BackToTopButton';
 import { ConversationHistoryDrawer } from '../components/ConversationHistoryDrawer';
 import { useAIStore } from '../stores/aiStore';
+import { conversationPersistence } from '../services/conversationPersistence';
 
 export function ResultsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const shouldReduce = useReducedMotion();
   const {
     currentConversation,
     continueConversation,
     getCurrentTurn,
+    setActiveConversation,
   } = useAIStore();
 
   const [showHeaderText, setShowHeaderText] = useState(false);
   const [currentTurnInView, setCurrentTurnInView] = useState<number>(0);
   const [savedPulse, setSavedPulse] = useState(false);
+  const [sharedView, setSharedView] = useState(false);
+  const [loadingShared, setLoadingShared] = useState(false);
+  const sharedTab = (searchParams.get('tab') === 'analytics' ? 'analytics' : 'responses') as 'analytics' | 'responses';
+
+  const setTabParam = useCallback(
+    (value: 'analytics' | 'responses') => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value === 'responses') next.delete('tab');
+          else next.set('tab', value);
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
+
+  // Load shared conversation via ?c=<id> if no active conversation
+  useEffect(() => {
+    const id = searchParams.get('c');
+    if (!id) return;
+    if (currentConversation?.id === id) {
+      setSharedView(true);
+      return;
+    }
+    if (currentConversation) return;
+    let cancelled = false;
+    setLoadingShared(true);
+    conversationPersistence.loadConversation(id).then((convo) => {
+      if (cancelled) return;
+      setLoadingShared(false);
+      if (convo) {
+        setActiveConversation(convo);
+        setSharedView(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, currentConversation, setActiveConversation]);
 
   const turnRefs = useRef<(HTMLDivElement | null)[]>([]);
   const fusionObserverRef = useRef<IntersectionObserver | null>(null);
@@ -168,8 +214,20 @@ export function ResultsPage() {
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#090C14' }}>
         <div className="text-center">
           <MessageSquare className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-400 mb-2">No active conversation</h3>
-          <p className="text-gray-500">Start a new conversation to see AI responses</p>
+          <h3 className="text-xl font-semibold text-gray-400 mb-2">
+            {loadingShared ? 'Loading shared conversation…' : 'No active conversation'}
+          </h3>
+          <p className="text-gray-500">
+            {loadingShared ? 'Fetching the shared thread from the database.' : 'Start a new conversation to see AI responses'}
+          </p>
+          {!loadingShared && (
+            <Button
+              onClick={() => navigate('/')}
+              className="mt-4 bg-cyan-500 hover:bg-cyan-400 text-white"
+            >
+              Start new
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -277,34 +335,58 @@ export function ResultsPage() {
             {/* Turn progress dots */}
             {currentConversation.turns.length > 1 && (
               <div className="mt-2 flex items-center gap-1.5 justify-center">
-                {currentConversation.turns.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => scrollToTurn(i)}
-                    aria-label={`Jump to turn ${i + 1}`}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === currentTurnInView
-                        ? 'w-6 bg-blue-400'
-                        : 'w-1.5 bg-gray-700 hover:bg-gray-600'
-                    }`}
-                  />
-                ))}
+                {currentConversation.turns.map((t, i) => {
+                  const preview = t.prompt.length > 80 ? `${t.prompt.slice(0, 80)}…` : t.prompt;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => scrollToTurn(i)}
+                      aria-label={`Jump to turn ${i + 1}: ${preview}`}
+                      title={`Turn ${i + 1} · ${preview}`}
+                      className={`h-1.5 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 ${
+                        i === currentTurnInView
+                          ? 'w-6 bg-cyan-400'
+                          : 'w-1.5 bg-gray-700 hover:bg-gray-600'
+                      }`}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
         </header>
       )}
 
+      {/* Shared view banner */}
+      {sharedView && (
+        <div className="sticky top-[64px] z-40 border-b border-cyan-900/40 bg-cyan-950/30 backdrop-blur-sm">
+          <div className="container mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-3 text-xs sm:text-sm text-cyan-200">
+            <div className="flex items-center gap-2 min-w-0">
+              <Eye className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="truncate">You are viewing a shared conversation (read-only).</span>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleNewQuery}
+              className="text-cyan-200 hover:text-white hover:bg-cyan-500/20 h-7 text-xs flex-shrink-0"
+            >
+              Start your own
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
-      <div className="flex-1 pb-36 sm:pb-40 overflow-y-auto">
+      <div className={`flex-1 ${sharedView ? 'pb-12' : 'pb-36 sm:pb-40'} overflow-y-auto`}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-8 sm:space-y-16">
           {currentConversation.turns.map((turn, turnIndex) => (
             <motion.div
               key={turn.id}
               ref={setTurnRef(turnIndex)}
-              initial={{ opacity: 0, y: 20 }}
+              initial={shouldReduce ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: 'easeOut', delay: Math.min(turnIndex * 0.05, 0.3) }}
+              transition={{ duration: shouldReduce ? 0 : 0.4, ease: 'easeOut', delay: shouldReduce ? 0 : Math.min(turnIndex * 0.05, 0.3) }}
               className="space-y-6 sm:space-y-8 relative"
             >
               {/* Turn Header */}
@@ -418,7 +500,7 @@ export function ResultsPage() {
                   transition={{ duration: 0.35, delay: 0.1 }}
                   className="mt-8 sm:mt-12"
                 >
-                  <FusionPanel fusion={turn.fusionResult} />
+                  <FusionPanel fusion={turn.fusionResult} conversationId={currentConversation.id} />
                 </motion.div>
               )}
 
@@ -430,7 +512,7 @@ export function ResultsPage() {
                   transition={{ duration: 0.35, delay: 0.18 }}
                   className="mt-8 sm:mt-12"
                 >
-                  <Tabs defaultValue="responses" className="w-full">
+                  <Tabs value={sharedTab} onValueChange={(v) => setTabParam(v as 'analytics' | 'responses')} className="w-full">
                     <div className="flex flex-col items-center sm:items-start gap-4 mb-6">
                       <h3 className="text-lg sm:text-xl font-semibold text-white flex items-center gap-2 self-center">
                         <Database className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
@@ -503,7 +585,7 @@ export function ResultsPage() {
       <BackToTopButton />
 
       {/* Bottom Search Bar */}
-      {!isLatestTurnLoading && (
+      {!isLatestTurnLoading && !sharedView && (
         <div className="fixed bottom-0 left-0 right-0 bg-transparent z-40">
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0B0F1A] via-[#0B0F1A]/80 to-transparent" />
           <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6">

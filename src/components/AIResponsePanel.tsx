@@ -1,11 +1,14 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Copy, Clock, FileText, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Loader as Loader2 } from 'lucide-react';
+import { Copy, Clock, FileText, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Loader as Loader2, Check } from 'lucide-react';
 import { AIResponse } from '../types';
 import { cn } from '@/lib/utils';
+import { Markdown } from '../utils/markdown';
 
 interface AIResponsePanelProps {
   response: AIResponse;
@@ -71,9 +74,18 @@ const pulseAnimation = {
 
 export function AIResponsePanel({ response }: AIResponsePanelProps) {
   const config = platformConfig[response.platform];
-  
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(response.content);
+  const shouldReduce = useReducedMotion();
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(response.content);
+      setCopied(true);
+      toast.success(`${config.name} response copied`);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      toast.error('Unable to copy. Please try again.');
+    }
   };
 
   const formatResponseTime = (time: number) => {
@@ -165,7 +177,7 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
       variants={contentVariants}
       initial="initial"
       animate="animate"
-      whileHover={{ y: -2, scale: 1.01 }}
+      whileHover={shouldReduce ? undefined : { y: -2, scale: 1.01 }}
       transition={{ type: 'spring', stiffness: 300 }}
     >
       <Card className={cn('h-[320px] sm:h-[400px] flex flex-col bg-gray-900/50 shadow-xl rounded-lg', config.borderColor, 'border')}>
@@ -192,7 +204,7 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
               </motion.div>
             </div>
             <motion.div
-              whileHover={{ scale: 1.1 }}
+              whileHover={shouldReduce ? undefined : { scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
               <Button
@@ -200,9 +212,13 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
                 size="sm"
                 onClick={copyToClipboard}
                 aria-label={`Copy ${config.name} response`}
-                className="h-5 w-5 sm:h-6 sm:w-6 p-0 hover:bg-gray-800"
+                className="h-5 w-5 sm:h-6 sm:w-6 p-0 hover:bg-gray-800 focus-visible:ring-1 focus-visible:ring-cyan-400/60 focus-visible:outline-none"
               >
-                <Copy className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400" aria-hidden="true" />
+                {copied ? (
+                  <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400" aria-hidden="true" />
+                ) : (
+                  <Copy className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400" aria-hidden="true" />
+                )}
               </Button>
             </motion.div>
           </div>
@@ -250,13 +266,13 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
         
         <CardContent className="flex-1 overflow-hidden p-3 sm:p-4">
           <div className="h-full overflow-y-auto custom-scrollbar pr-1 sm:pr-2">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.6 }}
-              className="ai-response-text beautiful-text whitespace-pre-wrap text-xs sm:text-sm"
+              transition={{ delay: shouldReduce ? 0 : 0.8, duration: shouldReduce ? 0 : 0.6 }}
+              className="ai-response-text beautiful-text text-xs sm:text-sm"
             >
-              {response.content}
+              <Markdown>{response.content}</Markdown>
             </motion.div>
           </div>
         </CardContent>
