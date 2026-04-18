@@ -24,7 +24,6 @@ interface SearchInputProps {
   showDemoPrompts?: boolean;
   className?: string;
   showQuickActions?: boolean;
-  showProjectBadge?: boolean;
   onNewConversation?: () => void;
 }
 
@@ -335,7 +334,7 @@ function ProjectBadge() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label={activeProject ? `Active project: ${activeProject.name}` : 'Select a project'}
+          aria-label={activeProject ? `Active persona: ${activeProject.name}` : 'Select a persona'}
           className="inline-flex items-center gap-1.5 h-6 px-1.5 rounded-md hover:bg-white/5 transition-colors text-[11px] text-gray-500 hover:text-gray-300"
         >
           {activeProject && (
@@ -345,13 +344,13 @@ function ProjectBadge() {
             />
           )}
           <span className="max-w-[120px] truncate">
-            {activeProject ? activeProject.name : 'No project'}
+            {activeProject ? activeProject.name : 'No persona'}
           </span>
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" side="top" className="w-64 p-1 bg-gray-950 border-white/10">
         <div className="px-2 py-1.5 text-[10px] uppercase tracking-wider text-gray-500">
-          Project context
+          Persona context
         </div>
         <button
           onClick={() => {
@@ -362,7 +361,7 @@ function ProjectBadge() {
             !activeProjectId ? 'bg-cyan-500/15 text-cyan-200' : 'text-gray-300 hover:bg-white/5'
           }`}
         >
-          <span>No project</span>
+          <span>No persona</span>
           {!activeProjectId && <Check className="w-3 h-3" />}
         </button>
         <div className="max-h-64 overflow-y-auto">
@@ -387,7 +386,7 @@ function ProjectBadge() {
         </div>
         {projects.length === 0 && (
           <div className="px-2 py-2 text-[11px] text-gray-500">
-            Create a project from the sidebar to scope memory and context.
+            Create a persona from the sidebar to scope memory and context.
           </div>
         )}
       </PopoverContent>

@@ -794,7 +794,6 @@ export function ResultsPage() {
               showDemoPrompts={false}
               className="w-full"
               showQuickActions={showSearchCluster}
-              showProjectBadge={showSearchCluster}
               onNewConversation={handleNewQuery}
             />
           </div>
