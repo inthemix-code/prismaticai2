@@ -34,7 +34,6 @@ const SearchInput = ({
   showDemoPrompts = true,
   className,
   showQuickActions = false,
-  showProjectBadge = false,
   onNewConversation,
 }: SearchInputProps) => {
   const [query, setQuery] = useState('');
@@ -220,11 +219,7 @@ const SearchInput = ({
           {/* Metadata row */}
           <div className="flex items-center justify-between gap-2 px-3 sm:px-4 pb-2 pt-0 text-[11px] text-gray-500 tabular-nums">
             <div className="flex items-center gap-2 min-w-0">
-              {showProjectBadge ? (
-                <ProjectBadge />
-              ) : (
-                <span className="text-gray-500">No project</span>
-              )}
+              <ProjectBadge />
               <LivePill isLoading={isLoading} />
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
