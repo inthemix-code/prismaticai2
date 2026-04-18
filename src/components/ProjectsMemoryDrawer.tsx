@@ -24,10 +24,17 @@ import { toast } from 'sonner';
 
 interface ProjectsMemoryDrawerProps {
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function ProjectsMemoryDrawer({ trigger }: ProjectsMemoryDrawerProps = {}) {
-  const [open, setOpen] = useState(false);
+export function ProjectsMemoryDrawer({ trigger, open: openProp, onOpenChange }: ProjectsMemoryDrawerProps = {}) {
+  const [openInternal, setOpenInternal] = useState(false);
+  const open = openProp ?? openInternal;
+  const setOpen = (v: boolean) => {
+    setOpenInternal(v);
+    onOpenChange?.(v);
+  };
   const projects = useAIStore((s) => s.projects);
   const activeProjectId = useAIStore((s) => s.activeProjectId);
   const loadProjects = useAIStore((s) => s.loadProjects);

@@ -45,7 +45,7 @@ export function ForkButton({ turnId, originalPrompt }: ForkButtonProps) {
           setValue(originalPrompt);
           setOpen(true);
         }}
-        className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs font-medium text-cyan-200 bg-cyan-500/10 border border-cyan-400/30 hover:bg-cyan-500/20 hover:border-cyan-400/50 hover:text-cyan-100 transition-colors shadow-[0_0_0_0_rgba(6,182,212,0)] hover:shadow-[0_0_16px_-6px_rgba(6,182,212,0.7)]"
+        className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs font-medium text-gray-400 bg-transparent border border-white/10 hover:bg-white/5 hover:border-white/20 hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-400/50"
         title="Fork this turn into a new branch"
         aria-label="Fork this turn"
       >

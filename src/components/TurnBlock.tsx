@@ -1,7 +1,7 @@
 import { useState, useEffect, forwardRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquare, ChartBar as BarChart3, Users, ChevronDown, ChevronUp, Clock, Scale } from 'lucide-react';
+import { ChartBar as BarChart3, Users, ChevronDown, ChevronUp, Clock, Scale } from 'lucide-react';
 import { ConversationTurn, Conversation } from '../types';
 import { AnalyticsCharts } from './AnalyticsCharts';
 import { FusionPanel } from './FusionPanel';
@@ -67,7 +67,7 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
-      className="relative"
+      className="group relative"
     >
       {/* Turn meta strip */}
       <div className="flex items-center justify-between text-[11px] uppercase tracking-wider mb-3">
@@ -104,9 +104,8 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
       </div>
 
       {/* Question (always visible, lighter weight) */}
-      <div className="relative pl-4 border-l-2 border-cyan-400/40 py-1 mb-5">
+      <div className="relative pl-4 border-l border-white/5 py-1 mb-5">
         <div className="flex items-start gap-3">
-          <MessageSquare className="w-3.5 h-3.5 text-cyan-300/80 mt-1 flex-shrink-0" />
           <p
             className={`flex-1 min-w-0 text-sm sm:text-[15px] text-gray-300 leading-relaxed break-words ${
               turnCollapsed ? 'line-clamp-1' : ''
@@ -126,7 +125,9 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
                 />
               )}
               {turn.completed && (
-                <ForkButton turnId={turn.id} originalPrompt={turn.prompt} />
+                <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                  <ForkButton turnId={turn.id} originalPrompt={turn.prompt} />
+                </div>
               )}
             </div>
           )}

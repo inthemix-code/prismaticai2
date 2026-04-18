@@ -7,6 +7,8 @@ import { useAIStore } from '../stores/aiStore';
 
 interface ConversationHistoryDrawerProps {
   trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 function formatRelative(iso: string): string {
@@ -35,8 +37,13 @@ function bucketFor(iso: string): 'Today' | 'This week' | 'Older' {
   return 'Older';
 }
 
-export function ConversationHistoryDrawer({ trigger }: ConversationHistoryDrawerProps) {
-  const [open, setOpen] = useState(false);
+export function ConversationHistoryDrawer({ trigger, open: openProp, onOpenChange }: ConversationHistoryDrawerProps) {
+  const [openInternal, setOpenInternal] = useState(false);
+  const open = openProp ?? openInternal;
+  const setOpen = (v: boolean) => {
+    setOpenInternal(v);
+    onOpenChange?.(v);
+  };
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<StoredConversationRow[]>([]);
   const [loadingId, setLoadingId] = useState<string | null>(null);

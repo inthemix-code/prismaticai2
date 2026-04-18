@@ -126,7 +126,6 @@ export function ResultsPage() {
   }, []);
 
   const [currentTurnInView, setCurrentTurnInView] = useState<number>(0);
-  const [savedPulse, setSavedPulse] = useState(false);
   const [sharedView, setSharedView] = useState(false);
   const [loadingShared, setLoadingShared] = useState(false);
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
@@ -225,16 +224,6 @@ export function ResultsPage() {
   const handleNewQuery = useCallback(() => {
     navigate('/');
   }, [navigate]);
-
-  // Save pulse when latest turn completes
-  useEffect(() => {
-    const last = turns[turns.length - 1];
-    if (last?.completed && !last.loading) {
-      setSavedPulse(true);
-      const t = setTimeout(() => setSavedPulse(false), 2200);
-      return () => clearTimeout(t);
-    }
-  }, [turns]);
 
   const getTurnEl = useCallback(
     (index: number) => turnRefs.current.get(index) ?? null,
@@ -564,24 +553,18 @@ export function ResultsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-0.5">
               {/* Copy link */}
               <button
                 onClick={handleCopyLink}
-                className="hidden sm:inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-                aria-label="Copy link to this turn"
+                className="hidden sm:inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors"
+                aria-label={copied ? 'Link copied' : 'Copy link to this turn'}
                 title="Copy link to this turn"
               >
                 {copied ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-emerald-300">Copied</span>
-                  </>
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
                 ) : (
-                  <>
-                    <LinkIcon className="w-3.5 h-3.5" />
-                    <span>Copy link</span>
-                  </>
+                  <LinkIcon className="w-3.5 h-3.5" />
                 )}
               </button>
 
@@ -589,11 +572,11 @@ export function ResultsPage() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="inline-flex items-center justify-center w-9 h-9 rounded-md text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors"
                     aria-label="Reading width"
                     title="Reading width"
                   >
-                    <Columns3 className="w-4 h-4" />
+                    <Columns3 className="w-3.5 h-3.5" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-gray-950 border-white/10 w-48">
@@ -628,11 +611,11 @@ export function ResultsPage() {
               <Popover open={helpOpen} onOpenChange={setHelpOpen}>
                 <PopoverTrigger asChild>
                   <button
-                    className="hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-md text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                    className="hidden sm:inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors"
                     aria-label="Keyboard shortcuts"
                     title="Keyboard shortcuts (?)"
                   >
-                    <Keyboard className="w-4 h-4" />
+                    <Keyboard className="w-3.5 h-3.5" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent
@@ -662,38 +645,6 @@ export function ResultsPage() {
                 </PopoverContent>
               </Popover>
 
-              <div className="flex items-center gap-1.5 pl-1" aria-live="polite">
-                <span
-                  className={`relative inline-block w-2 h-2 rounded-full transition-colors ${
-                    savedPulse ? 'bg-emerald-400' : 'bg-emerald-400/40'
-                  }`}
-                >
-                  <AnimatePresence>
-                    {savedPulse && !reducedMotion && (
-                      <motion.span
-                        initial={{ opacity: 0.8, scale: 1 }}
-                        animate={{ opacity: 0, scale: 2.2 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 1.2, ease: 'easeOut' }}
-                        className="absolute inset-0 rounded-full bg-emerald-400"
-                      />
-                    )}
-                  </AnimatePresence>
-                </span>
-                <AnimatePresence>
-                  {savedPulse && (
-                    <motion.span
-                      initial={reducedMotion ? false : { opacity: 0, x: -4 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="hidden sm:inline-flex items-center gap-1 text-[11px] text-emerald-300"
-                    >
-                      <Check className="w-3 h-3" />
-                      Saved
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
             </div>
           </div>
 
