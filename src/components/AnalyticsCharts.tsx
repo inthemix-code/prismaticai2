@@ -1,4 +1,4 @@
-import { TrendingUp, Shield, Zap, Target } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, LineChart, Line, Cell } from 'recharts';
 import {
@@ -215,8 +215,8 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
       {fusionSources && (
         <Card className="bg-white/[0.03] backdrop-blur-sm border border-white/10 shadow-xl rounded-2xl">
           <CardHeader className="pb-4">
-            <CardTitle className="text-sm font-semibold text-white flex items-center gap-1">
-              <Target className="h-4 w-4 text-emerald-400" />
+            <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
               Attribution Sources
             </CardTitle>
             <CardDescription className="text-xs text-gray-500">Model contributions to synthesis</CardDescription>
@@ -281,7 +281,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
           </CardContent>
           <CardFooter className="flex-col items-start gap-1 text-xs pt-0 pb-3">
             <div className="flex gap-2 leading-none font-medium text-white text-xs">
-              {attributionData[0]?.model} leads <Target className="h-3 w-3" />
+              {attributionData[0]?.model} leads
             </div>
             <div className="text-gray-500 leading-none text-xs">
               Synthesis contributions
@@ -369,8 +369,8 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
       {/* Efficiency Analysis */}
       <Card className="bg-white/[0.03] backdrop-blur-sm border border-white/10 shadow-xl rounded-2xl">
         <CardHeader className="pb-4">
-          <CardTitle className="text-sm font-semibold text-white flex items-center gap-1">
-            <Zap className="h-4 w-4 text-yellow-400" />
+          <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" aria-hidden="true" />
             Efficiency Analysis
           </CardTitle>
           <CardDescription className="text-xs text-gray-500">Conciseness vs redundancy</CardDescription>
@@ -416,7 +416,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
         </CardContent>
         <CardFooter className="flex-col items-start gap-1 text-xs pt-0 pb-3">
           <div className="flex gap-2 leading-none font-medium text-white text-xs">
-            Grok most concise <Zap className="h-3 w-3" />
+            Grok most concise
           </div>
           <div className="text-gray-500 leading-none text-xs">
             Efficient communication
@@ -427,8 +427,8 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
       {/* Risk Assessment */}
       <Card className="bg-white/[0.03] backdrop-blur-sm border border-white/10 shadow-xl rounded-2xl">
         <CardHeader className="pb-4">
-          <CardTitle className="text-sm font-semibold text-white flex items-center gap-1">
-            <Shield className="h-4 w-4 text-red-400" />
+          <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" aria-hidden="true" />
             Risk Assessment
           </CardTitle>
           <CardDescription className="text-xs text-gray-500">Reliability indicators</CardDescription>
@@ -495,7 +495,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
         </CardContent>
         <CardFooter className="flex-col items-start gap-1 text-xs pt-0 pb-3">
           <div className="flex gap-2 leading-none font-medium text-white text-xs">
-            Claude lowest risk <Shield className="h-3 w-3" />
+            Claude lowest risk
           </div>
           <div className="text-gray-500 leading-none text-xs">
             Better reliability
@@ -506,8 +506,8 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
       {/* Differentiation Analysis */}
       <Card className="bg-white/[0.03] backdrop-blur-sm border border-white/10 shadow-xl rounded-2xl">
         <CardHeader className="pb-4">
-          <CardTitle className="text-sm font-semibold text-white flex items-center gap-1">
-            <Target className="h-4 w-4 text-cyan-300" />
+          <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-gray-500/50" aria-hidden="true" />
             Differentiation Analysis
           </CardTitle>
           <CardDescription className="text-xs text-gray-500">Originality metrics</CardDescription>
@@ -572,7 +572,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
         </CardContent>
         <CardFooter className="flex-col items-start gap-1 text-xs pt-0 pb-3">
           <div className="flex gap-2 leading-none font-medium text-white text-xs">
-            Gemini most original <Target className="h-3 w-3" />
+            Gemini most original
           </div>
           <div className="text-gray-500 leading-none text-xs">
             Unique perspectives

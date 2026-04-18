@@ -6,7 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Copy, Target, Check, Share2, Download, FileDown, Pin, Brain, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Copy, Check, Share2, Download, FileDown, Pin, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { FusionResult, JudgeVerdict, StructuredSynthesis, ModelId } from '../types';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -444,7 +444,7 @@ export function FusionPanel({ fusion, conversationId, turnId, structured, memory
           {memoryUsed && memoryUsed.length > 0 && (
             <div className="space-y-2 pt-2 border-t border-gray-800/50">
               <h4 className="text-xs font-semibold text-gray-300 uppercase tracking-wider flex items-center gap-2">
-                <Brain className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
                 Memory used in this turn
               </h4>
               <div className="flex flex-wrap gap-1.5">
@@ -464,7 +464,7 @@ export function FusionPanel({ fusion, conversationId, turnId, structured, memory
           {structured && structured.sentences && structured.sentences.length > 0 && (
             <div className="space-y-3 pt-2 border-t border-gray-800/50">
               <h4 className="text-xs font-semibold text-gray-300 uppercase tracking-wider flex items-center gap-2">
-                <Target className="w-3.5 h-3.5 text-blue-400" />
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-500/50" aria-hidden="true" />
                 Sentence-level citations
               </h4>
               <div className="space-y-2">
