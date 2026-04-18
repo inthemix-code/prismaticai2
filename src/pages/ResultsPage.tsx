@@ -342,7 +342,7 @@ export function ResultsPage() {
             </div>
 
             {/* Turn progress dots */}
-            {currentConversation.turns.length > 1 && (
+            {currentConversation.turns.length > 0 && (
               <div className="mt-2 flex items-center gap-1.5 justify-center">
                 {currentConversation.turns.map((t, i) => {
                   const preview = t.prompt.length > 80 ? `${t.prompt.slice(0, 80)}…` : t.prompt;
