@@ -7,14 +7,14 @@ import {
   Triangle,
   History,
   FolderOpen,
-  Settings2,
+  FlaskConical,
   LayoutGrid,
   X,
 } from 'lucide-react';
 import { ReactNode } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ProjectsMemoryDrawer } from './ProjectsMemoryDrawer';
 import { ConversationHistoryDrawer } from './ConversationHistoryDrawer';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { NavPlacement } from '../services/uiPreferences';
 
@@ -96,54 +96,48 @@ function RailButton({
   );
 }
 
-function PlacementMenu({
-  placement,
-  onPlacementChange,
+function PromptLabButton({
   collapsed,
+  onNavigate,
 }: {
-  placement: NavPlacement;
-  onPlacementChange: (p: NavPlacement) => void;
   collapsed: boolean;
+  onNavigate?: () => void;
 }) {
-  const options: { value: NavPlacement; label: string; hint: string }[] = [
-    { value: 'both', label: 'Rail and search', hint: 'Show actions in both places' },
-    { value: 'rail', label: 'Rail only', hint: 'Hide actions from the search box' },
-    { value: 'search', label: 'Search only', hint: 'Hide actions from the rail' },
-  ];
+  const navigate = useNavigate();
+  const location = useLocation();
+  const active = location.pathname.startsWith('/lab');
 
+  const handleClick = () => {
+    navigate('/lab');
+    onNavigate?.();
+  };
+
+  const btn = (
+    <button
+      onClick={handleClick}
+      aria-label="Open Prompt Lab"
+      aria-current={active ? 'page' : undefined}
+      className={`flex items-center w-full rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 min-h-[40px] border ${
+        active
+          ? 'bg-cyan-500/10 text-cyan-200 border-cyan-400/40'
+          : 'bg-white/[0.02] text-gray-300 hover:text-white hover:bg-white/[0.06] border-white/10'
+      } ${collapsed ? 'justify-center px-0' : 'px-3 gap-2.5'}`}
+    >
+      <FlaskConical className="w-4 h-4 flex-shrink-0" />
+      {!collapsed && <span className="text-sm font-medium truncate">Prompt Lab</span>}
+    </button>
+  );
+
+  if (!collapsed) return btn;
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button
-          aria-label="Navigation placement"
-          className={`flex items-center w-full rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 min-h-[40px] bg-white/[0.02] text-gray-300 hover:text-white hover:bg-white/[0.06] border border-white/10 ${
-            collapsed ? 'justify-center px-0' : 'px-3 gap-2.5'
-          }`}
-        >
-          <Settings2 className="w-4 h-4 flex-shrink-0" />
-          {!collapsed && <span className="text-sm font-medium truncate">Layout</span>}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent side="right" align="end" className="w-60 p-1 bg-gray-950 border-white/10">
-        <div className="px-2 py-1.5 text-[10px] uppercase tracking-wider text-gray-500">
-          Quick action placement
-        </div>
-        {options.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => onPlacementChange(opt.value)}
-            className={`w-full text-left rounded-md px-2 py-1.5 text-xs transition-colors ${
-              placement === opt.value
-                ? 'bg-cyan-500/15 text-cyan-200'
-                : 'text-gray-300 hover:bg-white/5'
-            }`}
-          >
-            <div className="font-medium">{opt.label}</div>
-            <div className="text-[11px] text-gray-500">{opt.hint}</div>
-          </button>
-        ))}
-      </PopoverContent>
-    </Popover>
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>{btn}</TooltipTrigger>
+        <TooltipContent side="right" className="text-xs">
+          Prompt Lab
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -156,7 +150,6 @@ export function NavRail({
   collapsed,
   onToggleCollapsed,
   placement,
-  onPlacementChange,
 }: NavRailProps) {
   const showRailActions = placement !== 'search';
 
@@ -344,11 +337,7 @@ export function NavRail({
           </>
         )}
 
-        <PlacementMenu
-          placement={placement}
-          onPlacementChange={onPlacementChange}
-          collapsed={collapsed}
-        />
+        <PromptLabButton collapsed={collapsed} />
       </div>
     </motion.aside>
   );
@@ -371,7 +360,6 @@ export function NavRailDrawer({
   onBackToTop,
   onNewConversation,
   placement,
-  onPlacementChange,
 }: NavRailDrawerProps) {
   const close = () => onOpenChange(false);
   const showRailActions = placement !== 'search';
@@ -503,11 +491,7 @@ export function NavRailDrawer({
                   />
                 </>
               )}
-              <PlacementMenu
-                placement={placement}
-                onPlacementChange={onPlacementChange}
-                collapsed={false}
-              />
+              <PromptLabButton collapsed={false} onNavigate={close} />
             </div>
           </motion.aside>
         </>
