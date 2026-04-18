@@ -1,22 +1,22 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Loader as Loader2, Triangle, Bot, Zap, Diamond, Sparkles, Radio, Plus, History, FolderOpen, Check, MoveHorizontal as MoreHorizontal } from 'lucide-react';
+import { Loader as Loader2, Triangle, Bot, Zap, Diamond, Sparkles, Plus, History, FolderOpen, MoveHorizontal as MoreHorizontal } from 'lucide-react';
 import { demoPrompts } from '../data/mockData';
 import { DemoPrompt } from '../types';
 import { validateSearchRequest } from '../utils/validation';
 import { cn } from '@/lib/utils';
-import { useAIStore } from '../stores/aiStore';
 import { ProjectsMemoryDrawer } from './ProjectsMemoryDrawer';
 import { ConversationHistoryDrawer } from './ConversationHistoryDrawer';
+import { ProjectBadge } from './ProjectBadge';
+import { LivePill } from './LivePill';
 
 interface SearchInputProps {
   onSearch: (query: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => void;
@@ -37,7 +37,6 @@ const SearchInput = ({
 }: SearchInputProps) => {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
-  const [charCount, setCharCount] = useState(0);
   const [selectedModels, setSelectedModels] = useState(() => {
     try {
       const saved = localStorage.getItem('selectedModels');
@@ -53,14 +52,10 @@ const SearchInput = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const maxChars = 500;
-
-  useEffect(() => {
-    setCharCount(query.length);
-  }, [query]);
+  const charCount = query.length;
 
   const handleQueryChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setQuery(e.target.value);
-    setCharCount(e.target.value.length);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -100,28 +95,34 @@ const SearchInput = ({
     adjustTextareaHeight();
   }, [query]);
 
-  const toggleModel = (model: keyof typeof selectedModels) => {
+  const toggleModel = useCallback((model: keyof typeof selectedModels) => {
     setSelectedModels(prev => {
       const updated = { ...prev, [model]: !prev[model] };
       try { localStorage.setItem('selectedModels', JSON.stringify(updated)); } catch { /* ignore */ }
       return updated;
     });
-  };
+  }, []);
 
-  const handleDemoPrompt = (demoPrompt: DemoPrompt) => {
+  const handleDemoPrompt = useCallback((demoPrompt: DemoPrompt) => {
     setQuery(demoPrompt.text);
     setValidationErrors([]);
-  };
+  }, []);
 
-  const filteredDemoPrompts = demoPrompts.filter(demo =>
-    ['Comparative Analysis', 'Economic Analysis', 'Ethical Reasoning'].includes(demo.category)
+  const filteredDemoPrompts = useMemo(() =>
+    demoPrompts.filter(demo =>
+      ['Comparative Analysis', 'Economic Analysis', 'Ethical Reasoning'].includes(demo.category)
+    ),
+    []
   );
 
-  const modelChips: { id: keyof typeof selectedModels; label: string; icon: React.ReactNode }[] = [
-    { id: 'claude', label: 'Claude', icon: <Bot className="h-3.5 w-3.5" /> },
-    { id: 'grok', label: 'Grok', icon: <Zap className="h-3.5 w-3.5" /> },
-    { id: 'gemini', label: 'Gemini', icon: <Diamond className="h-3.5 w-3.5" /> },
-  ];
+  const modelChips = useMemo<{ id: keyof typeof selectedModels; label: string; icon: React.ReactNode }[]>(
+    () => [
+      { id: 'claude', label: 'Claude', icon: <Bot className="h-3.5 w-3.5" /> },
+      { id: 'grok', label: 'Grok', icon: <Zap className="h-3.5 w-3.5" /> },
+      { id: 'gemini', label: 'Gemini', icon: <Diamond className="h-3.5 w-3.5" /> },
+    ],
+    []
+  );
 
   return (
     <div className={cn("w-full max-w-4xl mx-auto space-y-3 relative", className)}>
@@ -321,184 +322,5 @@ const SearchInput = ({
     </div>
   );
 };
-
-function ProjectBadge() {
-  const projects = useAIStore((s) => s.projects);
-  const activeProjectId = useAIStore((s) => s.activeProjectId);
-  const setActiveProject = useAIStore((s) => s.setActiveProject);
-  const createProject = useAIStore((s) => s.createProject);
-  const activeProject = projects.find((p) => p.id === activeProjectId) ?? null;
-  const [open, setOpen] = useState(false);
-  const [showCreate, setShowCreate] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newPersona, setNewPersona] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
-
-  const handleCreatePersona = async () => {
-    const name = newName.trim();
-    if (!name) return;
-
-    setIsCreating(true);
-    try {
-      const p = await createProject({ name, systemPersona: newPersona.trim() });
-      if (p) {
-        setActiveProject(p.id);
-        setNewName('');
-        setNewPersona('');
-        setShowCreate(false);
-        setOpen(false);
-      }
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleCreatePersona();
-    } else if (e.key === 'Escape') {
-      setShowCreate(false);
-    }
-  };
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          aria-label={activeProject ? `Active persona: ${activeProject.name}` : 'Select a persona'}
-          className="inline-flex items-center gap-1.5 h-6 px-1.5 rounded-md hover:bg-white/5 transition-colors text-[11px] text-gray-500 hover:text-gray-300"
-        >
-          {activeProject && (
-            <span
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: activeProject.color }}
-            />
-          )}
-          <span className="max-w-[120px] truncate">
-            {activeProject ? activeProject.name : 'No persona'}
-          </span>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="start" side="top" className="w-64 p-1 bg-gray-950 border-white/10">
-        <div className="px-2 py-1.5 text-[10px] uppercase tracking-wider text-gray-500">
-          Persona context
-        </div>
-        <button
-          onClick={() => {
-            setActiveProject(null);
-            setOpen(false);
-          }}
-          className={`w-full flex items-center justify-between rounded-md px-2 py-1.5 text-xs transition-colors ${
-            !activeProjectId ? 'bg-cyan-500/15 text-cyan-200' : 'text-gray-300 hover:bg-white/5'
-          }`}
-        >
-          <span>No persona</span>
-          {!activeProjectId && <Check className="w-3 h-3" />}
-        </button>
-        <div className="max-h-64 overflow-y-auto">
-          {projects.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => {
-                setActiveProject(p.id);
-                setOpen(false);
-              }}
-              className={`w-full flex items-center justify-between rounded-md px-2 py-1.5 text-xs transition-colors ${
-                activeProjectId === p.id ? 'bg-cyan-500/15 text-cyan-200' : 'text-gray-300 hover:bg-white/5'
-              }`}
-            >
-              <span className="flex items-center gap-2 min-w-0">
-                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: p.color }} />
-                <span className="truncate">{p.name}</span>
-              </span>
-              {activeProjectId === p.id && <Check className="w-3 h-3 flex-shrink-0" />}
-            </button>
-          ))}
-        </div>
-
-        {showCreate ? (
-          <div className="px-2 py-2 border-t border-white/10 space-y-2">
-            <input
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Persona name"
-              autoFocus
-              disabled={isCreating}
-              className="w-full bg-white/5 border border-white/10 rounded-md px-2 py-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 disabled:opacity-50"
-            />
-            <textarea
-              value={newPersona}
-              onChange={(e) => setNewPersona(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Optional system instructions"
-              disabled={isCreating}
-              rows={2}
-              className="w-full bg-white/5 border border-white/10 rounded-md px-2 py-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 resize-none disabled:opacity-50"
-            />
-            <div className="flex justify-end gap-1">
-              <button
-                type="button"
-                onClick={() => setShowCreate(false)}
-                disabled={isCreating}
-                className="px-2 py-1 rounded-md text-xs text-gray-300 hover:bg-white/5 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleCreatePersona}
-                disabled={!newName.trim() || isCreating}
-                className="px-2 py-1 rounded-md text-xs bg-cyan-500 hover:bg-cyan-400 text-black font-medium transition-colors disabled:opacity-50"
-              >
-                {isCreating ? 'Creating...' : 'Create'}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => setShowCreate(true)}
-            className="w-full flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-cyan-300 hover:bg-cyan-500/10 transition-colors border-t border-white/10 mt-1"
-          >
-            <Plus className="w-3 h-3" />
-            New persona
-          </button>
-        )}
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function LivePill({ isLoading }: { isLoading: boolean }) {
-  const liveMode = useAIStore(s => s.liveMode);
-  const setLiveMode = useAIStore(s => s.setLiveMode);
-  return (
-    <button
-      type="button"
-      onClick={() => setLiveMode(!liveMode)}
-      disabled={isLoading}
-      title="Stream responses token-by-token"
-      aria-pressed={liveMode}
-      className={cn(
-        'inline-flex items-center gap-1 h-5 px-1.5 rounded-full border text-[10px] font-medium transition-colors',
-        liveMode
-          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-          : 'bg-white/5 text-gray-500 border-white/10 hover:text-gray-300'
-      )}
-    >
-      <span
-        className={cn(
-          'w-1.5 h-1.5 rounded-full',
-          liveMode ? 'bg-emerald-400 animate-pulse' : 'bg-gray-600'
-        )}
-      />
-      <Radio className="w-2.5 h-2.5" aria-hidden="true" />
-      Live
-    </button>
-  );
-}
 
 export default SearchInput;
