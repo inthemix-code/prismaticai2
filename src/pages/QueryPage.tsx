@@ -5,6 +5,11 @@ import { TrendingUp, ChartBar as BarChart3, Zap, Triangle, Bot, Diamond } from '
 import SearchInput from '../components/SearchInput';
 import HowItWorks from '../components/HowItWorks';
 import { ProjectsMemoryDrawer } from '../components/ProjectsMemoryDrawer';
+import { TestimonialsSection } from '../components/TestimonialsSection';
+import { FeaturedPromptsSection } from '../components/FeaturedPromptsSection';
+import { FaqSection } from '../components/FaqSection';
+import { NewsletterSection } from '../components/NewsletterSection';
+import { SiteFooter } from '../components/SiteFooter';
 import { useAIStore } from '../stores/aiStore';
 import boltBadge from '../assets/image copy copy copy.png';
 
@@ -69,6 +74,18 @@ export function QueryPage() {
   const handlePromptSubmit = async (prompt: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => {
     await startNewConversation(prompt, selectedModels);
     navigate('/results');
+  };
+
+  const handleFeaturedPrompt = async (prompt: string) => {
+    try {
+      const saved = localStorage.getItem('selectedModels');
+      const models = saved ? JSON.parse(saved) : { claude: true, grok: true, gemini: true };
+      await startNewConversation(prompt, models);
+      navigate('/results');
+    } catch {
+      await startNewConversation(prompt, { claude: true, grok: true, gemini: true });
+      navigate('/results');
+    }
   };
 
   const scrollToSearch = () => {
@@ -310,6 +327,18 @@ export function QueryPage() {
         </motion.div>
       </section>
 
+      {/* Featured prompts */}
+      <FeaturedPromptsSection onSelect={handleFeaturedPrompt} />
+
+      {/* Testimonials */}
+      <TestimonialsSection />
+
+      {/* FAQ */}
+      <FaqSection />
+
+      {/* Newsletter */}
+      <NewsletterSection />
+
       {/* Bottom CTA strip */}
       <motion.section
         initial={{ opacity: 0, y: 24 }}
@@ -351,6 +380,8 @@ export function QueryPage() {
           </div>
         </div>
       </motion.section>
+
+      <SiteFooter />
     </div>
   );
 }
