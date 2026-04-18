@@ -7,7 +7,7 @@ import {
   ChartTooltip,
 } from '@/components/ui/chart';
 import { Copy, Shield, Clock, Zap, Target, Lightbulb, Check, Share2, Download, FileDown, Pin, Brain, ThumbsUp, ThumbsDown } from 'lucide-react';
-import { FusionResult, StructuredSynthesis, ModelId } from '../types';
+import { FusionResult, JudgeVerdict, StructuredSynthesis, ModelId } from '../types';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Markdown } from '../utils/markdown';
@@ -22,6 +22,7 @@ interface FusionPanelProps {
   memoryUsed?: string[];
   onPinFact?: (fact: string) => void;
   canPin?: boolean;
+  judgeVerdict?: JudgeVerdict | null;
 }
 
 const modelBadgeColor: Record<ModelId, string> = {
@@ -65,7 +66,7 @@ const getInsightIcon = (insight: string, index: number) => {
   return defaultIcons[index % defaultIcons.length];
 };
 
-export function FusionPanel({ fusion, conversationId, turnId, structured, memoryUsed, onPinFact, canPin }: FusionPanelProps) {
+export function FusionPanel({ fusion, conversationId, turnId, structured, memoryUsed, onPinFact, canPin, judgeVerdict }: FusionPanelProps) {
   const [copied, setCopied] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [reaction, setReaction] = useState<'up' | 'down' | null>(null);
@@ -112,13 +113,32 @@ export function FusionPanel({ fusion, conversationId, turnId, structured, memory
     };
   }, [exportOpen]);
 
-  const buildMarkdown = () =>
-    `# Prismatic synthesis\n\n` +
-    `> Confidence: ${Math.round(fusion.confidence * 100)}%\n\n` +
-    (fusion.keyInsights.length
-      ? `## Key insights\n\n${fusion.keyInsights.map((k) => `- ${k}`).join('\n')}\n\n`
-      : '') +
-    `## Response\n\n${fusion.content}\n`;
+  const buildMarkdown = () => {
+    const judgeSection = judgeVerdict
+      ? `## Judge verdict (Claude)\n\n` +
+        (judgeVerdict.overallWinner ? `> Winner: ${judgeVerdict.overallWinner}\n\n` : '') +
+        (judgeVerdict.overallSummary ? `${judgeVerdict.overallSummary}\n\n` : '') +
+        judgeVerdict.scores
+          .map(
+            (s) =>
+              `- **${s.model}** — accuracy ${s.accuracy}, completeness ${s.completeness}, tone ${s.tone}${
+                s.rationale ? ` — ${s.rationale}` : ''
+              }`
+          )
+          .join('\n') +
+        '\n\n'
+      : '';
+
+    return (
+      `# Prismatic synthesis\n\n` +
+      `> Confidence: ${Math.round(fusion.confidence * 100)}%\n\n` +
+      (fusion.keyInsights.length
+        ? `## Key insights\n\n${fusion.keyInsights.map((k) => `- ${k}`).join('\n')}\n\n`
+        : '') +
+      `## Response\n\n${fusion.content}\n\n` +
+      judgeSection
+    );
+  };
 
   const copyToClipboard = async () => {
     try {

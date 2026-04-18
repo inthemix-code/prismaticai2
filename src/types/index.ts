@@ -44,6 +44,25 @@ export interface ConversationTurn {
   siblingTurnIds?: string[];
   siblingIndex?: number;
   siblingCount?: number;
+  judgeVerdict?: JudgeVerdict | null;
+  judgeLoading?: boolean;
+}
+
+export interface JudgeModelScore {
+  model: ModelId;
+  accuracy: number;
+  completeness: number;
+  tone: number;
+  rationale: string;
+  evaluated: boolean;
+}
+
+export interface JudgeVerdict {
+  judgeModel: 'claude';
+  overallWinner: ModelId | null;
+  overallSummary: string;
+  scores: JudgeModelScore[];
+  createdAt: number;
 }
 
 export interface TurnSibling {

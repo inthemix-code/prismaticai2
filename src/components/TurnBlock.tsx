@@ -6,6 +6,8 @@ import { ConversationTurn, Conversation } from '../types';
 import { AnalyticsCharts } from './AnalyticsCharts';
 import { FusionPanel } from './FusionPanel';
 import { FusionPanelSkeleton } from './FusionPanelSkeleton';
+import { JudgeVerdictCard } from './JudgeVerdictCard';
+import { JudgeVerdictCardSkeleton } from './JudgeVerdictCardSkeleton';
 import { AIResponsePanel } from './AIResponsePanel';
 import { AIResponsePanelSkeleton } from './AIResponsePanelSkeleton';
 import { ForkIndicator } from './ForkIndicator';
@@ -171,7 +173,22 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
                   memoryUsed={turn.memoryUsed}
                   canPin={!!activeProjectId}
                   onPinFact={(fact) => onPinFact(fact, turn.id)}
+                  judgeVerdict={turn.judgeVerdict ?? null}
                 />
+                {turn.judgeVerdict ? (
+                  <JudgeVerdictCard
+                    verdict={turn.judgeVerdict}
+                    turnId={turn.id}
+                    loading={turn.judgeLoading}
+                    evaluatedModels={turn.responses
+                      .filter((r) => r.content && !r.error)
+                      .map((r) => r.platform)}
+                  />
+                ) : turn.judgeLoading ? (
+                  <div className="mt-4">
+                    <JudgeVerdictCardSkeleton />
+                  </div>
+                ) : null}
               </motion.div>
             )}
 

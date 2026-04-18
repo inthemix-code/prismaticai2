@@ -15,6 +15,7 @@ import {
   memoryPersistence,
   rankMemoryForPrompt,
 } from '../services/conversationPersistence';
+import { judgeVerdictPersistence } from '../services/judgeVerdictPersistence';
 import { supabase } from '../lib/supabase';
 
 type SelectedModels = { claude: boolean; grok: boolean; gemini: boolean };
@@ -83,6 +84,8 @@ interface AIStore {
 
   forkTurn: (turnId: string, newPrompt: string, selectedModels?: SelectedModels) => Promise<void>;
   switchBranch: (siblingTurnId: string) => Promise<void>;
+
+  rerunJudge: (turnId: string) => Promise<void>;
 }
 
 function makeId(prefix: string): string {
@@ -119,6 +122,58 @@ function updateTurnInConversations(
     currentConversation: state.currentConversation ? applyUpdate(state.currentConversation) : null,
     conversationHistory: state.conversationHistory.map(applyUpdate),
   };
+}
+
+async function runJudgeForTurn(
+  set: (updater: (state: AIStore) => Partial<AIStore>) => void,
+  get: () => AIStore,
+  turnId: string,
+  prompt: string,
+  responses: AIResponse[]
+) {
+  const convoSnapshot = get().currentConversation;
+  if (!convoSnapshot) return;
+
+  set((state) =>
+    updateTurnInConversations(state, turnId, (turn) => ({
+      ...turn,
+      judgeLoading: true,
+    }))
+  );
+
+  try {
+    const verdict = await apiService.getJudgeVerdict(prompt, responses);
+    if (!verdict) {
+      set((state) =>
+        updateTurnInConversations(state, turnId, (turn) => ({
+          ...turn,
+          judgeLoading: false,
+        }))
+      );
+      return;
+    }
+
+    set((state) =>
+      updateTurnInConversations(state, turnId, (turn) => ({
+        ...turn,
+        judgeVerdict: verdict,
+        judgeLoading: false,
+      }))
+    );
+
+    const convo = get().currentConversation;
+    if (convo) {
+      void judgeVerdictPersistence.upsertByTurn(turnId, convo.id, verdict);
+    }
+  } catch (err) {
+    console.warn('[judge] runJudgeForTurn failed', err);
+    set((state) =>
+      updateTurnInConversations(state, turnId, (turn) => ({
+        ...turn,
+        judgeLoading: false,
+      }))
+    );
+  }
 }
 
 export const useAIStore = create<AIStore>((set, get) => ({
@@ -290,6 +345,8 @@ export const useAIStore = create<AIStore>((set, get) => ({
         void conversationPersistence.upsertTurn(convo.id, turn, idx);
       }
     }
+
+    void runJudgeForTurn(set, get, turnId, prompt, responses);
   },
 
   processAIResponsesStreaming: async (turnId, prompt, selectedModels, memoryUsed) => {
@@ -382,6 +439,8 @@ export const useAIStore = create<AIStore>((set, get) => ({
         void conversationPersistence.upsertTurn(convo.id, turn, idx);
       }
     }
+
+    void runJudgeForTurn(set, get, turnId, prompt, responses);
   },
 
   setResponse: (turnId, responseId, responseUpdate) => {
@@ -419,6 +478,28 @@ export const useAIStore = create<AIStore>((set, get) => ({
           ? state.conversationHistory.map(c => (c.id === conversation.id ? conversation : c))
           : [conversation, ...state.conversationHistory],
       };
+    });
+
+    const turnIds = conversation.turns.map(t => t.id);
+    void judgeVerdictPersistence.getByTurnIds(turnIds).then((byTurn) => {
+      if (Object.keys(byTurn).length === 0) return;
+      set(state => {
+        const apply = (conv: Conversation): Conversation => ({
+          ...conv,
+          turns: conv.turns.map(t =>
+            byTurn[t.id] ? { ...t, judgeVerdict: byTurn[t.id] } : t
+          ),
+        });
+        return {
+          currentConversation:
+            state.currentConversation?.id === conversation.id
+              ? apply(state.currentConversation)
+              : state.currentConversation,
+          conversationHistory: state.conversationHistory.map(c =>
+            c.id === conversation.id ? apply(c) : c
+          ),
+        };
+      });
     });
   },
 
@@ -672,5 +753,23 @@ export const useAIStore = create<AIStore>((set, get) => ({
       conversationPersistence.setActiveBranch(displaced.id, false),
       conversationPersistence.setActiveBranch(siblingTurnId, true),
     ]);
+
+    const hydratedVerdict = await judgeVerdictPersistence.getByTurn(siblingTurnId);
+    if (hydratedVerdict) {
+      set(state =>
+        updateTurnInConversations(state, siblingTurnId, turn => ({
+          ...turn,
+          judgeVerdict: hydratedVerdict,
+        }))
+      );
+    }
+  },
+
+  rerunJudge: async (turnId) => {
+    const convo = get().currentConversation;
+    if (!convo) return;
+    const turn = convo.turns.find(t => t.id === turnId);
+    if (!turn) return;
+    await runJudgeForTurn(set, get, turnId, turn.prompt, turn.responses);
   },
 }));

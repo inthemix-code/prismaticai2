@@ -1,4 +1,4 @@
-import { AIResponse, AnalysisData, FusionResult, ModelId, StructuredSynthesis } from '../types';
+import { AIResponse, AnalysisData, FusionResult, JudgeVerdict, ModelId, StructuredSynthesis } from '../types';
 import {
   queryAllModels,
   queryModel,
@@ -9,6 +9,7 @@ import {
   type QueryOptions,
   type StreamHandlers,
 } from './modelService';
+import { getJudgeVerdict } from './judgeService';
 
 class APIService {
   async queryAllModels(
@@ -42,6 +43,10 @@ class APIService {
 
   async getStructuredSynthesis(prompt: string, responses: AIResponse[]): Promise<StructuredSynthesis | null> {
     return getStructuredSynthesis(prompt, responses);
+  }
+
+  async getJudgeVerdict(prompt: string, responses: AIResponse[]): Promise<JudgeVerdict | null> {
+    return getJudgeVerdict(prompt, responses);
   }
 }
 
