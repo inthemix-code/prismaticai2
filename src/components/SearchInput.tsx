@@ -13,8 +13,8 @@ import { demoPrompts } from '../data/mockData';
 import { DemoPrompt } from '../types';
 import { validateSearchRequest } from '../utils/validation';
 import { cn } from '@/lib/utils';
-import { ProjectsMemoryDrawer } from './ProjectsMemoryDrawer';
-import { ConversationHistoryDrawer } from './ConversationHistoryDrawer';
+import { ProjectsDrawer } from './ProjectsMemoryDrawer';
+import { HistoryDrawer } from './ConversationHistoryDrawer';
 import { ProjectBadge } from './ProjectBadge';
 import { LivePill } from './LivePill';
 
@@ -271,12 +271,12 @@ const SearchInput = ({
       {/* Hidden drawer triggers controlled from overflow menu */}
       {showQuickActions && (
         <>
-          <ConversationHistoryDrawer
+          <HistoryDrawer
             open={historyOpen}
             onOpenChange={setHistoryOpen}
             trigger={<span className="hidden" aria-hidden="true" />}
           />
-          <ProjectsMemoryDrawer
+          <ProjectsDrawer
             open={projectsOpen}
             onOpenChange={setProjectsOpen}
             trigger={<span className="hidden" aria-hidden="true" />}

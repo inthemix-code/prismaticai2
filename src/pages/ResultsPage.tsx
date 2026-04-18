@@ -533,10 +533,10 @@ export function ResultsPage() {
                     <Plus className="w-4 h-4 mr-2" /> New conversation
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setMobileMenuOpen(true)} className="text-gray-200 focus:bg-white/5">
-                    <FolderOpen className="w-4 h-4 mr-2" /> Projects &amp; Memory
+                    <FolderOpen className="w-4 h-4 mr-2" /> Projects
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setMobileMenuOpen(true)} className="text-gray-200 focus:bg-white/5">
-                    <History className="w-4 h-4 mr-2" /> Conversation history
+                    <History className="w-4 h-4 mr-2" /> History
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -4,7 +4,6 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Quote, Scale, Bookmark, Beaker, Zap, Triangle, Bot, Diamond, FlaskConical } from 'lucide-react';
 import SearchInput from '../components/SearchInput';
 import HowItWorks from '../components/HowItWorks';
-import { ProjectsMemoryDrawer } from '../components/ProjectsMemoryDrawer';
 import { TestimonialsSection } from '../components/TestimonialsSection';
 import { FeaturedPromptsSection } from '../components/FeaturedPromptsSection';
 import { FaqSection } from '../components/FaqSection';
@@ -120,7 +119,6 @@ export function QueryPage() {
           <span className="text-white font-semibold text-base tracking-tight">Prismatic</span>
         </div>
         <div className="flex items-center gap-2">
-          <ProjectsMemoryDrawer />
           <button
             onClick={() => navigate('/lab')}
             className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-slate-300 hover:text-cyan-300 transition-colors border border-white/10 hover:border-cyan-400/40 rounded-full px-4 py-1.5 bg-white/5 hover:bg-cyan-500/5"

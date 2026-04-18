@@ -5,7 +5,7 @@ import { History, Loader as Loader2, MessageSquare, Search, Share2, Trash2, X } 
 import { conversationPersistence, type StoredConversationRow } from '../services/conversationPersistence';
 import { useAIStore } from '../stores/aiStore';
 
-interface ConversationHistoryDrawerProps {
+interface HistoryDrawerProps {
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -37,7 +37,7 @@ function bucketFor(iso: string): 'Today' | 'This week' | 'Older' {
   return 'Older';
 }
 
-export function ConversationHistoryDrawer({ trigger, open: openProp, onOpenChange }: ConversationHistoryDrawerProps) {
+export function HistoryDrawer({ trigger, open: openProp, onOpenChange }: HistoryDrawerProps) {
   const [openInternal, setOpenInternal] = useState(false);
   const open = openProp ?? openInternal;
   const setOpen = (v: boolean) => {

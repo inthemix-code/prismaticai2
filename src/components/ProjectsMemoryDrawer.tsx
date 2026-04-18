@@ -22,13 +22,13 @@ import {
 import { useAIStore } from '../stores/aiStore';
 import { toast } from 'sonner';
 
-interface ProjectsMemoryDrawerProps {
+interface ProjectsDrawerProps {
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
-export function ProjectsMemoryDrawer({ trigger, open: openProp, onOpenChange }: ProjectsMemoryDrawerProps = {}) {
+export function ProjectsDrawer({ trigger, open: openProp, onOpenChange }: ProjectsDrawerProps = {}) {
   const [openInternal, setOpenInternal] = useState(false);
   const open = openProp ?? openInternal;
   const setOpen = (v: boolean) => {

@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 import { ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ProjectsMemoryDrawer } from './ProjectsMemoryDrawer';
-import { ConversationHistoryDrawer } from './ConversationHistoryDrawer';
+import { ProjectsDrawer } from './ProjectsMemoryDrawer';
+import { HistoryDrawer } from './ConversationHistoryDrawer';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { NavPlacement } from '../services/uiPreferences';
 
@@ -307,7 +307,7 @@ export function NavRail({
       <div className={`${collapsed ? 'px-2' : 'px-3'} py-3 space-y-1.5`}>
         {showRailActions && (
           <>
-            <ProjectsMemoryDrawer
+            <ProjectsDrawer
               trigger={
                 <button
                   aria-label="Projects and memory"
@@ -321,7 +321,7 @@ export function NavRail({
               }
             />
 
-            <ConversationHistoryDrawer
+            <HistoryDrawer
               trigger={
                 <button
                   aria-label="Conversation history"
@@ -473,7 +473,7 @@ export function NavRailDrawer({
             <div className="px-3 py-3 space-y-1.5">
               {showRailActions && (
                 <>
-                  <ProjectsMemoryDrawer
+                  <ProjectsDrawer
                     trigger={
                       <button className="flex items-center gap-2.5 w-full px-3 min-h-[44px] rounded-xl bg-white/[0.02] text-gray-200 hover:bg-white/[0.06] border border-white/10">
                         <FolderOpen className="w-4 h-4" />
@@ -481,7 +481,7 @@ export function NavRailDrawer({
                       </button>
                     }
                   />
-                  <ConversationHistoryDrawer
+                  <HistoryDrawer
                     trigger={
                       <button className="flex items-center gap-2.5 w-full px-3 min-h-[44px] rounded-xl bg-white/[0.02] text-gray-200 hover:bg-white/[0.06] border border-white/10">
                         <History className="w-4 h-4" />
