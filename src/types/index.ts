@@ -39,6 +39,18 @@ export interface ConversationTurn {
   completed: boolean;
   progress?: number;
   memoryUsed?: string[];
+  parentTurnId?: string | null;
+  isActiveBranch?: boolean;
+  siblingTurnIds?: string[];
+  siblingIndex?: number;
+  siblingCount?: number;
+}
+
+export interface TurnSibling {
+  id: string;
+  prompt: string;
+  timestamp: number;
+  isActive: boolean;
 }
 
 export interface Conversation {

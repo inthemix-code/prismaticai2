@@ -15,6 +15,7 @@ import {
   memoryPersistence,
   rankMemoryForPrompt,
 } from '../services/conversationPersistence';
+import { supabase } from '../lib/supabase';
 
 type SelectedModels = { claude: boolean; grok: boolean; gemini: boolean };
 
@@ -79,6 +80,9 @@ interface AIStore {
   pinMemory: (fact: string, sourceTurnId?: string | null) => Promise<void>;
   removeMemory: (id: string) => Promise<void>;
   updateMemoryFact: (id: string, fact: string) => Promise<void>;
+
+  forkTurn: (turnId: string, newPrompt: string, selectedModels?: SelectedModels) => Promise<void>;
+  switchBranch: (siblingTurnId: string) => Promise<void>;
 }
 
 function makeId(prefix: string): string {
@@ -160,6 +164,11 @@ export const useAIStore = create<AIStore>((set, get) => ({
       loading: true,
       completed: false,
       memoryUsed: memoryFactTexts,
+      parentTurnId: null,
+      isActiveBranch: true,
+      siblingTurnIds: [turnId],
+      siblingIndex: 0,
+      siblingCount: 1,
     };
 
     const newConversation: Conversation = {
@@ -203,6 +212,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
     const memoryFacts = projectId ? rankMemoryForPrompt(get().projectMemory[projectId] ?? [], sanitizedPrompt) : [];
     const memoryFactTexts = memoryFacts.map(m => m.fact);
 
+    const previousTurn = currentConv.turns[currentConv.turns.length - 1];
     const newTurn: ConversationTurn = {
       id: turnId,
       prompt: sanitizedPrompt,
@@ -214,6 +224,11 @@ export const useAIStore = create<AIStore>((set, get) => ({
       loading: true,
       completed: false,
       memoryUsed: memoryFactTexts,
+      parentTurnId: previousTurn?.id ?? null,
+      isActiveBranch: true,
+      siblingTurnIds: [turnId],
+      siblingIndex: 0,
+      siblingCount: 1,
     };
 
     set(state => ({
@@ -500,5 +515,162 @@ export const useAIStore = create<AIStore>((set, get) => ({
       }
       return { projectMemory: next };
     });
+  },
+
+  forkTurn: async (turnId, newPrompt, selectedModels) => {
+    const models = selectedModels ?? { claude: true, grok: true, gemini: true };
+    const validation = validateSearchRequest(newPrompt, models);
+    if (!validation.isValid) throw new Error(`Invalid input: ${validation.errors.join(', ')}`);
+
+    const sanitizedPrompt = validation.sanitizedPrompt ?? newPrompt;
+    const currentConv = get().currentConversation;
+    if (!currentConv) return;
+    const sourceIdx = currentConv.turns.findIndex(t => t.id === turnId);
+    if (sourceIdx === -1) return;
+    const sourceTurn = currentConv.turns[sourceIdx];
+
+    const newTurnId = makeId('turn');
+    const streaming = get().liveMode;
+    const projectId = currentConv.projectId ?? get().activeProjectId;
+    const memoryFacts = projectId ? rankMemoryForPrompt(get().projectMemory[projectId] ?? [], sanitizedPrompt) : [];
+    const memoryFactTexts = memoryFacts.map(m => m.fact);
+
+    get().addToHistory(sanitizedPrompt);
+
+    const newTurn: ConversationTurn = {
+      id: newTurnId,
+      prompt: sanitizedPrompt,
+      timestamp: Date.now(),
+      responses: buildLoadingResponses(newTurnId, models, streaming),
+      analysisData: null,
+      fusionResult: null,
+      fusionStructured: null,
+      loading: true,
+      completed: false,
+      memoryUsed: memoryFactTexts,
+      parentTurnId: sourceTurn.parentTurnId ?? null,
+      isActiveBranch: true,
+      siblingTurnIds: [...(sourceTurn.siblingTurnIds ?? [sourceTurn.id]), newTurnId],
+      siblingIndex: (sourceTurn.siblingCount ?? 1),
+      siblingCount: (sourceTurn.siblingCount ?? 1) + 1,
+    };
+
+    const siblingIds = newTurn.siblingTurnIds ?? [];
+    const newCount = siblingIds.length;
+    const newIndex = newCount - 1;
+
+    set(state => {
+      const applyBranchSwitch = (conv: Conversation): Conversation => {
+        const replacedTurns = conv.turns.slice(0, sourceIdx).map(t => {
+          if (siblingIds.includes(t.id)) {
+            return {
+              ...t,
+              isActiveBranch: false,
+              siblingTurnIds: siblingIds,
+              siblingCount: newCount,
+              siblingIndex: siblingIds.indexOf(t.id),
+            };
+          }
+          return t;
+        });
+        const updatedSource: ConversationTurn = {
+          ...sourceTurn,
+          isActiveBranch: false,
+          siblingTurnIds: siblingIds,
+          siblingCount: newCount,
+          siblingIndex: siblingIds.indexOf(sourceTurn.id),
+        };
+        void updatedSource;
+        return {
+          ...conv,
+          turns: [...replacedTurns, newTurn],
+          updatedAt: Date.now(),
+        };
+      };
+
+      return {
+        currentConversation: state.currentConversation?.id === currentConv.id
+          ? applyBranchSwitch(state.currentConversation)
+          : state.currentConversation,
+        conversationHistory: state.conversationHistory.map(conv =>
+          conv.id === currentConv.id ? applyBranchSwitch(conv) : conv
+        ),
+      };
+    });
+
+    await conversationPersistence.setActiveBranch(sourceTurn.id, false);
+    void conversationPersistence.upsertTurn(currentConv.id, newTurn, sourceIdx);
+    const convo = get().currentConversation;
+    if (convo) void conversationPersistence.upsertConversation(convo);
+
+    if (streaming) {
+      get().processAIResponsesStreaming(newTurnId, sanitizedPrompt, models, memoryFactTexts);
+    } else {
+      get().processAIResponses(newTurnId, sanitizedPrompt, models, memoryFactTexts);
+    }
+
+    void newIndex;
+  },
+
+  switchBranch: async (siblingTurnId) => {
+    const currentConv = get().currentConversation;
+    if (!currentConv) return;
+
+    const { data, error } = await supabase
+      .from('conversation_turns')
+      .select('id, prompt, responses, analysis_data, fusion_result, fusion_structured, completed, created_at, parent_turn_id, is_active_branch, conversation_id')
+      .eq('id', siblingTurnId)
+      .maybeSingle();
+    if (error || !data) return;
+    if (data.conversation_id !== currentConv.id) return;
+
+    const targetIdx = currentConv.turns.findIndex(t => {
+      const ids = t.siblingTurnIds ?? [];
+      return ids.includes(siblingTurnId);
+    });
+    if (targetIdx === -1) return;
+
+    const displaced = currentConv.turns[targetIdx];
+    if (!displaced) return;
+
+    const mappedSibling: ConversationTurn = {
+      id: data.id,
+      prompt: data.prompt ?? '',
+      timestamp: new Date(data.created_at).getTime(),
+      responses: (data.responses ?? []) as ConversationTurn['responses'],
+      analysisData: data.analysis_data as ConversationTurn['analysisData'],
+      fusionResult: data.fusion_result as ConversationTurn['fusionResult'],
+      fusionStructured: (data.fusion_structured ?? null) as ConversationTurn['fusionStructured'],
+      loading: false,
+      completed: !!data.completed,
+      parentTurnId: data.parent_turn_id,
+      isActiveBranch: true,
+      siblingTurnIds: displaced.siblingTurnIds,
+      siblingCount: displaced.siblingCount,
+      siblingIndex: (displaced.siblingTurnIds ?? []).indexOf(siblingTurnId),
+    };
+
+    set(state => {
+      const apply = (conv: Conversation): Conversation => ({
+        ...conv,
+        turns: [
+          ...conv.turns.slice(0, targetIdx),
+          mappedSibling,
+        ],
+      });
+      return {
+        currentConversation: state.currentConversation?.id === currentConv.id
+          ? apply(state.currentConversation)
+          : state.currentConversation,
+        conversationHistory: state.conversationHistory.map(conv =>
+          conv.id === currentConv.id ? apply(conv) : conv
+        ),
+      };
+    });
+
+    await Promise.all([
+      conversationPersistence.setActiveBranch(displaced.id, false),
+      conversationPersistence.setActiveBranch(siblingTurnId, true),
+    ]);
   },
 }));

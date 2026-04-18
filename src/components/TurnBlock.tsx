@@ -8,6 +8,8 @@ import { FusionPanel } from './FusionPanel';
 import { FusionPanelSkeleton } from './FusionPanelSkeleton';
 import { AIResponsePanel } from './AIResponsePanel';
 import { AIResponsePanelSkeleton } from './AIResponsePanelSkeleton';
+import { ForkIndicator } from './ForkIndicator';
+import { ForkButton } from './ForkButton';
 
 interface TurnBlockProps {
   turn: ConversationTurn;
@@ -78,6 +80,24 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
             <>
               <span className="text-gray-700">&middot;</span>
               <span className="normal-case tracking-normal">{turn.responses.length} models</span>
+            </>
+          )}
+          {!turn.loading && (turn.siblingCount ?? 1) > 1 && (
+            <>
+              <span className="text-gray-700">&middot;</span>
+              <ForkIndicator
+                conversationId={conversation.id}
+                turnId={turn.id}
+                parentTurnId={turn.parentTurnId ?? null}
+                siblingIndex={turn.siblingIndex ?? 0}
+                siblingCount={turn.siblingCount ?? 1}
+              />
+            </>
+          )}
+          {!turn.loading && turn.completed && (
+            <>
+              <span className="text-gray-700">&middot;</span>
+              <ForkButton turnId={turn.id} originalPrompt={turn.prompt} />
             </>
           )}
         </div>

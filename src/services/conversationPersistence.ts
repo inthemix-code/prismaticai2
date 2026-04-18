@@ -1,5 +1,5 @@
 import { supabase, getClientId } from '../lib/supabase';
-import type { Conversation, ConversationTurn, Project, ProjectMemory } from '../types';
+import type { Conversation, ConversationTurn, Project, ProjectMemory, TurnSibling } from '../types';
 
 export interface StoredConversationRow {
   id: string;
@@ -43,10 +43,38 @@ export const conversationPersistence = {
         fusion_structured: turn.fusionStructured ?? null,
         completed: turn.completed,
         created_at: new Date(turn.timestamp).toISOString(),
+        parent_turn_id: turn.parentTurnId ?? null,
+        is_active_branch: turn.isActiveBranch ?? true,
       },
       { onConflict: 'id' }
     );
     if (error) console.warn('[persistence] upsertTurn failed:', error.message);
+  },
+
+  async setActiveBranch(turnId: string, isActive: boolean): Promise<void> {
+    const { error } = await supabase
+      .from('conversation_turns')
+      .update({ is_active_branch: isActive })
+      .eq('id', turnId);
+    if (error) console.warn('[persistence] setActiveBranch failed:', error.message);
+  },
+
+  async listSiblings(conversationId: string, parentTurnId: string | null): Promise<TurnSibling[]> {
+    let q = supabase
+      .from('conversation_turns')
+      .select('id, prompt, created_at, is_active_branch')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
+    if (parentTurnId === null) q = q.is('parent_turn_id', null);
+    else q = q.eq('parent_turn_id', parentTurnId);
+    const { data, error } = await q;
+    if (error || !data) return [];
+    return data.map((r) => ({
+      id: r.id,
+      prompt: r.prompt ?? '',
+      timestamp: new Date(r.created_at).getTime(),
+      isActive: !!r.is_active_branch,
+    }));
   },
 
   async listConversations(projectId?: string | null, limit = 100): Promise<StoredConversationRow[]> {
@@ -112,17 +140,67 @@ export const conversationPersistence = {
       .order('turn_index', { ascending: true });
     if (turnsErr) return null;
 
-    const mappedTurns: ConversationTurn[] = (turns ?? []).map((t) => ({
-      id: t.id,
-      prompt: t.prompt,
-      timestamp: new Date(t.created_at).getTime(),
-      responses: (t.responses ?? []) as ConversationTurn['responses'],
-      analysisData: t.analysis_data as ConversationTurn['analysisData'],
-      fusionResult: t.fusion_result as ConversationTurn['fusionResult'],
-      fusionStructured: (t.fusion_structured ?? null) as ConversationTurn['fusionStructured'],
-      loading: false,
-      completed: t.completed,
-    }));
+    type TurnRow = {
+      id: string;
+      prompt: string;
+      created_at: string;
+      responses: unknown;
+      analysis_data: unknown;
+      fusion_result: unknown;
+      fusion_structured: unknown;
+      completed: boolean;
+      parent_turn_id: string | null;
+      is_active_branch: boolean;
+    };
+
+    const allTurns = (turns ?? []) as TurnRow[];
+
+    const byId = new Map<string, TurnRow>(allTurns.map((t) => [t.id, t]));
+    const childrenByParent = new Map<string | null, TurnRow[]>();
+    for (const t of allTurns) {
+      const key = t.parent_turn_id ?? null;
+      const arr = childrenByParent.get(key) ?? [];
+      arr.push(t);
+      childrenByParent.set(key, arr);
+    }
+
+    const activePath: TurnRow[] = [];
+    let currentParent: string | null = null;
+    const visited = new Set<string>();
+    while (true) {
+      const kids: TurnRow[] = childrenByParent.get(currentParent) ?? [];
+      if (kids.length === 0) break;
+      const active: TurnRow | undefined =
+        kids.find((k: TurnRow) => k.is_active_branch) ?? kids[kids.length - 1];
+      if (!active || visited.has(active.id)) break;
+      visited.add(active.id);
+      activePath.push(active);
+      currentParent = active.id;
+    }
+
+    const mappedTurns: ConversationTurn[] = activePath.map((t) => {
+      const siblings = childrenByParent.get(t.parent_turn_id ?? null) ?? [];
+      const sorted = [...siblings].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+      return {
+        id: t.id,
+        prompt: t.prompt,
+        timestamp: new Date(t.created_at).getTime(),
+        responses: (t.responses ?? []) as ConversationTurn['responses'],
+        analysisData: t.analysis_data as ConversationTurn['analysisData'],
+        fusionResult: t.fusion_result as ConversationTurn['fusionResult'],
+        fusionStructured: (t.fusion_structured ?? null) as ConversationTurn['fusionStructured'],
+        loading: false,
+        completed: t.completed,
+        parentTurnId: t.parent_turn_id,
+        isActiveBranch: t.is_active_branch,
+        siblingTurnIds: sorted.map((s) => s.id),
+        siblingIndex: sorted.findIndex((s) => s.id === t.id),
+        siblingCount: sorted.length,
+      };
+    });
+    void byId;
 
     return {
       id: convo.id,
