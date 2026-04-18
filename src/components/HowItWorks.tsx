@@ -21,11 +21,18 @@ const steps = [
   {
     number: '03',
     icon: Merge,
-    title: 'Get a unified answer',
-    description: 'Prismatic synthesizes the best insights from all three models into one clear, comprehensive response.',
+    title: 'Synthesized, cited, judged',
+    description: 'One unified answer with sentence-level citations, a confidence score, and a judge verdict naming the strongest model for your question.',
     color: 'from-teal-500 to-emerald-500',
     glow: 'rgba(20,184,166,0.15)',
   },
+];
+
+const auxCapabilities = [
+  'Fork any turn',
+  'Pin facts to project memory',
+  'Share read-only links',
+  'Export as Markdown',
 ];
 
 const containerVariants = {
@@ -60,10 +67,10 @@ const HowItWorks = () => {
           How it works
         </p>
         <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 tracking-tight">
-          One prompt. Three minds. One answer.
+          One prompt. Three minds. One trusted answer.
         </h2>
         <p className="text-gray-400 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-          Prismatic runs your query across multiple AI models at the same time and merges their best thinking.
+          Prismatic queries Claude, Grok, and Gemini in parallel — then fuses them into a cited, judged synthesis.
         </p>
       </motion.div>
 
@@ -116,6 +123,23 @@ const HowItWorks = () => {
             </motion.div>
           );
         })}
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-40px' }}
+        transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+        className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
+      >
+        {auxCapabilities.map((cap, i) => (
+          <span key={cap} className="flex items-center gap-3">
+            <span className="text-xs text-slate-400 font-medium">{cap}</span>
+            {i < auxCapabilities.length - 1 && (
+              <span className="w-1 h-1 rounded-full bg-white/20 hidden sm:inline-block" />
+            )}
+          </span>
+        ))}
       </motion.div>
     </section>
   );

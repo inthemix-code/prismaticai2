@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { TrendingUp, ChartBar as BarChart3, Zap, Triangle, Bot, Diamond, FlaskConical } from 'lucide-react';
+import { Quote, Scale, Bookmark, Beaker, Zap, Triangle, Bot, Diamond, FlaskConical } from 'lucide-react';
 import SearchInput from '../components/SearchInput';
 import HowItWorks from '../components/HowItWorks';
 import { ProjectsMemoryDrawer } from '../components/ProjectsMemoryDrawer';
@@ -159,30 +159,35 @@ export function QueryPage() {
           {/* Headline */}
           <motion.div {...fadeUp(0.1)} className="space-y-3">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] text-white">
-              Every AI's best answer.
+              Three frontier models.
             </h1>
             <h1
               className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] text-transparent bg-clip-text"
               style={{ backgroundImage: 'linear-gradient(135deg, #22d3ee 0%, #14b8a6 100%)' }}
             >
-              Unified.
+              One trusted answer.
             </h1>
           </motion.div>
 
           {/* Subtext */}
           <motion.p {...fadeUp(0.2)} className="max-w-2xl mx-auto text-base sm:text-lg text-slate-400 leading-relaxed px-2">
-            Claude, Grok, and Gemini respond to your question simultaneously.{' '}
-            <span className="text-slate-300 font-medium">Prismatic fuses the best of all three.</span>
+            Claude, Grok, and Gemini answer in parallel. Prismatic fuses them into one response —{' '}
+            <span className="text-slate-300 font-medium">with sentence-level citations, a confidence score, and a judge verdict that names the strongest model.</span>
           </motion.p>
 
           {/* Stat chips */}
           <motion.div {...fadeUp(0.3)} className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
-            {['3 AI Models', 'Parallel Queries', '1 Synthesized Answer'].map((stat, i) => (
-              <span key={stat} className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm font-medium text-slate-300 bg-white/5 border border-white/10 rounded-full px-3 py-1.5">
-                  {stat}
+            {[
+              { label: 'Synthesis + citations', dot: 'bg-cyan-400' },
+              { label: 'Judge verdict', dot: 'bg-amber-400' },
+              { label: 'Persistent project memory', dot: 'bg-emerald-400' },
+            ].map((stat, i, arr) => (
+              <span key={stat.label} className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-300 bg-white/5 border border-white/10 rounded-full px-3 py-1.5">
+                  <span className={`w-1.5 h-1.5 rounded-full ${stat.dot}`} />
+                  {stat.label}
                 </span>
-                {i < 2 && <span className="text-white/20 text-sm select-none hidden sm:inline">·</span>}
+                {i < arr.length - 1 && <span className="text-white/20 text-sm select-none hidden sm:inline">·</span>}
               </span>
             ))}
           </motion.div>
@@ -252,10 +257,10 @@ export function QueryPage() {
           className="text-center mb-12"
         >
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 tracking-tight">
-            Compare AI Responses Like Never Before
+            Built for answers you can actually trust
           </h2>
           <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            Get comprehensive insights from multiple AI platforms with advanced analytics and intelligent synthesis
+            Every response is cited, judged, and ready to reuse — with the context to back it up.
           </p>
         </motion.div>
 
@@ -264,35 +269,44 @@ export function QueryPage() {
           initial="initial"
           whileInView="animate"
           viewport={{ once: true, margin: '-60px' }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8"
+          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 sm:gap-8"
         >
           {[
             {
-              icon: TrendingUp,
-              title: 'Side-by-Side Comparison',
-              description: 'Compare responses with confidence scoring, response times, and detailed quality metrics across all platforms.',
-              outcome: 'See which AI answered best at a glance',
+              icon: Quote,
+              title: 'Synthesis with citations',
+              description: 'One unified answer with sentence-level attribution to Claude, Grok, or Gemini — and contested lines quietly flagged so nothing slips by.',
+              outcome: 'Trust every sentence, not just the vibe.',
               gradient: 'from-blue-500 to-cyan-500',
               hoverGlow: 'rgba(6,182,212,0.18)',
               hoverBorder: 'rgba(6,182,212,0.35)',
             },
             {
-              icon: BarChart3,
-              title: 'Deep Analytics',
-              description: 'Advanced sentiment analysis, keyword extraction, risk assessment, and comprehensive performance insights.',
-              outcome: 'Understand quality differences instantly',
+              icon: Scale,
+              title: 'Judge verdict',
+              description: 'Claude grades all three responses on accuracy, completeness, and tone — and names the single strongest model for your question.',
+              outcome: 'Know which model won and why.',
               gradient: 'from-sky-500 to-cyan-400',
               hoverGlow: 'rgba(14,165,233,0.18)',
               hoverBorder: 'rgba(14,165,233,0.35)',
             },
             {
-              icon: Zap,
-              title: 'Intelligent Synthesis',
-              description: 'AI-powered fusion combining the best insights from all models into a comprehensive, unified response.',
-              outcome: 'One perfect answer, not three good ones',
+              icon: Bookmark,
+              title: 'Projects & memory',
+              description: 'Pin facts and project context once. Prismatic persists them across every future conversation so models stay grounded in your world.',
+              outcome: 'Your context, remembered across queries.',
               gradient: 'from-emerald-500 to-teal-500',
               hoverGlow: 'rgba(20,184,166,0.18)',
               hoverBorder: 'rgba(20,184,166,0.35)',
+            },
+            {
+              icon: Beaker,
+              title: 'Prompt Lab',
+              description: 'A/B test prompt variations across all three models side-by-side. See which phrasing earns the clearest, most accurate answers.',
+              outcome: 'Ship prompts that actually work.',
+              gradient: 'from-teal-500 to-cyan-500',
+              hoverGlow: 'rgba(6,182,212,0.18)',
+              hoverBorder: 'rgba(6,182,212,0.35)',
             },
           ].map((card) => {
             const Icon = card.icon;
@@ -372,10 +386,10 @@ export function QueryPage() {
           />
           <div className="relative z-10 space-y-6">
             <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-              Ready to find the best answer?
+              Stop guessing which AI was right.
             </h2>
-            <p className="text-slate-400 text-sm sm:text-base max-w-md mx-auto leading-relaxed">
-              Ask anything and get a synthesized response from three of the world's leading AI models.
+            <p className="text-slate-400 text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
+              Ask once. Get three perspectives, one cited synthesis, and a judge's verdict — in seconds.
             </p>
             <button
               onClick={scrollToSearch}
