@@ -100,9 +100,9 @@ export const TurnBlock = forwardRef<HTMLDivElement, TurnBlockProps>(function Tur
       </div>
 
       {/* Question (always visible, lighter weight) */}
-      <div className="relative pl-4 border-l-2 border-blue-500/40 py-1 mb-5">
+      <div className="relative pl-4 border-l-2 border-cyan-400/40 py-1 mb-5">
         <div className="flex items-start gap-2">
-          <MessageSquare className="w-3.5 h-3.5 text-blue-400/70 mt-1 flex-shrink-0" />
+          <MessageSquare className="w-3.5 h-3.5 text-cyan-300/80 mt-1 flex-shrink-0" />
           <p
             className={`text-sm sm:text-[15px] text-gray-300 leading-relaxed break-words ${
               turnCollapsed ? 'line-clamp-1' : ''
@@ -148,6 +148,7 @@ export const TurnBlock = forwardRef<HTMLDivElement, TurnBlockProps>(function Tur
                 <FusionPanel
                   fusion={turn.fusionResult}
                   conversationId={conversation.id}
+                  turnId={turn.id}
                   structured={turn.fusionStructured ?? null}
                   memoryUsed={turn.memoryUsed}
                   canPin={!!activeProjectId}
@@ -194,7 +195,7 @@ export const TurnBlock = forwardRef<HTMLDivElement, TurnBlockProps>(function Tur
                       <div className="pt-4">
                         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'analytics' | 'responses')}>
                           <div className="flex items-center justify-between mb-4">
-                            <TabsList className="bg-gray-900/60 border border-gray-800 h-8">
+                            <TabsList className="bg-white/[0.03] border border-white/10 backdrop-blur-sm h-8">
                               <TabsTrigger value="responses" className="text-xs h-6 px-2.5">
                                 <Users className="w-3 h-3 mr-1.5" />
                                 Responses

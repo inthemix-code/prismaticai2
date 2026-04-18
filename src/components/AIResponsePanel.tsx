@@ -17,24 +17,27 @@ interface AIResponsePanelProps {
 const platformConfig = {
   grok: {
     name: 'Grok',
-    color: 'bg-slate-400',
-    lightColor: 'bg-slate-950/30',
-    textColor: 'text-slate-400',
-    borderColor: 'border-slate-800'
+    color: 'bg-slate-300',
+    lightColor: 'bg-slate-400/10',
+    textColor: 'text-slate-200',
+    borderColor: 'border-white/10',
+    accent: 'from-slate-400/40 to-transparent'
   },
   claude: {
     name: 'Claude',
-    color: 'bg-purple-400', 
-    lightColor: 'bg-purple-950/30',
-    textColor: 'text-purple-400',
-    borderColor: 'border-purple-800'
+    color: 'bg-amber-300',
+    lightColor: 'bg-amber-400/10',
+    textColor: 'text-amber-200',
+    borderColor: 'border-white/10',
+    accent: 'from-amber-400/50 to-transparent'
   },
   gemini: {
     name: 'Gemini',
-    color: 'bg-blue-400',
-    lightColor: 'bg-blue-950/30', 
-    textColor: 'text-blue-400',
-    borderColor: 'border-blue-800'
+    color: 'bg-blue-300',
+    lightColor: 'bg-blue-400/10',
+    textColor: 'text-blue-200',
+    borderColor: 'border-white/10',
+    accent: 'from-blue-400/50 to-transparent'
   }
 };
 
@@ -101,7 +104,8 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
         initial="initial"
         animate="animate"
       >
-        <Card className={cn('h-[320px] sm:h-[400px] flex flex-col bg-gray-900/50 shadow-xl rounded-lg', config.borderColor, 'border')}>
+        <Card className={cn('relative h-[320px] sm:h-[400px] flex flex-col bg-white/[0.03] backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden', config.borderColor, 'border')}>
+          <div className={cn('absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r', config.accent)} />
           <CardHeader className={cn('pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6', config.lightColor)}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -149,7 +153,8 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
   if (isStreamingWithContent) {
     return (
       <motion.div variants={loadingVariants} initial="initial" animate="animate">
-        <Card className={cn('h-[320px] sm:h-[400px] flex flex-col bg-gray-900/50 shadow-xl rounded-lg', config.borderColor, 'border')}>
+        <Card className={cn('relative h-[320px] sm:h-[400px] flex flex-col bg-white/[0.03] backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden', config.borderColor, 'border')}>
+          <div className={cn('absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r', config.accent)} />
           <CardHeader className={cn('pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6', config.lightColor)}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -190,8 +195,9 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
         initial="initial"
         animate="animate"
       >
-        <Card className={cn('h-[320px] sm:h-[400px] flex flex-col bg-gray-900/50 shadow-xl rounded-lg border-red-800 border')}>
-          <CardHeader className="pb-2 sm:pb-3 bg-red-950/30 flex-shrink-0 p-3 sm:p-6">
+        <Card className={cn('relative h-[320px] sm:h-[400px] flex flex-col bg-white/[0.03] backdrop-blur-sm shadow-xl rounded-2xl border border-rose-500/30 overflow-hidden')}>
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-rose-400/70 to-transparent" />
+          <CardHeader className="pb-2 sm:pb-3 bg-rose-500/10 flex-shrink-0 p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className={cn('w-3 h-3 rounded-full', config.color)} />
@@ -206,7 +212,7 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
             </div>
           </CardHeader>
           <CardContent className="flex-1 flex items-center justify-center p-3 sm:p-6">
-            <div className="flex flex-col items-center justify-center text-red-400">
+            <div className="flex flex-col items-center justify-center text-rose-200">
               <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 mb-2" />
               <p className="text-xs text-center px-2">{response.error}</p>
             </div>

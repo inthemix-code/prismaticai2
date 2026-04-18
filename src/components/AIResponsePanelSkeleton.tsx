@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Bot, Zap, Diamond, Loader2 } from 'lucide-react';
+import { Bot, Zap, Diamond, Loader as Loader2 } from 'lucide-react';
 
 interface AIResponsePanelSkeletonProps {
   platform: 'claude' | 'grok' | 'gemini';
@@ -10,26 +10,26 @@ const platformConfig = {
   grok: {
     name: 'Grok',
     icon: Zap,
-    color: 'bg-slate-400',
-    lightColor: 'bg-slate-950/30',
-    textColor: 'text-slate-400',
-    borderColor: 'border-slate-800'
+    color: 'bg-slate-300',
+    lightColor: 'bg-slate-400/10',
+    textColor: 'text-slate-200',
+    accent: 'from-slate-400/40 to-transparent'
   },
   claude: {
     name: 'Claude',
     icon: Bot,
-    color: 'bg-purple-400', 
-    lightColor: 'bg-purple-950/30',
-    textColor: 'text-purple-400',
-    borderColor: 'border-purple-800'
+    color: 'bg-amber-300',
+    lightColor: 'bg-amber-400/10',
+    textColor: 'text-amber-200',
+    accent: 'from-amber-400/50 to-transparent'
   },
   gemini: {
     name: 'Gemini',
     icon: Diamond,
-    color: 'bg-blue-400',
-    lightColor: 'bg-blue-950/30', 
-    textColor: 'text-blue-400',
-    borderColor: 'border-blue-800'
+    color: 'bg-blue-300',
+    lightColor: 'bg-blue-400/10',
+    textColor: 'text-blue-200',
+    accent: 'from-blue-400/50 to-transparent'
   }
 };
 
@@ -37,7 +37,8 @@ export function AIResponsePanelSkeleton({ platform }: AIResponsePanelSkeletonPro
   const config = platformConfig[platform];
 
   return (
-    <Card className={`h-[320px] sm:h-[400px] flex flex-col bg-gray-900/50 shadow-xl rounded-lg ${config.borderColor} border`}>
+    <Card className={`relative h-[320px] sm:h-[400px] flex flex-col bg-white/[0.03] backdrop-blur-sm shadow-xl rounded-2xl border border-white/10 overflow-hidden`}>
+      <div className={`absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r ${config.accent}`} />
       <CardHeader className={`pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6 ${config.lightColor}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

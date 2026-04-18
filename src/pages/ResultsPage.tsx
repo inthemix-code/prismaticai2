@@ -178,24 +178,39 @@ export function ResultsPage() {
 
   if (!currentConversation) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#090C14' }}>
-        <div className="text-center">
-          <MessageSquare className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-400 mb-2">
-            {loadingShared ? 'Loading shared conversation...' : 'No active conversation'}
+      <div
+        className="min-h-screen flex items-center justify-center px-6"
+        style={{
+          background:
+            'radial-gradient(1200px 600px at 50% -10%, rgba(6,182,212,0.12), transparent 60%), #0B0F1A',
+        }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center max-w-md"
+        >
+          <div className="mx-auto mb-5 w-14 h-14 rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-400/20 to-teal-400/10 flex items-center justify-center shadow-[0_0_32px_-8px_rgba(6,182,212,0.4)]">
+            <MessageSquare className="w-6 h-6 text-cyan-300" />
+          </div>
+          <h3 className="text-xl font-semibold text-white mb-2 tracking-tight">
+            {loadingShared ? 'Loading shared conversation' : 'No active conversation'}
           </h3>
-          <p className="text-gray-500">
-            {loadingShared ? 'Fetching the shared thread from the database.' : 'Start a new conversation to see AI responses'}
+          <p className="text-sm text-gray-400 leading-relaxed">
+            {loadingShared
+              ? 'Fetching the shared thread from the database.'
+              : 'Ask any question and compare synthesized answers from three frontier models side-by-side.'}
           </p>
           {!loadingShared && (
             <Button
               onClick={() => navigate('/')}
-              className="mt-4 bg-cyan-500 hover:bg-cyan-400 text-white"
+              className="mt-5 h-10 bg-gradient-to-r from-cyan-400 to-teal-400 hover:from-cyan-300 hover:to-teal-300 text-gray-950 font-medium px-5 shadow-[0_0_24px_-6px_rgba(6,182,212,0.7)]"
             >
-              Start new
+              Ask your first question
             </Button>
           )}
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -214,7 +229,7 @@ export function ResultsPage() {
       className="min-h-screen flex flex-col relative"
       style={{
         background:
-          'radial-gradient(1200px 600px at 50% -10%, rgba(59,130,246,0.08), transparent 60%), #0B0F1A',
+          'radial-gradient(1200px 600px at 50% -10%, rgba(6,182,212,0.10), transparent 60%), radial-gradient(900px 500px at 90% 20%, rgba(20,184,166,0.06), transparent 60%), #0B0F1A',
       }}
     >
       {/* Slim header */}
@@ -325,10 +340,10 @@ export function ResultsPage() {
                 formatTimestamp={formatTimestamp}
               />
               {turnIndex < turns.length - 1 && (
-                <div className="mt-10 sm:mt-14 flex items-center gap-3 text-[10px] uppercase tracking-wider text-gray-600">
-                  <div className="h-px flex-1 bg-gray-800/70" />
-                  <span>Turn {turnIndex + 2}</span>
-                  <div className="h-px flex-1 bg-gray-800/70" />
+                <div className="mt-10 sm:mt-14 flex items-center gap-3 text-[10px] uppercase tracking-widest text-cyan-300/60">
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-cyan-500/30" />
+                  <span className="font-medium">Turn {turnIndex + 2}</span>
+                  <div className="h-px flex-1 bg-gradient-to-l from-transparent via-cyan-500/30 to-cyan-500/30" />
                 </div>
               )}
             </div>

@@ -6,16 +6,18 @@ import {
   ChartContainer,
   ChartTooltip,
 } from '@/components/ui/chart';
-import { Copy, Shield, Clock, Zap, Target, Lightbulb, Check, Share2, Download, FileDown, Pin, Brain } from 'lucide-react';
+import { Copy, Shield, Clock, Zap, Target, Lightbulb, Check, Share2, Download, FileDown, Pin, Brain, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { FusionResult, StructuredSynthesis, ModelId } from '../types';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Markdown } from '../utils/markdown';
 import { conversationPersistence } from '../services/conversationPersistence';
+import { reactionsService } from '../services/reactionsService';
 
 interface FusionPanelProps {
   fusion: FusionResult;
   conversationId?: string;
+  turnId?: string;
   structured?: StructuredSynthesis | null;
   memoryUsed?: string[];
   onPinFact?: (fact: string) => void;
@@ -23,15 +25,15 @@ interface FusionPanelProps {
 }
 
 const modelBadgeColor: Record<ModelId, string> = {
-  claude: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-  grok: 'bg-slate-500/20 text-slate-300 border-slate-500/40',
-  gemini: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+  claude: 'bg-amber-500/15 text-amber-200 border-amber-500/40',
+  grok: 'bg-slate-500/20 text-slate-200 border-slate-500/40',
+  gemini: 'bg-blue-500/15 text-blue-200 border-blue-500/40',
 };
 
 const confidenceChartConfig = {
   confidence: {
     label: "Synthesis Confidence",
-    color: "#3B82F6",
+    color: "#06B6D4",
   },
 } satisfies ChartConfig;
 
@@ -63,10 +65,36 @@ const getInsightIcon = (insight: string, index: number) => {
   return defaultIcons[index % defaultIcons.length];
 };
 
-export function FusionPanel({ fusion, conversationId, structured, memoryUsed, onPinFact, canPin }: FusionPanelProps) {
+export function FusionPanel({ fusion, conversationId, turnId, structured, memoryUsed, onPinFact, canPin }: FusionPanelProps) {
   const [copied, setCopied] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [reaction, setReaction] = useState<'up' | 'down' | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!turnId) return;
+    let cancelled = false;
+    reactionsService.getMyReaction(turnId).then((r) => {
+      if (!cancelled) setReaction(r);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [turnId]);
+
+  const handleReaction = async (kind: 'up' | 'down') => {
+    if (!turnId || !conversationId) return;
+    const next = reaction === kind ? null : kind;
+    setReaction(next);
+    const ok = await reactionsService.setReaction(conversationId, turnId, next);
+    if (!ok) {
+      setReaction(reaction);
+      toast.error('Could not save feedback');
+      return;
+    }
+    if (next === 'up') toast.success('Thanks for the feedback');
+    if (next === 'down') toast.success('Feedback recorded');
+  };
 
   useEffect(() => {
     if (!exportOpen) return;
@@ -162,12 +190,12 @@ export function FusionPanel({ fusion, conversationId, structured, memoryUsed, on
   
   // Calculate percentages
   const contributions = [
-    { 
-      name: 'Claude', 
+    {
+      name: 'Claude',
       percentage: Math.round((fusion.sources.claude / totalSources) * 100),
-      color: 'bg-purple-500',
-      lightColor: 'bg-purple-500/20',
-      textColor: 'text-purple-400'
+      color: 'bg-amber-500',
+      lightColor: 'bg-amber-500/15',
+      textColor: 'text-amber-300'
     },
     { 
       name: 'Grok', 
@@ -187,13 +215,13 @@ export function FusionPanel({ fusion, conversationId, structured, memoryUsed, on
 
   return (
     <div className="space-y-6">
-      {/* Main Fusion Response Card - No background or border */}
-      <Card className="rounded-lg" style={{ backgroundColor: '#090C14' }}>
+      {/* Main Fusion Response Card - glass surface */}
+      <Card className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm shadow-[0_0_32px_-12px_rgba(6,182,212,0.35)]">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-400 to-purple-400" />
-              <CardTitle className="text-base sm:text-lg font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-teal-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]" />
+              <CardTitle className="text-base sm:text-lg font-semibold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent">
                 AI Synthesis Response
               </CardTitle>
               {/* Model Contributions Pills */}
@@ -357,15 +385,15 @@ export function FusionPanel({ fusion, conversationId, structured, memoryUsed, on
                       const rationale = getRationale(confidence);
                       
                       return (
-                        <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 shadow-xl max-w-xs">
+                        <div className="bg-gray-950/95 backdrop-blur-sm border border-white/10 rounded-xl p-3 shadow-2xl max-w-xs">
                           <div className="text-white font-medium text-sm mb-2">
                             Synthesis Confidence: {confidence}%
                           </div>
                           <div className="text-gray-300 text-xs space-y-1">
-                            <div className="font-medium text-blue-400 mb-1">Score Rationale:</div>
+                            <div className="font-medium text-cyan-300 mb-1">Score Rationale:</div>
                             {rationale.map((reason, index) => (
                               <div key={index} className="flex items-start gap-2">
-                                <div className="w-1 h-1 bg-blue-400 rounded-full mt-1.5 flex-shrink-0" />
+                                <div className="w-1 h-1 bg-cyan-300 rounded-full mt-1.5 flex-shrink-0" />
                                 <span>{reason}</span>
                               </div>
                             ))}
@@ -403,7 +431,7 @@ export function FusionPanel({ fusion, conversationId, structured, memoryUsed, on
               <Lightbulb className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               Key Insights
             </h4>
-            <div className="p-2 sm:p-3 bg-gray-800/30 rounded-lg border border-gray-700/50 space-y-2 sm:space-y-2.5">
+            <div className="p-2 sm:p-3 bg-white/[0.03] rounded-xl border border-white/10 space-y-2 sm:space-y-2.5">
               {fusion.keyInsights.map((insight, index) => (
                 <div
                   key={index}
@@ -422,6 +450,37 @@ export function FusionPanel({ fusion, conversationId, structured, memoryUsed, on
           <div className="text-xs sm:text-sm leading-relaxed text-gray-300 font-light tracking-wide text-left max-w-[72ch]">
             <Markdown>{fusion.content}</Markdown>
           </div>
+
+          {/* Reaction feedback */}
+          {turnId && conversationId && (
+            <div className="flex items-center gap-2 pt-1">
+              <span className="text-[11px] uppercase tracking-wider text-gray-500">Was this helpful?</span>
+              <button
+                onClick={() => handleReaction('up')}
+                aria-label="Mark helpful"
+                aria-pressed={reaction === 'up'}
+                className={`inline-flex items-center justify-center h-7 w-7 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 ${
+                  reaction === 'up'
+                    ? 'border-cyan-400/50 bg-cyan-400/15 text-cyan-200 shadow-[0_0_14px_rgba(34,211,238,0.3)]'
+                    : 'border-white/10 bg-white/[0.03] text-gray-400 hover:text-cyan-200 hover:border-cyan-400/40'
+                }`}
+              >
+                <ThumbsUp className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => handleReaction('down')}
+                aria-label="Mark not helpful"
+                aria-pressed={reaction === 'down'}
+                className={`inline-flex items-center justify-center h-7 w-7 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50 ${
+                  reaction === 'down'
+                    ? 'border-rose-400/50 bg-rose-400/15 text-rose-200'
+                    : 'border-white/10 bg-white/[0.03] text-gray-400 hover:text-rose-200 hover:border-rose-400/40'
+                }`}
+              >
+                <ThumbsDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           {memoryUsed && memoryUsed.length > 0 && (
             <div className="space-y-2 pt-2 border-t border-gray-800/50">
@@ -453,7 +512,7 @@ export function FusionPanel({ fusion, conversationId, structured, memoryUsed, on
                 {structured.sentences.map((s, i) => (
                   <div
                     key={i}
-                    className="group flex items-start gap-2 p-2.5 rounded-lg bg-gray-800/30 border border-gray-700/50 hover:border-gray-600 transition-colors"
+                    className="group flex items-start gap-2 p-2.5 rounded-xl bg-white/[0.03] border border-white/10 hover:border-cyan-500/30 hover:bg-white/[0.05] transition-colors"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-xs sm:text-sm text-gray-200 leading-relaxed">{s.text}</p>

@@ -1,20 +1,20 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Lightbulb, Loader2 } from 'lucide-react';
+import { Lightbulb, Loader as Loader2 } from 'lucide-react';
 
 export function FusionPanelSkeleton() {
   return (
     <div className="space-y-6">
-      <Card className="rounded-lg" style={{ backgroundColor: '#090C14' }}>
+      <Card className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm shadow-[0_0_32px_-12px_rgba(6,182,212,0.35)]">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-400 to-purple-400" />
+              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-teal-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]" />
               <div className="flex items-center gap-2">
-                <span className="text-base sm:text-lg font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <span className="text-base sm:text-lg font-semibold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent">
                   AI Synthesis Response
                 </span>
-                <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                <Loader2 className="w-4 h-4 animate-spin text-cyan-300" />
               </div>
               
               {/* Model contribution pills skeleton */}
@@ -50,7 +50,7 @@ export function FusionPanelSkeleton() {
               Key Insights
               <span className="text-xs text-gray-500 normal-case">(Extracting...)</span>
             </h4>
-            <div className="p-2 sm:p-3 bg-gray-800/30 rounded-lg border border-gray-700/50 space-y-2 sm:space-y-2.5">
+            <div className="p-2 sm:p-3 bg-white/[0.03] rounded-xl border border-white/10 space-y-2 sm:space-y-2.5">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="flex items-start gap-2 sm:gap-2.5">
                   <Skeleton className="w-3.5 h-3.5 rounded-full mt-0.5 flex-shrink-0" />

@@ -32,7 +32,7 @@ const sentimentChartConfig = {
   },
   neutral: {
     label: "Neutral", 
-    color: "#8B5CF6",
+    color: "#F59E0B",
   },
   negative: {
     label: "Negative",
@@ -47,7 +47,7 @@ const keywordChartConfig = {
   },
   claude: {
     label: "Claude",
-    color: "#8B5CF6",
+    color: "#F59E0B",
   },
   gemini: {
     label: "Gemini",
@@ -84,7 +84,7 @@ const riskChartConfig = {
 const differentiationChartConfig = {
   originality: {
     label: "Originality",
-    color: "#8B5CF6",
+    color: "#F59E0B",
   },
   divergence: {
     label: "Divergence",
@@ -103,7 +103,7 @@ const attributionChartConfig = {
   },
   claude: {
     label: "Claude", 
-    color: "#8B5CF6",
+    color: "#F59E0B",
   },
   gemini: {
     label: "Gemini",
@@ -140,7 +140,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {/* Response Confidence Chart */}
-      <Card className="bg-gray-900/50 border-gray-800 shadow-xl rounded-lg">
+      <Card className="bg-white/[0.03] backdrop-blur-sm border border-white/10 shadow-xl rounded-2xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-semibold text-white">Response Confidence</CardTitle>
           <CardDescription className="text-xs text-gray-500">Confidence scores by platform</CardDescription>
@@ -213,7 +213,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
 
       {/* Attribution Sources Chart */}
       {fusionSources && (
-        <Card className="bg-gray-900/50 border-gray-800 shadow-xl rounded-lg">
+        <Card className="bg-white/[0.03] backdrop-blur-sm border border-white/10 shadow-xl rounded-2xl">
           <CardHeader className="pb-4">
             <CardTitle className="text-sm font-semibold text-white flex items-center gap-1">
               <Target className="h-4 w-4 text-emerald-400" />
@@ -291,7 +291,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
       )}
 
       {/* Sentiment Analysis Radar */}
-      <Card className="bg-gray-900/50 border-gray-800 shadow-xl rounded-lg">
+      <Card className="bg-white/[0.03] backdrop-blur-sm border border-white/10 shadow-xl rounded-2xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-semibold text-white">Sentiment Analysis</CardTitle>
           <CardDescription className="text-xs text-gray-500">Emotional tone comparison</CardDescription>
@@ -367,7 +367,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
       </Card>
 
       {/* Efficiency Analysis */}
-      <Card className="bg-gray-900/50 border-gray-800 shadow-xl rounded-lg">
+      <Card className="bg-white/[0.03] backdrop-blur-sm border border-white/10 shadow-xl rounded-2xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-semibold text-white flex items-center gap-1">
             <Zap className="h-4 w-4 text-yellow-400" />
@@ -425,7 +425,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
       </Card>
 
       {/* Risk Assessment */}
-      <Card className="bg-gray-900/50 border-gray-800 shadow-xl rounded-lg">
+      <Card className="bg-white/[0.03] backdrop-blur-sm border border-white/10 shadow-xl rounded-2xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-semibold text-white flex items-center gap-1">
             <Shield className="h-4 w-4 text-red-400" />
@@ -504,10 +504,10 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
       </Card>
 
       {/* Differentiation Analysis */}
-      <Card className="bg-gray-900/50 border-gray-800 shadow-xl rounded-lg">
+      <Card className="bg-white/[0.03] backdrop-blur-sm border border-white/10 shadow-xl rounded-2xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-semibold text-white flex items-center gap-1">
-            <Target className="h-4 w-4 text-purple-400" />
+            <Target className="h-4 w-4 text-cyan-300" />
             Differentiation Analysis
           </CardTitle>
           <CardDescription className="text-xs text-gray-500">Originality metrics</CardDescription>
@@ -581,7 +581,7 @@ export function AnalyticsCharts({ data, fusionSources }: AnalyticsChartsProps) {
       </Card>
 
       {/* Top Keywords Chart - Full Width */}
-      <Card className={`bg-gray-900/50 border-gray-800 shadow-xl rounded-lg ${fusionSources ? 'md:col-span-2 xl:col-span-3' : 'md:col-span-2 xl:col-span-3'}`}>
+      <Card className={`bg-white/[0.03] backdrop-blur-sm border border-white/10 shadow-xl rounded-2xl ${fusionSources ? 'md:col-span-2 xl:col-span-3' : 'md:col-span-2 xl:col-span-3'}`}>
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-semibold text-white">Top Keywords</CardTitle>
           <CardDescription className="text-xs text-gray-500">Most frequently used terms across platforms</CardDescription>
