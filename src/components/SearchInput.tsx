@@ -326,8 +326,41 @@ function ProjectBadge() {
   const projects = useAIStore((s) => s.projects);
   const activeProjectId = useAIStore((s) => s.activeProjectId);
   const setActiveProject = useAIStore((s) => s.setActiveProject);
+  const createProject = useAIStore((s) => s.createProject);
   const activeProject = projects.find((p) => p.id === activeProjectId) ?? null;
   const [open, setOpen] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newPersona, setNewPersona] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreatePersona = async () => {
+    const name = newName.trim();
+    if (!name) return;
+
+    setIsCreating(true);
+    try {
+      const p = await createProject({ name, systemPersona: newPersona.trim() });
+      if (p) {
+        setActiveProject(p.id);
+        setNewName('');
+        setNewPersona('');
+        setShowCreate(false);
+        setOpen(false);
+      }
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleCreatePersona();
+    } else if (e.key === 'Escape') {
+      setShowCreate(false);
+    }
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -384,10 +417,55 @@ function ProjectBadge() {
             </button>
           ))}
         </div>
-        {projects.length === 0 && (
-          <div className="px-2 py-2 text-[11px] text-gray-500">
-            Create a persona from the sidebar to scope memory and context.
+
+        {showCreate ? (
+          <div className="px-2 py-2 border-t border-white/10 space-y-2">
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Persona name"
+              autoFocus
+              disabled={isCreating}
+              className="w-full bg-white/5 border border-white/10 rounded-md px-2 py-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 disabled:opacity-50"
+            />
+            <textarea
+              value={newPersona}
+              onChange={(e) => setNewPersona(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Optional system instructions"
+              disabled={isCreating}
+              rows={2}
+              className="w-full bg-white/5 border border-white/10 rounded-md px-2 py-1.5 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-cyan-400/50 resize-none disabled:opacity-50"
+            />
+            <div className="flex justify-end gap-1">
+              <button
+                type="button"
+                onClick={() => setShowCreate(false)}
+                disabled={isCreating}
+                className="px-2 py-1 rounded-md text-xs text-gray-300 hover:bg-white/5 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCreatePersona}
+                disabled={!newName.trim() || isCreating}
+                className="px-2 py-1 rounded-md text-xs bg-cyan-500 hover:bg-cyan-400 text-black font-medium transition-colors disabled:opacity-50"
+              >
+                {isCreating ? 'Creating...' : 'Create'}
+              </button>
+            </div>
           </div>
+        ) : (
+          <button
+            onClick={() => setShowCreate(true)}
+            className="w-full flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-cyan-300 hover:bg-cyan-500/10 transition-colors border-t border-white/10 mt-1"
+          >
+            <Plus className="w-3 h-3" />
+            New persona
+          </button>
         )}
       </PopoverContent>
     </Popover>
