@@ -134,36 +134,8 @@ const SearchInput = ({
           : 'chat-input-shadow border-white/10 hover:border-white/20'
         } ${isLoading ? 'animate-glow-pulse' : ''}`}>
         <form onSubmit={handleSubmit} className="relative">
+          {/* Top row - Text input */}
           <div className="flex items-start gap-2 px-3 sm:px-4 py-3">
-            {/* Leading model chips */}
-            <div className="flex items-center gap-1 flex-shrink-0 pt-0.5">
-              {modelChips.map((m) => {
-                const active = selectedModels[m.id];
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => toggleModel(m.id)}
-                    disabled={isLoading}
-                    aria-pressed={active}
-                    aria-label={`${m.label} ${active ? 'enabled' : 'disabled'}`}
-                    className={cn(
-                      'inline-flex items-center gap-1 h-7 px-2 rounded-md border text-[11px] font-medium transition-colors',
-                      active
-                        ? 'bg-white/15 text-white border-white/20'
-                        : 'bg-white/5 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'
-                    )}
-                  >
-                    {m.icon}
-                    <span className="hidden sm:inline">{m.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Divider */}
-            <div className="w-px h-5 bg-white/10 mt-2 flex-shrink-0" aria-hidden="true" />
-
             {/* Textarea */}
             <div className="relative flex-1 min-w-0">
               <textarea
@@ -216,11 +188,43 @@ const SearchInput = ({
             </div>
           )}
 
-          {/* Metadata row */}
-          <div className="flex items-center justify-between gap-2 px-3 sm:px-4 pb-2 pt-0 text-[11px] text-gray-500 tabular-nums">
+          {/* Bottom row - Model chips and metadata */}
+          <div className="flex items-center justify-between gap-2 px-3 sm:px-4 pb-2 pt-1 text-[11px] text-gray-500 tabular-nums">
             <div className="flex items-center gap-2 min-w-0">
-              <ProjectBadge />
-              <LivePill isLoading={isLoading} />
+              {/* Model chips */}
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {modelChips.map((m) => {
+                  const active = selectedModels[m.id];
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => toggleModel(m.id)}
+                      disabled={isLoading}
+                      aria-pressed={active}
+                      aria-label={`${m.label} ${active ? 'enabled' : 'disabled'}`}
+                      className={cn(
+                        'inline-flex items-center gap-1 h-6 px-2 rounded-md border text-[10px] font-medium transition-colors',
+                        active
+                          ? 'bg-white/15 text-white border-white/20'
+                          : 'bg-white/5 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'
+                      )}
+                    >
+                      {m.icon}
+                      <span className="hidden sm:inline">{m.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Divider */}
+              <div className="w-px h-4 bg-white/10 flex-shrink-0" aria-hidden="true" />
+
+              {/* Metadata */}
+              <div className="flex items-center gap-2 min-w-0">
+                <ProjectBadge />
+                <LivePill isLoading={isLoading} />
+              </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <span className="hidden sm:inline text-gray-500">J/K navigate &middot; ? help</span>
