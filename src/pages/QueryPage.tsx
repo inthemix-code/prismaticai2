@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
-import { TrendingUp, ChartBar as BarChart3, Zap, Triangle, Bot, Diamond } from 'lucide-react';
+import { TrendingUp, ChartBar as BarChart3, Zap, Triangle, Bot, Diamond, FlaskConical } from 'lucide-react';
 import SearchInput from '../components/SearchInput';
 import HowItWorks from '../components/HowItWorks';
 import { ProjectsMemoryDrawer } from '../components/ProjectsMemoryDrawer';
@@ -121,6 +121,13 @@ export function QueryPage() {
         </div>
         <div className="flex items-center gap-2">
           <ProjectsMemoryDrawer />
+          <button
+            onClick={() => navigate('/lab')}
+            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-slate-300 hover:text-cyan-300 transition-colors border border-white/10 hover:border-cyan-400/40 rounded-full px-4 py-1.5 bg-white/5 hover:bg-cyan-500/5"
+          >
+            <FlaskConical className="w-4 h-4" />
+            Prompt Lab
+          </button>
           <button
             onClick={scrollToSearch}
             className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors border border-cyan-500/30 hover:border-cyan-400/50 rounded-full px-4 py-1.5 bg-cyan-500/5 hover:bg-cyan-500/10"

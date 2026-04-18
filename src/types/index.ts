@@ -129,6 +129,48 @@ export interface ProjectMemory {
   createdAt: number;
 }
 
+export type PromptLabStatus = 'pending' | 'streaming' | 'done' | 'error';
+
+export interface PromptVariant {
+  id: string;
+  sessionId: string;
+  label: string;
+  prompt: string;
+  variantIndex: number;
+  notes: string;
+  createdAt: number;
+}
+
+export interface PromptLabCellResult {
+  id: string;
+  sessionId: string;
+  variantId: string;
+  platform: ModelId;
+  content: string;
+  status: PromptLabStatus;
+  responseTime: number;
+  wordCount: number;
+  confidence: number;
+  firstTokenMs: number;
+  tokensPerSecond: number;
+  error: string;
+  isWinner: boolean;
+  updatedAt: number;
+}
+
+export interface PromptLabSession {
+  id: string;
+  title: string;
+  projectId?: string | null;
+  sharedContext: string;
+  selectedModels: ModelId[];
+  isShared: boolean;
+  createdAt: number;
+  updatedAt: number;
+  variants: PromptVariant[];
+  results: PromptLabCellResult[];
+}
+
 export interface AnalysisData {
   sentiment: Array<{
     platform: string;

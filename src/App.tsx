@@ -3,6 +3,8 @@ import { AnimatePresence } from 'framer-motion';
 import ErrorBoundary from './components/ErrorBoundary';
 import { QueryPage } from './pages/QueryPage';
 import { ResultsPage } from './pages/ResultsPage';
+import { PromptLabPage } from './pages/PromptLabPage';
+import { LabResultsPage } from './pages/LabResultsPage';
 import { Toaster } from 'sonner';
 import './App.css';
 
@@ -14,6 +16,8 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<QueryPage />} />
         <Route path="/results" element={<ResultsPage />} />
+        <Route path="/lab" element={<PromptLabPage />} />
+        <Route path="/lab/:sessionId" element={<LabResultsPage />} />
       </Routes>
     </AnimatePresence>
   );
