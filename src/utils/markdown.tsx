@@ -72,7 +72,7 @@ function renderInline(input: string, keyPrefix: string): ReactNode[] {
     switch (t.type) {
       case 'bold':
         return (
-          <strong key={key} className="font-semibold text-white">
+          <strong key={key} className="font-semibold text-white tracking-tight">
             {t.value}
           </strong>
         );
@@ -145,12 +145,12 @@ export function Markdown({ children, className = '' }: MarkdownProps) {
       const text = headingMatch[2];
       const sizeClass =
         level === 1
-          ? 'text-lg sm:text-xl font-semibold mt-4 mb-2'
+          ? 'text-xl sm:text-2xl font-semibold mt-5 mb-3 leading-[1.2]'
           : level === 2
-          ? 'text-base sm:text-lg font-semibold mt-4 mb-2'
+          ? 'text-lg sm:text-xl font-semibold mt-5 mb-2.5 leading-[1.25]'
           : level === 3
-          ? 'text-sm sm:text-base font-semibold mt-3 mb-1.5'
-          : 'text-sm font-semibold mt-3 mb-1.5';
+          ? 'text-base sm:text-lg font-semibold mt-4 mb-2 leading-[1.3]'
+          : 'text-sm sm:text-base font-semibold mt-3 mb-1.5 leading-[1.3]';
       blocks.push(
         <div
           key={`h-${keyCounter++}`}
@@ -189,14 +189,14 @@ export function Markdown({ children, className = '' }: MarkdownProps) {
       blocks.push(
         <ul
           key={`ul-${keyCounter++}`}
-          className="my-2 space-y-1.5 ml-1"
+          className="my-3 space-y-2 ml-1"
         >
           {items.map((it, idx) => (
             <li
               key={`li-${idx}`}
-              className="flex gap-2 text-gray-300 leading-relaxed"
+              className="flex gap-3 text-gray-100 leading-[1.7]"
             >
-              <span className="mt-2 h-1 w-1 rounded-full bg-cyan-400/80 flex-shrink-0" />
+              <span className="mt-[10px] h-[5px] w-[5px] rounded-full bg-cyan-400 flex-shrink-0 shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
               <span className="flex-1">{renderInline(it, `li${keyCounter}-${idx}`)}</span>
             </li>
           ))}
@@ -214,15 +214,15 @@ export function Markdown({ children, className = '' }: MarkdownProps) {
       blocks.push(
         <ol
           key={`ol-${keyCounter++}`}
-          className="my-2 space-y-1.5 ml-1 counter-reset-list"
+          className="my-3 space-y-2.5 ml-1 counter-reset-list"
         >
           {items.map((it, idx) => (
             <li
               key={`oli-${idx}`}
-              className="flex gap-2 text-gray-300 leading-relaxed"
+              className="flex gap-3 text-gray-100 leading-[1.7]"
             >
-              <span className="font-mono text-[0.75em] text-cyan-400/80 mt-[3px] min-w-[1.25rem]">
-                {idx + 1}.
+              <span className="font-semibold text-[0.85em] text-cyan-300 mt-[3px] min-w-[1.5rem] tabular-nums">
+                {String(idx + 1).padStart(2, '0')}
               </span>
               <span className="flex-1">{renderInline(it, `oli${keyCounter}-${idx}`)}</span>
             </li>
@@ -250,10 +250,15 @@ export function Markdown({ children, className = '' }: MarkdownProps) {
       paragraphLines.push(lines[i]);
       i++;
     }
+    const isLead = blocks.length === 0;
     blocks.push(
       <p
         key={`p-${keyCounter++}`}
-        className="text-gray-300 leading-relaxed my-2 first:mt-0"
+        className={
+          isLead
+            ? 'text-white/95 leading-[1.7] my-0 text-[1.05em] font-normal'
+            : 'text-gray-100 leading-[1.75] my-3 first:mt-0'
+        }
       >
         {renderInline(paragraphLines.join(' '), `p${keyCounter}`)}
       </p>

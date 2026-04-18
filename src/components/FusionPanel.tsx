@@ -255,9 +255,9 @@ export function FusionPanel({ fusion, conversationId, turnId, structured, memory
 
   return (
     <div className="space-y-6">
-      {/* Main Fusion Response Card - glass surface */}
-      <Card className="group rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm shadow-[0_0_32px_-12px_rgba(6,182,212,0.35)]">
-        <CardHeader className="pb-2">
+      {/* Main Fusion Response - flat, borderless */}
+      <Card className="group rounded-none border-0 bg-transparent shadow-none">
+        <CardHeader className="pb-3 px-0 pt-0">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <span className="text-xs font-medium text-gray-500">Synthesis</span>
@@ -430,31 +430,33 @@ export function FusionPanel({ fusion, conversationId, turnId, structured, memory
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 pt-2">
-          {/* Main Content - Left aligned markdown */}
-          <div className="text-xs sm:text-sm leading-relaxed text-gray-300 font-light tracking-wide text-left max-w-[72ch]">
+        <CardContent className="space-y-5 sm:space-y-7 p-0 pt-1">
+          {/* Main Content - Left aligned markdown, full-width */}
+          <div className="prismatic-synthesis-body text-[15px] sm:text-base leading-[1.75] text-gray-100 font-normal tracking-normal text-left w-full">
             <Markdown>{fusion.content}</Markdown>
           </div>
 
-          {/* Key Insights - dot-only, subtle separator */}
+          {/* Key Insights - dot-only, subtle hairline */}
           {fusion.keyInsights.length > 0 && (
-            <div className="pt-3 border-t border-white/5 space-y-2 sm:space-y-2.5">
+            <div className="pt-4 mt-2 border-t border-white/5 space-y-2.5 sm:space-y-3">
               {fusion.keyInsights.map((insight, index) => {
                 const contested = isInsightContested(insight, structured);
                 return (
                   <div
                     key={index}
-                    className="flex items-start gap-2 sm:gap-2.5 text-xs text-gray-300"
+                    className="flex items-start gap-3 text-gray-100"
                   >
                     <div
-                      className={`flex-shrink-0 mt-1.5 w-[5px] h-[5px] rounded-full ${
-                        contested ? 'bg-amber-400' : 'bg-gray-500/40'
+                      className={`flex-shrink-0 mt-[9px] w-[5px] h-[5px] rounded-full ${
+                        contested
+                          ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.55)]'
+                          : 'bg-cyan-400/80 shadow-[0_0_6px_rgba(34,211,238,0.45)]'
                       }`}
                     />
-                    <span className="leading-relaxed font-light tracking-wide text-xs sm:text-sm">
+                    <span className="leading-[1.7] text-sm sm:text-[15px] font-normal">
                       {insight}
                       {contested && (
-                        <span className="ml-1.5 text-[11px] text-gray-500">· contested</span>
+                        <span className="ml-2 text-[11px] uppercase tracking-wider text-amber-300/80">· contested</span>
                       )}
                     </span>
                   </div>
