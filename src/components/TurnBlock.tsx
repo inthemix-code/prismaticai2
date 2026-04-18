@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef } from 'react';
+import { useState, useEffect, forwardRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageSquare, ChartBar as BarChart3, Users, ChevronDown, ChevronUp, Clock } from 'lucide-react';
@@ -23,7 +23,7 @@ interface TurnBlockProps {
   formatTimestamp: (t: number) => string;
 }
 
-export const TurnBlock = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnBlock(
+const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnBlockInner(
   {
     turn,
     turnIndex,
@@ -264,4 +264,19 @@ export const TurnBlock = forwardRef<HTMLDivElement, TurnBlockProps>(function Tur
       </AnimatePresence>
     </motion.div>
   );
+});
+
+export const TurnBlock = memo(TurnBlockInner, (prev, next) => {
+  if (prev.turn !== next.turn) return false;
+  if (prev.turnIndex !== next.turnIndex) return false;
+  if (prev.isLatest !== next.isLatest) return false;
+  if (prev.conversation.id !== next.conversation.id) return false;
+  if (prev.activeProjectId !== next.activeProjectId) return false;
+  if (prev.referenceCollapsedDefault !== next.referenceCollapsedDefault) return false;
+  if (prev.autoCollapseOlder !== next.autoCollapseOlder) return false;
+  if (prev.responsesLayout !== next.responsesLayout) return false;
+  if (prev.onPinFact !== next.onPinFact) return false;
+  if (prev.onToggleResponsesLayout !== next.onToggleResponsesLayout) return false;
+  if (prev.formatTimestamp !== next.formatTimestamp) return false;
+  return true;
 });
