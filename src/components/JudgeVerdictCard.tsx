@@ -84,7 +84,7 @@ export function JudgeVerdictCard({
   loading,
   evaluatedModels,
 }: JudgeVerdictCardProps) {
-  const [reasoningOpen, setReasoningOpen] = useState(false);
+  const [reasoningOpen, setReasoningOpen] = useState(true);
   const [copied, setCopied] = useState(false);
   const rerunJudge = useAIStore((s) => s.rerunJudge);
 
@@ -174,47 +174,27 @@ export function JudgeVerdictCard({
         </div>
       </div>
 
-      <div className="space-y-2.5">
-        {evaluatedModels.map((m) => {
-          const s = scoreByModel.get(m);
-          if (!s) {
-            return (
-              <div
-                key={m}
-                className="p-3 rounded-xl border border-white/5 bg-white/[0.01] opacity-60"
-              >
-                <div className="flex items-center gap-2">
-                  <span className={`w-1.5 h-1.5 rounded-full ${modelLabelColor[m].dot}`} />
-                  <span className="text-xs font-semibold capitalize text-gray-400">{m}</span>
-                  <span className="text-[10px] text-gray-500 ml-1">Not evaluated</span>
-                </div>
-              </div>
-            );
-          }
-          return (
-            <ModelScoreRow
-              key={m}
-              score={s}
-              isWinner={verdict.overallWinner === m}
-            />
-          );
-        })}
-      </div>
-
       {verdict.overallSummary && (
-        <div className="mt-4 pt-3 border-t border-white/5">
+        <div className="mb-4 relative rounded-xl border border-cyan-400/20 bg-cyan-400/[0.04] pl-4 pr-3 py-3 overflow-hidden">
+          <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-cyan-400/70 via-cyan-400/40 to-transparent" />
           <button
             onClick={() => setReasoningOpen((v) => !v)}
             className="w-full flex items-center justify-between text-left"
             aria-expanded={reasoningOpen}
           >
-            <span className="text-[11px] uppercase tracking-wider text-gray-400 font-medium">
+            <span className="text-[11px] uppercase tracking-wider text-cyan-200/90 font-medium flex items-center gap-2">
+              <span className="inline-block w-1 h-1 rounded-full bg-cyan-400" />
               Judge's reasoning
+              {verdict.overallWinner && (
+                <span className="ml-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-cyan-400/15 text-cyan-200 border border-cyan-400/40 normal-case tracking-normal">
+                  <Trophy className="w-2.5 h-2.5" /> {verdict.overallWinner}
+                </span>
+              )}
             </span>
             {reasoningOpen ? (
-              <ChevronUp className="w-3.5 h-3.5 text-gray-500" />
+              <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
             ) : (
-              <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
             )}
           </button>
           <AnimatePresence initial={false}>
@@ -226,7 +206,7 @@ export function JudgeVerdictCard({
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <p className="text-xs text-gray-300 leading-relaxed pt-2">
+                <p className="text-xs sm:text-[13px] text-gray-200 leading-relaxed pt-2">
                   {verdict.overallSummary}
                 </p>
               </motion.div>
@@ -234,6 +214,40 @@ export function JudgeVerdictCard({
           </AnimatePresence>
         </div>
       )}
+
+      <div className="space-y-2.5">
+        {evaluatedModels
+          .slice()
+          .sort((a, b) => {
+            if (verdict.overallWinner === a) return -1;
+            if (verdict.overallWinner === b) return 1;
+            return 0;
+          })
+          .map((m) => {
+            const s = scoreByModel.get(m);
+            if (!s) {
+              return (
+                <div
+                  key={m}
+                  className="p-3 rounded-xl border border-white/5 bg-white/[0.01] opacity-60"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`w-1.5 h-1.5 rounded-full ${modelLabelColor[m].dot}`} />
+                    <span className="text-xs font-semibold capitalize text-gray-400">{m}</span>
+                    <span className="text-[10px] text-gray-500 ml-1">Not evaluated</span>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <ModelScoreRow
+                key={m}
+                score={s}
+                isWinner={verdict.overallWinner === m}
+              />
+            );
+          })}
+      </div>
     </motion.div>
   );
 }

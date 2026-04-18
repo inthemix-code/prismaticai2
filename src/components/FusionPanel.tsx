@@ -431,14 +431,13 @@ export function FusionPanel({ fusion, conversationId, turnId, structured, memory
         </CardHeader>
 
         <CardContent className="space-y-5 sm:space-y-7 p-0 pt-1">
-          {/* Main Content - Left aligned markdown, full-width */}
-          <div className="prismatic-synthesis-body text-[15px] sm:text-base leading-[1.75] text-gray-100 font-normal tracking-normal text-left w-full">
-            <Markdown>{fusion.content}</Markdown>
-          </div>
-
-          {/* Key Insights - dot-only, subtle hairline */}
+          {/* Key Insights - shown above the answer as a quick-read summary */}
           {fusion.keyInsights.length > 0 && (
-            <div className="pt-4 mt-2 border-t border-white/5 space-y-2.5 sm:space-y-3">
+            <div className="pb-5 mb-1 border-b border-white/5 space-y-2.5 sm:space-y-3">
+              <div className="text-[11px] uppercase tracking-wider text-cyan-300/80 font-medium flex items-center gap-2">
+                <span className="inline-block w-1 h-1 rounded-full bg-cyan-400" />
+                Key insights
+              </div>
               {fusion.keyInsights.map((insight, index) => {
                 const contested = isInsightContested(insight, structured);
                 return (
@@ -464,6 +463,11 @@ export function FusionPanel({ fusion, conversationId, turnId, structured, memory
               })}
             </div>
           )}
+
+          {/* Main Content - Left aligned markdown, full-width */}
+          <div className="prismatic-synthesis-body text-[15px] sm:text-base leading-[1.75] text-gray-100 font-normal tracking-normal text-left w-full">
+            <Markdown>{fusion.content}</Markdown>
+          </div>
 
           {/* Reaction feedback */}
           {turnId && conversationId && (
