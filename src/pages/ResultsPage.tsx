@@ -30,6 +30,7 @@ import {
   Keyboard,
   Link as LinkIcon,
   Columns3,
+  GitBranchPlus,
 } from 'lucide-react';
 import SearchInput from '../components/SearchInput';
 import {
@@ -40,6 +41,7 @@ import {
   NAV_RAIL_WIDTH_EXPANDED,
 } from '../components/NavRail';
 import { TurnBlock } from '../components/TurnBlock';
+import { ForkDialog } from '../components/ForkButton';
 import { useAIStore } from '../stores/aiStore';
 import { conversationPersistence } from '../services/conversationPersistence';
 import {
@@ -131,6 +133,7 @@ export function ResultsPage() {
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const [copied, setCopied] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [forkOpen, setForkOpen] = useState(false);
 
   const conversationId = currentConversation?.id ?? null;
   const turns = useMemo(
@@ -553,7 +556,20 @@ export function ResultsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-1 flex-wrap justify-end">
+              {/* Fork this */}
+              {!sharedView && turns[currentTurnInView]?.completed && (
+                <button
+                  onClick={() => setForkOpen(true)}
+                  className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-xs font-medium text-gray-300 bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] hover:border-white/20 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-400/50"
+                  aria-label="Fork this turn into a new branch"
+                  title="Fork this turn into a new branch"
+                >
+                  <GitBranchPlus className="w-3.5 h-3.5" />
+                  <span>Fork this</span>
+                </button>
+              )}
+
               {/* Copy link */}
               <button
                 onClick={handleCopyLink}
@@ -755,6 +771,15 @@ export function ResultsPage() {
           </motion.button>
         )}
       </AnimatePresence>
+
+      {turns[currentTurnInView] && (
+        <ForkDialog
+          open={forkOpen}
+          onOpenChange={setForkOpen}
+          turnId={turns[currentTurnInView].id}
+          originalPrompt={turns[currentTurnInView].prompt}
+        />
+      )}
 
       {!isLatestTurnLoading && !sharedView && (
         <div

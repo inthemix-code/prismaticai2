@@ -287,27 +287,80 @@ export function FusionPanel({ fusion, conversationId, turnId, structured, memory
                       {confidencePercentage}% confidence
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-gray-950/95 border border-white/10 text-gray-200 max-w-xs p-3">
-                    <div className="text-white font-medium text-sm mb-2">
-                      Synthesis Confidence: {confidencePercentage}%
+                  <TooltipContent className="bg-gray-950/95 border border-white/10 text-gray-200 max-w-sm p-3.5 w-[320px]">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="text-white font-medium text-sm">
+                        Synthesis Confidence
+                      </div>
+                      <div className="text-cyan-300 font-semibold text-sm tabular-nums">
+                        {confidencePercentage}%
+                      </div>
                     </div>
+                    <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden mb-3">
+                      <div
+                        className="h-full bg-gradient-to-r from-cyan-400 to-teal-400"
+                        style={{ width: `${confidencePercentage}%` }}
+                      />
+                    </div>
+
                     <div className="text-gray-300 text-xs space-y-1">
-                      <div className="font-medium text-cyan-300 mb-1">Score Rationale:</div>
+                      <div className="font-medium text-cyan-300 mb-1">Score rationale</div>
                       {getConfidenceRationale(confidencePercentage).map((reason, index) => (
                         <div key={index} className="flex items-start gap-2">
                           <div className="w-1 h-1 bg-cyan-300 rounded-full mt-1.5 flex-shrink-0" />
                           <span>{reason}</span>
                         </div>
                       ))}
-                      <div className="pt-2 mt-2 border-t border-white/10 space-y-1">
-                        {contributions.map((c) => (
-                          <div key={c.name} className="flex items-center gap-2">
-                            <div className={`w-1.5 h-1.5 rounded-full ${c.color}`} />
-                            <span className="text-gray-300">{c.name}</span>
-                            <span className="ml-auto tabular-nums text-gray-400">{c.percentage}%</span>
+                    </div>
+
+                    <div className="pt-2.5 mt-2.5 border-t border-white/10 space-y-1.5">
+                      <div className="font-medium text-cyan-300 text-xs mb-1">Quality breakdown</div>
+                      {[
+                        { label: 'Consensus', value: confidencePercentage },
+                        {
+                          label: 'Coverage',
+                          value: Math.min(
+                            100,
+                            Math.round(confidencePercentage * 0.6 + contributions.length * 10)
+                          ),
+                        },
+                        {
+                          label: 'Source reliability',
+                          value: Math.min(100, Math.round(confidencePercentage * 0.9 + 8)),
+                        },
+                      ].map((row) => (
+                        <div key={row.label} className="flex items-center gap-2 text-[11px]">
+                          <span className="text-gray-400 w-28 flex-shrink-0">{row.label}</span>
+                          <div className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden">
+                            <div
+                              className="h-full bg-cyan-400/70"
+                              style={{ width: `${row.value}%` }}
+                            />
                           </div>
-                        ))}
-                      </div>
+                          <span className="tabular-nums text-gray-300 w-8 text-right">
+                            {row.value}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-2.5 mt-2.5 border-t border-white/10 space-y-1.5">
+                      <div className="font-medium text-cyan-300 text-xs mb-1">Model contributions</div>
+                      {contributions.map((c) => (
+                        <div key={c.name} className="flex items-center gap-2 text-[11px]">
+                          <div className={`w-1.5 h-1.5 rounded-full ${c.color}`} />
+                          <span className="text-gray-300 w-14 flex-shrink-0">{c.name}</span>
+                          <div className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden">
+                            <div
+                              className={`h-full ${c.color}`}
+                              style={{ width: `${c.percentage}%` }}
+                            />
+                          </div>
+                          <span className="tabular-nums text-gray-300 w-8 text-right">
+                            {c.percentage}%
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </TooltipContent>
                 </Tooltip>

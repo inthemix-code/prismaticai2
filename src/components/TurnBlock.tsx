@@ -11,7 +11,6 @@ import { JudgeVerdictCardSkeleton } from './JudgeVerdictCardSkeleton';
 import { AIResponsePanel } from './AIResponsePanel';
 import { AIResponsePanelSkeleton } from './AIResponsePanelSkeleton';
 import { ForkIndicator } from './ForkIndicator';
-import { ForkButton } from './ForkButton';
 
 interface TurnBlockProps {
   turn: ConversationTurn;
@@ -123,11 +122,6 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
                   siblingIndex={turn.siblingIndex ?? 0}
                   siblingCount={turn.siblingCount ?? 1}
                 />
-              )}
-              {turn.completed && (
-                <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-                  <ForkButton turnId={turn.id} originalPrompt={turn.prompt} />
-                </div>
               )}
             </div>
           )}
