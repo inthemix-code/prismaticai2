@@ -55,11 +55,11 @@ export function ForkIndicator({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex items-center gap-1 h-5 px-1.5 rounded-[5px] border border-cyan-400/30 bg-cyan-500/10 text-[10px] font-medium text-cyan-200/90 hover:bg-cyan-500/20 hover:text-cyan-100 transition-colors"
+          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md border border-cyan-400/40 bg-cyan-500/15 text-xs font-semibold text-cyan-100 hover:bg-cyan-500/25 hover:border-cyan-300/60 transition-colors"
           title={`Branch ${label} - click to switch`}
           aria-label={`Branch ${label}, click to switch`}
         >
-          <GitBranch className="w-2.5 h-2.5" />
+          <GitBranch className="w-3.5 h-3.5" />
           <span className="tabular-nums tracking-tight">{label}</span>
         </button>
       </PopoverTrigger>

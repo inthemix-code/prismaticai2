@@ -45,11 +45,11 @@ export function ForkButton({ turnId, originalPrompt }: ForkButtonProps) {
           setValue(originalPrompt);
           setOpen(true);
         }}
-        className="inline-flex items-center gap-1 h-5 px-1.5 rounded-[5px] text-[10px] font-medium text-gray-500 hover:text-cyan-200 hover:bg-white/5 transition-colors"
+        className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs font-medium text-cyan-200 bg-cyan-500/10 border border-cyan-400/30 hover:bg-cyan-500/20 hover:border-cyan-400/50 hover:text-cyan-100 transition-colors shadow-[0_0_0_0_rgba(6,182,212,0)] hover:shadow-[0_0_16px_-6px_rgba(6,182,212,0.7)]"
         title="Fork this turn into a new branch"
         aria-label="Fork this turn"
       >
-        <GitBranchPlus className="w-2.5 h-2.5" />
+        <GitBranchPlus className="w-3.5 h-3.5" />
         <span>Fork</span>
       </button>
 

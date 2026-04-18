@@ -82,24 +82,6 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
               <span className="normal-case tracking-normal">{turn.responses.length} models</span>
             </>
           )}
-          {!turn.loading && (turn.siblingCount ?? 1) > 1 && (
-            <>
-              <span className="text-gray-700">&middot;</span>
-              <ForkIndicator
-                conversationId={conversation.id}
-                turnId={turn.id}
-                parentTurnId={turn.parentTurnId ?? null}
-                siblingIndex={turn.siblingIndex ?? 0}
-                siblingCount={turn.siblingCount ?? 1}
-              />
-            </>
-          )}
-          {!turn.loading && turn.completed && (
-            <>
-              <span className="text-gray-700">&middot;</span>
-              <ForkButton turnId={turn.id} originalPrompt={turn.prompt} />
-            </>
-          )}
         </div>
         {!turn.loading && !isLatest && (
           <button
@@ -121,15 +103,31 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
 
       {/* Question (always visible, lighter weight) */}
       <div className="relative pl-4 border-l-2 border-cyan-400/40 py-1 mb-5">
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-3">
           <MessageSquare className="w-3.5 h-3.5 text-cyan-300/80 mt-1 flex-shrink-0" />
           <p
-            className={`text-sm sm:text-[15px] text-gray-300 leading-relaxed break-words ${
+            className={`flex-1 min-w-0 text-sm sm:text-[15px] text-gray-300 leading-relaxed break-words ${
               turnCollapsed ? 'line-clamp-1' : ''
             }`}
           >
             {turn.prompt}
           </p>
+          {!turn.loading && (
+            <div className="flex items-center gap-1.5 flex-shrink-0 pt-0.5">
+              {(turn.siblingCount ?? 1) > 1 && (
+                <ForkIndicator
+                  conversationId={conversation.id}
+                  turnId={turn.id}
+                  parentTurnId={turn.parentTurnId ?? null}
+                  siblingIndex={turn.siblingIndex ?? 0}
+                  siblingCount={turn.siblingCount ?? 1}
+                />
+              )}
+              {turn.completed && (
+                <ForkButton turnId={turn.id} originalPrompt={turn.prompt} />
+              )}
+            </div>
+          )}
         </div>
       </div>
 
