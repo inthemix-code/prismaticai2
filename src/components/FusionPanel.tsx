@@ -1,12 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList } from 'recharts';
 import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-} from '@/components/ui/chart';
-import { Copy, Shield, Clock, Zap, Target, Lightbulb, Check, Share2, Download, FileDown, Pin, Brain, ThumbsUp, ThumbsDown } from 'lucide-react';
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Copy, Target, Check, Share2, Download, FileDown, Pin, Brain, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { FusionResult, JudgeVerdict, StructuredSynthesis, ModelId } from '../types';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -31,39 +31,66 @@ const modelBadgeColor: Record<ModelId, string> = {
   gemini: 'bg-blue-500/15 text-blue-200 border-blue-500/40',
 };
 
-const confidenceChartConfig = {
-  confidence: {
-    label: "Synthesis Confidence",
-    color: "#06B6D4",
-  },
-} satisfies ChartConfig;
+const isInsightContested = (insight: string, structured?: StructuredSynthesis | null): boolean => {
+  if (!structured) return false;
+  const lower = insight.toLowerCase();
+  const topicHit = structured.disagreements?.some((d) => {
+    const topic = d.topic?.toLowerCase() ?? '';
+    if (!topic) return false;
+    const words = topic.split(/\s+/).filter((w) => w.length > 3);
+    return words.some((w) => lower.includes(w));
+  });
+  if (topicHit) return true;
+  const sentenceHit = structured.sentences?.some((s) => {
+    if (!s.contested_by || s.contested_by.length === 0) return false;
+    const text = s.text?.toLowerCase() ?? '';
+    if (!text) return false;
+    const words = lower.split(/\s+/).filter((w) => w.length > 4);
+    const overlap = words.filter((w) => text.includes(w)).length;
+    return overlap >= 2;
+  });
+  return !!sentenceHit;
+};
 
-// Dynamic icons for key insights
-const getInsightIcon = (insight: string, index: number) => {
-  const lowerInsight = insight.toLowerCase();
-  
-  if (lowerInsight.includes('quantum') || lowerInsight.includes('break') || lowerInsight.includes('encryption')) {
-    return <Shield className="w-3.5 h-3.5 text-red-400" />;
+const getConfidenceRationale = (score: number) => {
+  if (score >= 90) {
+    return [
+      'High consensus across all AI models',
+      'Consistent factual information',
+      'Comprehensive topic coverage',
+      'Strong source reliability',
+    ];
   }
-  if (lowerInsight.includes('time') || lowerInsight.includes('year') || lowerInsight.includes('timeline')) {
-    return <Clock className="w-3.5 h-3.5 text-blue-400" />;
+  if (score >= 80) {
+    return [
+      'Good agreement between models',
+      'Most information is consistent',
+      'Minor gaps in coverage',
+      'Reliable but some uncertainty',
+    ];
   }
-  if (lowerInsight.includes('standard') || lowerInsight.includes('nist') || lowerInsight.includes('available')) {
-    return <Target className="w-3.5 h-3.5 text-green-400" />;
+  if (score >= 70) {
+    return [
+      'Moderate consensus achieved',
+      'Some conflicting viewpoints',
+      'Reasonable topic coverage',
+      'Generally trustworthy sources',
+    ];
   }
-  if (lowerInsight.includes('organization') || lowerInsight.includes('planning') || lowerInsight.includes('immediately')) {
-    return <Zap className="w-3.5 h-3.5 text-orange-400" />;
+  if (score >= 60) {
+    return [
+      'Limited agreement between models',
+      'Notable information conflicts',
+      'Partial topic coverage',
+      'Mixed source reliability',
+    ];
   }
-  
-  // Default icons based on index
-  const defaultIcons = [
-    <Shield className="w-3.5 h-3.5 text-blue-400" />,
-    <Target className="w-3.5 h-3.5 text-green-400" />,
-    <Clock className="w-3.5 h-3.5 text-purple-400" />,
-    <Zap className="w-3.5 h-3.5 text-orange-400" />
+  return [
+    'Low consensus across models',
+    'Significant contradictions found',
+    'Incomplete information',
+    'Uncertain source quality',
   ];
-  
-  return defaultIcons[index % defaultIcons.length];
 };
 
 export function FusionPanel({ fusion, conversationId, turnId, structured, memoryUsed, onPinFact, canPin, judgeVerdict }: FusionPanelProps) {
@@ -196,14 +223,7 @@ export function FusionPanel({ fusion, conversationId, turnId, structured, memory
     }
   };
 
-  // Prepare data for the confidence chart
   const confidencePercentage = Math.round(fusion.confidence * 100);
-  const confidenceData = [
-    {
-      metric: "Synthesis",
-      confidence: confidencePercentage,
-    },
-  ];
 
   // Calculate total for percentage normalization
   const totalSources = fusion.sources.grok + fusion.sources.claude + fusion.sources.gemini;
@@ -236,34 +256,66 @@ export function FusionPanel({ fusion, conversationId, turnId, structured, memory
   return (
     <div className="space-y-6">
       {/* Main Fusion Response Card - glass surface */}
-      <Card className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm shadow-[0_0_32px_-12px_rgba(6,182,212,0.35)]">
+      <Card className="group rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm shadow-[0_0_32px_-12px_rgba(6,182,212,0.35)]">
         <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-teal-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]" />
-              <CardTitle className="text-base sm:text-lg font-semibold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent">
-                AI Synthesis Response
-              </CardTitle>
-              {/* Model Contributions Pills */}
-              <div className="flex flex-wrap gap-1 sm:gap-2 ml-2 sm:ml-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="text-xs font-medium text-gray-500">Synthesis</span>
+              <div className="flex items-center gap-1.5">
                 {contributions.map((contribution) => (
-                  <div
-                    key={contribution.name}
-                    className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border ${contribution.lightColor} border-gray-600/50`}
-                  >
-                    <div className={`w-1.5 h-1.5 rounded-full ${contribution.color}`} />
-                    <span className={`text-xs font-medium ${contribution.textColor} hidden sm:inline`}>
-                      {contribution.name}
-                    </span>
-                    <span className={`text-xs font-semibold text-white ${contribution.textColor} sm:text-white`}>
-                      <span className="sm:hidden">{contribution.name.charAt(0)}</span>
-                      {contribution.percentage}%
-                    </span>
-                  </div>
+                  <TooltipProvider key={contribution.name} delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={`w-1.5 h-1.5 rounded-full ${contribution.color} cursor-default`}
+                          aria-label={`${contribution.name} ${contribution.percentage}%`}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-gray-950/95 border border-white/10 text-gray-200">
+                        {contribution.name} · {contribution.percentage}%
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-1 relative" ref={exportRef}>
+            <div className="flex items-center gap-3">
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-[11px] text-gray-500 tabular-nums cursor-default">
+                      {confidencePercentage}% confidence
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-gray-950/95 border border-white/10 text-gray-200 max-w-xs p-3">
+                    <div className="text-white font-medium text-sm mb-2">
+                      Synthesis Confidence: {confidencePercentage}%
+                    </div>
+                    <div className="text-gray-300 text-xs space-y-1">
+                      <div className="font-medium text-cyan-300 mb-1">Score Rationale:</div>
+                      {getConfidenceRationale(confidencePercentage).map((reason, index) => (
+                        <div key={index} className="flex items-start gap-2">
+                          <div className="w-1 h-1 bg-cyan-300 rounded-full mt-1.5 flex-shrink-0" />
+                          <span>{reason}</span>
+                        </div>
+                      ))}
+                      <div className="pt-2 mt-2 border-t border-white/10 space-y-1">
+                        {contributions.map((c) => (
+                          <div key={c.name} className="flex items-center gap-2">
+                            <div className={`w-1.5 h-1.5 rounded-full ${c.color}`} />
+                            <span className="text-gray-300">{c.name}</span>
+                            <span className="ml-auto tabular-nums text-gray-400">{c.percentage}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <div
+                className="flex items-center gap-1 relative opacity-0 group-hover:opacity-100 transition-opacity"
+                ref={exportRef}
+              >
               <Button
                 variant="ghost"
                 size="sm"
@@ -320,156 +372,43 @@ export function FusionPanel({ fusion, conversationId, turnId, structured, memory
                   <Copy className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                 )}
               </Button>
+              </div>
             </div>
-          </div>
-          
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-400">Synthesis Confidence</span>
-            </div>
-            <ChartContainer
-              config={confidenceChartConfig}
-              className="h-[15px] w-full"
-            >
-              <BarChart
-                accessibilityLayer
-                data={confidenceData}
-                layout="vertical"
-                margin={{
-                  top: 5,
-                  right: 15,
-                  left: 10,
-                  bottom: 0,
-                }}
-              >
-                <CartesianGrid horizontal={false} stroke="#374151" />
-                <YAxis
-                  dataKey="metric"
-                  type="category"
-                  tickLine={false}
-                  tickMargin={8}
-                  axisLine={false}
-                  hide
-                />
-                <XAxis 
-                  dataKey="confidence"
-                  type="number"
-                  domain={[0, 100]}
-                  hide
-                />
-                <ChartTooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const confidence = payload[0].value as number;
-                      
-                      // Generate rationale based on confidence level
-                      const getRationale = (score: number) => {
-                        if (score >= 90) {
-                          return [
-                            "High consensus across all AI models",
-                            "Consistent factual information",
-                            "Comprehensive topic coverage",
-                            "Strong source reliability"
-                          ];
-                        } else if (score >= 80) {
-                          return [
-                            "Good agreement between models",
-                            "Most information is consistent",
-                            "Minor gaps in coverage",
-                            "Reliable but some uncertainty"
-                          ];
-                        } else if (score >= 70) {
-                          return [
-                            "Moderate consensus achieved",
-                            "Some conflicting viewpoints",
-                            "Reasonable topic coverage",
-                            "Generally trustworthy sources"
-                          ];
-                        } else if (score >= 60) {
-                          return [
-                            "Limited agreement between models",
-                            "Notable information conflicts",
-                            "Partial topic coverage",
-                            "Mixed source reliability"
-                          ];
-                        } else {
-                          return [
-                            "Low consensus across models",
-                            "Significant contradictions found",
-                            "Incomplete information",
-                            "Uncertain source quality"
-                          ];
-                        }
-                      };
-                      
-                      const rationale = getRationale(confidence);
-                      
-                      return (
-                        <div className="bg-gray-950/95 backdrop-blur-sm border border-white/10 rounded-xl p-3 shadow-2xl max-w-xs">
-                          <div className="text-white font-medium text-sm mb-2">
-                            Synthesis Confidence: {confidence}%
-                          </div>
-                          <div className="text-gray-300 text-xs space-y-1">
-                            <div className="font-medium text-cyan-300 mb-1">Score Rationale:</div>
-                            {rationale.map((reason, index) => (
-                              <div key={index} className="flex items-start gap-2">
-                                <div className="w-1 h-1 bg-cyan-300 rounded-full mt-1.5 flex-shrink-0" />
-                                <span>{reason}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar
-                  dataKey="confidence"
-                  layout="vertical"
-                  fill="var(--color-confidence)"
-                  radius={2}
-                >
-                  <LabelList
-                    dataKey="confidence"
-                    position="right"
-                    offset={6}
-                    className="fill-white"
-                    fontSize={9}
-                    formatter={(value: number) => `${value}%`}
-                  />
-                </Bar>
-              </BarChart>
-            </ChartContainer>
           </div>
         </CardHeader>
-        
-        <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
-          {/* Key Insights - Consolidated into single rectangle */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-gray-300 uppercase tracking-wider flex items-center gap-1 sm:gap-2">
-              <Lightbulb className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              Key Insights
-            </h4>
-            <div className="p-2 sm:p-3 bg-white/[0.03] rounded-xl border border-white/10 space-y-2 sm:space-y-2.5">
-              {fusion.keyInsights.map((insight, index) => (
-                <div
-                  key={index}
-                  className="flex items-start gap-2 sm:gap-2.5 text-xs text-gray-300"
-                >
-                  <div className="flex-shrink-0 mt-0.5">
-                    {getInsightIcon(insight, index)}
-                  </div>
-                  <span className="leading-relaxed font-light tracking-wide text-xs sm:text-sm">{insight}</span>
-                </div>
-              ))}
-            </div>
-          </div>
 
+        <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 pt-2">
           {/* Main Content - Left aligned markdown */}
           <div className="text-xs sm:text-sm leading-relaxed text-gray-300 font-light tracking-wide text-left max-w-[72ch]">
             <Markdown>{fusion.content}</Markdown>
           </div>
+
+          {/* Key Insights - dot-only, subtle separator */}
+          {fusion.keyInsights.length > 0 && (
+            <div className="pt-3 border-t border-white/5 space-y-2 sm:space-y-2.5">
+              {fusion.keyInsights.map((insight, index) => {
+                const contested = isInsightContested(insight, structured);
+                return (
+                  <div
+                    key={index}
+                    className="flex items-start gap-2 sm:gap-2.5 text-xs text-gray-300"
+                  >
+                    <div
+                      className={`flex-shrink-0 mt-1.5 w-[5px] h-[5px] rounded-full ${
+                        contested ? 'bg-amber-400' : 'bg-gray-500/40'
+                      }`}
+                    />
+                    <span className="leading-relaxed font-light tracking-wide text-xs sm:text-sm">
+                      {insight}
+                      {contested && (
+                        <span className="ml-1.5 text-[11px] text-gray-500">· contested</span>
+                      )}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Reaction feedback */}
           {turnId && conversationId && (
