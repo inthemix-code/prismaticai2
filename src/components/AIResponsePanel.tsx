@@ -4,8 +4,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Copy, Clock, FileText, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Loader as Loader2, Check } from 'lucide-react';
+import { Copy, CircleAlert as AlertCircle, Loader as Loader2, Check, ChevronDown } from 'lucide-react';
 import { AIResponse } from '../types';
 import { cn } from '@/lib/utils';
 import { Markdown } from '../utils/markdown';
@@ -79,6 +78,7 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
   const config = platformConfig[response.platform];
   const shouldReduce = useReducedMotion();
   const [copied, setCopied] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const copyToClipboard = async () => {
     try {
@@ -230,92 +230,65 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
       whileHover={shouldReduce ? undefined : { y: -2, scale: 1.01 }}
       transition={{ type: 'spring', stiffness: 300 }}
     >
-      <Card className={cn('h-[320px] sm:h-[400px] flex flex-col bg-gray-900/50 shadow-xl rounded-lg', config.borderColor, 'border')}>
-        <CardHeader className={cn('pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6', config.lightColor)}>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <motion.div 
+      <Card
+        className={cn(
+          'group relative flex flex-col bg-gray-900/50 shadow-xl rounded-lg transition-[height] duration-300',
+          expanded ? 'h-auto' : 'h-[320px] sm:h-[400px]',
+          config.borderColor,
+          'border'
+        )}
+      >
+        <CardHeader className={cn('pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-4', config.lightColor)}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                className={cn('w-3 h-3 rounded-full', config.color)} 
+                className={cn('w-2 h-2 rounded-full flex-shrink-0', config.color)}
               />
-              <h4 className="text-white text-xs sm:text-sm font-medium">{config.name}</h4>
+              <h4 className="text-white text-xs sm:text-sm font-medium truncate">{config.name}</h4>
               {response.isMock && (
-                <Badge variant="secondary" className="text-xs bg-yellow-900/50 text-yellow-400 border-yellow-700">
-                  Mock Data
+                <Badge variant="secondary" className="text-[10px] bg-yellow-900/50 text-yellow-400 border-yellow-700">
+                  Mock
                 </Badge>
               )}
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ delay: 0.3, type: 'spring', stiffness: 300 }}
-              >
-                <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-400" />
-              </motion.div>
             </div>
-            <motion.div
-              whileHover={shouldReduce ? undefined : { scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-gray-500 tabular-nums">
+                {formatResponseTime(response.responseTime)} · {Math.round(response.confidence * 100)}%
+              </span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={copyToClipboard}
                 aria-label={`Copy ${config.name} response`}
-                className="h-5 w-5 sm:h-6 sm:w-6 p-0 hover:bg-gray-800 focus-visible:ring-1 focus-visible:ring-cyan-400/60 focus-visible:outline-none"
+                className="h-6 w-6 p-0 opacity-40 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity hover:bg-gray-800 focus-visible:ring-1 focus-visible:ring-cyan-400/60 focus-visible:outline-none"
               >
                 {copied ? (
-                  <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400" aria-hidden="true" />
+                  <Check className="w-3 h-3 text-emerald-400" aria-hidden="true" />
                 ) : (
-                  <Copy className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400" aria-hidden="true" />
+                  <Copy className="w-3 h-3 text-gray-400" aria-hidden="true" />
                 )}
               </Button>
-            </motion.div>
-          </div>
-          
-          <div className="space-y-1 sm:space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-400">Confidence</span>
-              <motion.span 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className={cn('text-xs font-semibold', config.textColor)}
-              >
-                {Math.round(response.confidence * 100)}%
-              </motion.span>
             </div>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: '100%' }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-            >
-              <Progress 
-                value={response.confidence * 100} 
-                className="h-1.5"
-              />
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-              className="flex gap-2 sm:gap-3 text-xs text-gray-500"
-            >
-              <div className="flex items-center gap-1">
-                <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                {formatResponseTime(response.responseTime)}
-              </div>
-              <div className="flex items-center gap-1">
-                <FileText className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                {response.wordCount} words
-              </div>
-            </motion.div>
           </div>
         </CardHeader>
-        
-        <CardContent className="flex-1 overflow-hidden p-3 sm:p-4">
-          <div className="h-full overflow-y-auto custom-scrollbar pr-1 sm:pr-2">
+
+        <CardContent className="flex-1 overflow-hidden p-3 sm:p-4 relative">
+          <div
+            className={cn(
+              'h-full pr-1 sm:pr-2',
+              expanded ? 'overflow-y-auto custom-scrollbar' : 'overflow-hidden'
+            )}
+            style={
+              !expanded
+                ? {
+                    maskImage: 'linear-gradient(to bottom, black 60%, transparent)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent)',
+                  }
+                : undefined
+            }
+          >
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -325,6 +298,18 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
               <Markdown>{response.content}</Markdown>
             </motion.div>
           </div>
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-label={expanded ? 'Collapse response' : 'Expand response'}
+            aria-expanded={expanded}
+            className="absolute bottom-2 right-2 h-7 w-7 inline-flex items-center justify-center rounded-full border border-white/10 bg-gray-900/80 backdrop-blur-sm text-gray-400 hover:text-white hover:border-white/20 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-400/60"
+          >
+            <ChevronDown
+              className={cn('w-3.5 h-3.5 transition-transform', expanded && 'rotate-180')}
+              aria-hidden="true"
+            />
+          </button>
         </CardContent>
       </Card>
     </motion.div>
