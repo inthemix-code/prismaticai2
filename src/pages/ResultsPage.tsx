@@ -2,11 +2,21 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Triangle, Check, Eye, Plus } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MessageSquare, Triangle, Check, Eye, Menu, Plus, History, FolderOpen } from 'lucide-react';
 import SearchInput from '../components/SearchInput';
-import { ConversationHistoryDrawer } from '../components/ConversationHistoryDrawer';
-import { ProjectsMemoryDrawer } from '../components/ProjectsMemoryDrawer';
-import { TurnRail, TurnRailMobile } from '../components/TurnRail';
+import {
+  NavRail,
+  NavRailDrawer,
+  NavRailMobileStrip,
+  NAV_RAIL_WIDTH_COLLAPSED,
+  NAV_RAIL_WIDTH_EXPANDED,
+} from '../components/NavRail';
 import { TurnBlock } from '../components/TurnBlock';
 import { useAIStore } from '../stores/aiStore';
 import { conversationPersistence } from '../services/conversationPersistence';
@@ -29,10 +39,11 @@ export function ResultsPage() {
     void loadProjects();
   }, [loadProjects]);
 
-  const [prefs, setPrefs] = useState<UIPreferences>(defaultUIPreferences);
+  const [prefs, setPrefs] = useState<UIPreferences>(() => uiPreferences.readLocalSync() ?? defaultUIPreferences);
   useEffect(() => {
     void uiPreferences.load().then(setPrefs);
   }, []);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const updatePrefs = useCallback((patch: Partial<UIPreferences>) => {
     setPrefs((prev) => {
@@ -224,6 +235,11 @@ export function ResultsPage() {
     loading: t.loading,
   }));
 
+  const railVisible = prefs.showTurnRail && !isLatestTurnLoading;
+  const railWidth = prefs.navRailCollapsed ? NAV_RAIL_WIDTH_COLLAPSED : NAV_RAIL_WIDTH_EXPANDED;
+  const contentPaddingLeft = railVisible ? railWidth + 24 : 0;
+  const showSearchCluster = prefs.navPlacement !== 'rail';
+
   return (
     <div
       className="min-h-screen flex flex-col relative"
@@ -232,51 +248,89 @@ export function ResultsPage() {
           'radial-gradient(1200px 600px at 50% -10%, rgba(6,182,212,0.10), transparent 60%), radial-gradient(900px 500px at 90% 20%, rgba(20,184,166,0.06), transparent 60%), #0B0F1A',
       }}
     >
-      {/* Slim header */}
+      {/* Simplified header */}
       {!isLatestTurnLoading && (
-        <header className="border-b border-gray-800/60 backdrop-blur-xl sticky top-0 z-40 bg-gray-950/70">
+        <header
+          className="border-b border-white/5 backdrop-blur-xl sticky top-0 z-30 bg-gray-950/60 transition-[padding] duration-200"
+          style={{ paddingLeft: contentPaddingLeft }}
+        >
           <div className="mx-auto max-w-6xl px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
-            <button
-              onClick={handleNewQuery}
-              className="flex items-center gap-2 group rounded-md px-2 py-1 hover:bg-white/5 transition-colors"
-              aria-label="Start new conversation"
-            >
-              <div className="w-7 h-7 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                <Triangle className="w-3.5 h-3.5 text-white/90" />
-              </div>
-              <span className="text-sm font-medium text-white tracking-tight">Prismatic</span>
-            </button>
-
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <AnimatePresence>
-                {savedPulse && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="hidden sm:flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2 py-0.5"
+            <div className="flex items-center gap-2">
+              {/* Mobile overflow menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg text-gray-300 hover:text-white hover:bg-white/5"
+                    aria-label="Open menu"
                   >
-                    <Check className="w-3 h-3" />
-                    Saved
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <Menu className="w-4 h-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-gray-950 border-white/10 w-52">
+                  <DropdownMenuItem onClick={handleNewQuery} className="text-gray-200 focus:bg-white/5">
+                    <Plus className="w-4 h-4 mr-2" /> New conversation
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setMobileMenuOpen(true)} className="text-gray-200 focus:bg-white/5">
+                    <FolderOpen className="w-4 h-4 mr-2" /> Projects &amp; Memory
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setMobileMenuOpen(true)} className="text-gray-200 focus:bg-white/5">
+                    <History className="w-4 h-4 mr-2" /> Conversation history
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-              <ProjectsMemoryDrawer />
-              <ConversationHistoryDrawer />
-
-              <Button
-                size="sm"
+              <button
                 onClick={handleNewQuery}
-                className="h-8 bg-cyan-500/90 hover:bg-cyan-400 text-gray-950 font-medium text-xs px-3"
+                className="flex items-center gap-2 group rounded-md px-2 py-1 hover:bg-white/5 transition-colors lg:hidden"
+                aria-label="Prismatic home"
               >
-                <Plus className="w-3.5 h-3.5 mr-1" />
-                New
-              </Button>
+                <div className="w-7 h-7 bg-gradient-to-br from-cyan-400/20 to-teal-400/10 border border-white/10 rounded-lg flex items-center justify-center">
+                  <Triangle className="w-3.5 h-3.5 text-cyan-300" />
+                </div>
+                <span className="text-sm font-medium text-white tracking-tight">Prismatic</span>
+              </button>
+              <div className="hidden lg:block text-sm font-medium text-white/80 tracking-tight truncate max-w-md">
+                {currentConversation.title || 'Conversation'}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5" aria-live="polite">
+                <span
+                  className={`relative inline-block w-2 h-2 rounded-full transition-colors ${
+                    savedPulse ? 'bg-emerald-400' : 'bg-emerald-400/40'
+                  }`}
+                >
+                  <AnimatePresence>
+                    {savedPulse && (
+                      <motion.span
+                        initial={{ opacity: 0.8, scale: 1 }}
+                        animate={{ opacity: 0, scale: 2.2 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 1.2, ease: 'easeOut' }}
+                        className="absolute inset-0 rounded-full bg-emerald-400"
+                      />
+                    )}
+                  </AnimatePresence>
+                </span>
+                <AnimatePresence>
+                  {savedPulse && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -4 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="hidden sm:inline-flex items-center gap-1 text-[11px] text-emerald-300"
+                    >
+                      <Check className="w-3 h-3" />
+                      Saved
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
 
-          {/* Shared view pill */}
+          {/* Shared view strip */}
           {sharedView && (
             <div className="border-t border-cyan-900/40 bg-cyan-950/30">
               <div className="mx-auto max-w-6xl px-4 sm:px-6 py-1.5 flex items-center justify-between gap-3 text-xs text-cyan-200">
@@ -298,27 +352,51 @@ export function ResultsPage() {
         </header>
       )}
 
-      {/* Mobile turn strip */}
-      {prefs.showTurnRail && !isLatestTurnLoading && (
-        <TurnRailMobile
+      {/* Mobile turn strip with menu button */}
+      {railVisible && (
+        <NavRailMobileStrip
           turns={railItems}
           currentIndex={currentTurnInView}
           onJump={scrollToTurn}
+          onOpenMenu={() => setMobileMenuOpen(true)}
         />
       )}
 
       {/* Desktop left rail */}
-      {prefs.showTurnRail && !isLatestTurnLoading && (
-        <TurnRail
+      {railVisible && (
+        <NavRail
           turns={railItems}
           currentIndex={currentTurnInView}
           onJump={scrollToTurn}
           onBackToTop={scrollToTop}
+          onNewConversation={handleNewQuery}
+          collapsed={prefs.navRailCollapsed}
+          onToggleCollapsed={() => updatePrefs({ navRailCollapsed: !prefs.navRailCollapsed })}
+          placement={prefs.navPlacement}
+          onPlacementChange={(p) => updatePrefs({ navPlacement: p })}
         />
       )}
 
-      {/* Main content */}
-      <div className={`flex-1 ${sharedView ? 'pb-16' : 'pb-32 sm:pb-36'}`}>
+      {/* Mobile rail drawer */}
+      <NavRailDrawer
+        open={mobileMenuOpen}
+        onOpenChange={setMobileMenuOpen}
+        turns={railItems}
+        currentIndex={currentTurnInView}
+        onJump={scrollToTurn}
+        onBackToTop={scrollToTop}
+        onNewConversation={handleNewQuery}
+        collapsed={false}
+        onToggleCollapsed={() => {}}
+        placement={prefs.navPlacement}
+        onPlacementChange={(p) => updatePrefs({ navPlacement: p })}
+      />
+
+      {/* Main content reflows based on rail width */}
+      <div
+        className={`flex-1 transition-[padding] duration-200 ${sharedView ? 'pb-16' : 'pb-32 sm:pb-36'}`}
+        style={{ paddingLeft: contentPaddingLeft }}
+      >
         <div className="mx-auto max-w-3xl px-4 sm:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14">
           {turns.map((turn, turnIndex) => (
             <div key={turn.id} ref={setTurnRef(turnIndex)}>
@@ -353,7 +431,10 @@ export function ResultsPage() {
 
       {/* Narrow bottom search bar */}
       {!isLatestTurnLoading && !sharedView && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none">
+        <div
+          className="fixed bottom-0 right-0 z-30 pointer-events-none transition-[left] duration-200"
+          style={{ left: contentPaddingLeft }}
+        >
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0B0F1A] via-[#0B0F1A]/70 to-transparent" />
           <div className="relative mx-auto max-w-3xl px-4 sm:px-6 py-4 pointer-events-auto">
             <SearchInput
@@ -361,6 +442,9 @@ export function ResultsPage() {
               isLoading={isLatestTurnLoading || false}
               showDemoPrompts={false}
               className="w-full"
+              showQuickActions={showSearchCluster}
+              showProjectBadge={showSearchCluster}
+              onNewConversation={handleNewQuery}
             />
           </div>
         </div>

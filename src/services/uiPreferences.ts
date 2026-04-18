@@ -1,10 +1,14 @@
 import { supabase, getClientId } from '../lib/supabase';
 
+export type NavPlacement = 'rail' | 'search' | 'both';
+
 export interface UIPreferences {
   referenceCollapsedDefault: boolean;
   responsesLayout: 'compact' | 'expanded';
   showTurnRail: boolean;
   autoCollapseOlderTurns: boolean;
+  navRailCollapsed: boolean;
+  navPlacement: NavPlacement;
 }
 
 const LOCAL_KEY = 'prismatic.uiPrefs';
@@ -14,6 +18,8 @@ export const defaultUIPreferences: UIPreferences = {
   responsesLayout: 'compact',
   showTurnRail: true,
   autoCollapseOlderTurns: true,
+  navRailCollapsed: false,
+  navPlacement: 'both',
 };
 
 function readLocal(): UIPreferences {
@@ -33,7 +39,15 @@ function writeLocal(prefs: UIPreferences) {
   } catch { /* ignore */ }
 }
 
+function normalizePlacement(value: unknown): NavPlacement {
+  return value === 'rail' || value === 'search' || value === 'both' ? value : 'both';
+}
+
 export const uiPreferences = {
+  readLocalSync(): UIPreferences {
+    return readLocal();
+  },
+
   async load(): Promise<UIPreferences> {
     const local = readLocal();
     try {
@@ -48,6 +62,8 @@ export const uiPreferences = {
           responsesLayout: (data.responses_layout === 'expanded' ? 'expanded' : 'compact'),
           showTurnRail: !!data.show_turn_rail,
           autoCollapseOlderTurns: !!data.auto_collapse_older_turns,
+          navRailCollapsed: !!data.nav_rail_collapsed,
+          navPlacement: normalizePlacement(data.nav_placement),
         };
         writeLocal(remote);
         return remote;
@@ -67,6 +83,8 @@ export const uiPreferences = {
           responses_layout: prefs.responsesLayout,
           show_turn_rail: prefs.showTurnRail,
           auto_collapse_older_turns: prefs.autoCollapseOlderTurns,
+          nav_rail_collapsed: prefs.navRailCollapsed,
+          nav_placement: prefs.navPlacement,
           updated_at: new Date().toISOString(),
         });
     } catch { /* ignore */ }

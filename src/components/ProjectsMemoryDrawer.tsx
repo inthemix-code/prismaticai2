@@ -22,7 +22,11 @@ import {
 import { useAIStore } from '../stores/aiStore';
 import { toast } from 'sonner';
 
-export function ProjectsMemoryDrawer() {
+interface ProjectsMemoryDrawerProps {
+  trigger?: React.ReactNode;
+}
+
+export function ProjectsMemoryDrawer({ trigger }: ProjectsMemoryDrawerProps = {}) {
   const [open, setOpen] = useState(false);
   const projects = useAIStore((s) => s.projects);
   const activeProjectId = useAIStore((s) => s.activeProjectId);
@@ -95,23 +99,25 @@ export function ProjectsMemoryDrawer() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-gray-400 hover:text-white hover:bg-gray-800 text-xs sm:text-sm px-2 sm:px-3 h-8 gap-1.5"
-          aria-label="Open projects and memory"
-        >
-          <FolderKanban className="w-4 h-4" />
-          <span className="hidden sm:inline">
-            {activeProject ? activeProject.name : 'Projects'}
-          </span>
-          {activeProject && (
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: activeProject.color }}
-            />
-          )}
-        </Button>
+        {trigger ?? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-gray-400 hover:text-white hover:bg-gray-800 text-xs sm:text-sm px-2 sm:px-3 h-8 gap-1.5"
+            aria-label="Open projects and memory"
+          >
+            <FolderKanban className="w-4 h-4" />
+            <span className="hidden sm:inline">
+              {activeProject ? activeProject.name : 'Projects'}
+            </span>
+            {activeProject && (
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: activeProject.color }}
+              />
+            )}
+          </Button>
+        )}
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-md bg-gray-950 border-gray-800 p-0 overflow-hidden flex flex-col">
         <SheetHeader className="px-4 py-3 border-b border-gray-800">
