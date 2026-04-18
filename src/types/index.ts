@@ -6,12 +6,14 @@ export interface AIResponse {
   responseTime: number;
   wordCount: number;
   loading: boolean;
+  streaming?: boolean;
+  firstTokenMs?: number;
+  tokensPerSecond?: number;
   error?: string;
   timestamp: number;
   isMock?: boolean;
 }
 
-// New type for API results
 export interface AIResult {
   success: boolean;
   data: AIResponse;
@@ -32,9 +34,11 @@ export interface ConversationTurn {
   responses: AIResponse[];
   analysisData: AnalysisData | null;
   fusionResult: FusionResult | null;
+  fusionStructured?: StructuredSynthesis | null;
   loading: boolean;
   completed: boolean;
   progress?: number;
+  memoryUsed?: string[];
 }
 
 export interface Conversation {
@@ -43,6 +47,7 @@ export interface Conversation {
   turns: ConversationTurn[];
   createdAt: number;
   updatedAt: number;
+  projectId?: string | null;
 }
 
 export interface FusionResult {
@@ -54,6 +59,43 @@ export interface FusionResult {
     gemini: number;
   };
   keyInsights: string[];
+}
+
+export type ModelId = 'claude' | 'grok' | 'gemini';
+
+export interface SynthesisSentence {
+  text: string;
+  supported_by: ModelId[];
+  contested_by?: ModelId[];
+  rationale?: string;
+}
+
+export interface StructuredSynthesis {
+  sentences: SynthesisSentence[];
+  disagreements?: Array<{
+    topic: string;
+    positions: Array<{ model: ModelId; stance: string }>;
+    resolution: string;
+  }>;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  systemPersona: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ProjectMemory {
+  id: string;
+  projectId: string;
+  fact: string;
+  sourceTurnId?: string | null;
+  pinned: boolean;
+  createdAt: number;
 }
 
 export interface AnalysisData {

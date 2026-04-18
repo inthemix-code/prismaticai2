@@ -6,8 +6,8 @@ import {
   ChartContainer,
   ChartTooltip,
 } from '@/components/ui/chart';
-import { Copy, Shield, Clock, Zap, Target, Lightbulb, Check, Share2, Download, FileDown } from 'lucide-react';
-import { FusionResult } from '../types';
+import { Copy, Shield, Clock, Zap, Target, Lightbulb, Check, Share2, Download, FileDown, Pin, Brain } from 'lucide-react';
+import { FusionResult, StructuredSynthesis, ModelId } from '../types';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Markdown } from '../utils/markdown';
@@ -16,7 +16,17 @@ import { conversationPersistence } from '../services/conversationPersistence';
 interface FusionPanelProps {
   fusion: FusionResult;
   conversationId?: string;
+  structured?: StructuredSynthesis | null;
+  memoryUsed?: string[];
+  onPinFact?: (fact: string) => void;
+  canPin?: boolean;
 }
+
+const modelBadgeColor: Record<ModelId, string> = {
+  claude: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+  grok: 'bg-slate-500/20 text-slate-300 border-slate-500/40',
+  gemini: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+};
 
 const confidenceChartConfig = {
   confidence: {
@@ -53,7 +63,7 @@ const getInsightIcon = (insight: string, index: number) => {
   return defaultIcons[index % defaultIcons.length];
 };
 
-export function FusionPanel({ fusion, conversationId }: FusionPanelProps) {
+export function FusionPanel({ fusion, conversationId, structured, memoryUsed, onPinFact, canPin }: FusionPanelProps) {
   const [copied, setCopied] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
@@ -412,6 +422,104 @@ export function FusionPanel({ fusion, conversationId }: FusionPanelProps) {
           <div className="text-xs sm:text-sm leading-relaxed text-gray-300 font-light tracking-wide text-left max-w-[72ch]">
             <Markdown>{fusion.content}</Markdown>
           </div>
+
+          {memoryUsed && memoryUsed.length > 0 && (
+            <div className="space-y-2 pt-2 border-t border-gray-800/50">
+              <h4 className="text-xs font-semibold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                <Brain className="w-3.5 h-3.5 text-cyan-400" />
+                Memory used in this turn
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {memoryUsed.map((fact, i) => (
+                  <span
+                    key={i}
+                    title={fact}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded-md bg-cyan-500/10 border border-cyan-500/30 text-cyan-200 max-w-xs truncate"
+                  >
+                    {fact.length > 64 ? `${fact.slice(0, 64)}…` : fact}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {structured && structured.sentences && structured.sentences.length > 0 && (
+            <div className="space-y-3 pt-2 border-t border-gray-800/50">
+              <h4 className="text-xs font-semibold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                <Target className="w-3.5 h-3.5 text-blue-400" />
+                Sentence-level citations
+              </h4>
+              <div className="space-y-2">
+                {structured.sentences.map((s, i) => (
+                  <div
+                    key={i}
+                    className="group flex items-start gap-2 p-2.5 rounded-lg bg-gray-800/30 border border-gray-700/50 hover:border-gray-600 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-200 leading-relaxed">{s.text}</p>
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {s.supported_by.map((m) => (
+                          <span
+                            key={`sup-${m}`}
+                            className={`px-1.5 py-0.5 text-[10px] rounded border ${modelBadgeColor[m]}`}
+                          >
+                            {m}
+                          </span>
+                        ))}
+                        {s.contested_by?.map((m) => (
+                          <span
+                            key={`con-${m}`}
+                            className="px-1.5 py-0.5 text-[10px] rounded border bg-red-500/10 text-red-300 border-red-500/40"
+                            title="Contested by this model"
+                          >
+                            !{m}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    {canPin && onPinFact && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          onPinFact(s.text);
+                          toast.success('Pinned to project memory');
+                        }}
+                        className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-cyan-500/20"
+                        title="Pin to project memory"
+                        aria-label="Pin sentence to project memory"
+                      >
+                        <Pin className="w-3.5 h-3.5 text-cyan-300" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {structured.disagreements && structured.disagreements.length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="text-xs font-semibold text-orange-300 uppercase tracking-wider">Disagreements</h5>
+                  {structured.disagreements.map((d, i) => (
+                    <div key={i} className="p-2.5 rounded-lg bg-orange-500/5 border border-orange-500/20">
+                      <p className="text-xs font-medium text-orange-200 mb-1">{d.topic}</p>
+                      <div className="space-y-0.5">
+                        {d.positions.map((p, j) => (
+                          <p key={j} className="text-[11px] text-gray-300">
+                            <span className={`inline-block px-1 py-0 text-[9px] rounded mr-1 border ${modelBadgeColor[p.model]}`}>
+                              {p.model}
+                            </span>
+                            {p.stance}
+                          </p>
+                        ))}
+                      </div>
+                      {d.resolution && (
+                        <p className="text-[11px] text-gray-400 mt-1 italic">→ {d.resolution}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

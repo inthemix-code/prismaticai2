@@ -15,6 +15,7 @@ import SearchInput from '../components/SearchInput';
 import { AIResponsePanel } from '../components/AIResponsePanel';
 import { BackToTopButton } from '../components/BackToTopButton';
 import { ConversationHistoryDrawer } from '../components/ConversationHistoryDrawer';
+import { ProjectsMemoryDrawer } from '../components/ProjectsMemoryDrawer';
 import { useAIStore } from '../stores/aiStore';
 import { conversationPersistence } from '../services/conversationPersistence';
 
@@ -28,6 +29,13 @@ export function ResultsPage() {
     getCurrentTurn,
     setActiveConversation,
   } = useAIStore();
+  const activeProjectId = useAIStore((s) => s.activeProjectId);
+  const pinMemory = useAIStore((s) => s.pinMemory);
+  const loadProjects = useAIStore((s) => s.loadProjects);
+
+  useEffect(() => {
+    void loadProjects();
+  }, [loadProjects]);
 
   const [showHeaderText, setShowHeaderText] = useState(false);
   const [currentTurnInView, setCurrentTurnInView] = useState<number>(0);
@@ -311,6 +319,7 @@ export function ResultsPage() {
                   )}
                 </AnimatePresence>
 
+                <ProjectsMemoryDrawer />
                 <ConversationHistoryDrawer />
 
                 <div className="hidden sm:flex flex-col items-end gap-1">
@@ -500,7 +509,14 @@ export function ResultsPage() {
                   transition={{ duration: 0.35, delay: 0.1 }}
                   className="mt-8 sm:mt-12"
                 >
-                  <FusionPanel fusion={turn.fusionResult} conversationId={currentConversation.id} />
+                  <FusionPanel
+                    fusion={turn.fusionResult}
+                    conversationId={currentConversation.id}
+                    structured={turn.fusionStructured ?? null}
+                    memoryUsed={turn.memoryUsed}
+                    canPin={!!activeProjectId}
+                    onPinFact={(fact) => { void pinMemory(fact, turn.id); }}
+                  />
                 </motion.div>
               )}
 

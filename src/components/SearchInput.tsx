@@ -2,11 +2,12 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { Loader as Loader2, Triangle, Bot, Zap, Diamond, Sparkles } from 'lucide-react';
+import { Loader as Loader2, Triangle, Bot, Zap, Diamond, Sparkles, Radio } from 'lucide-react';
 import { demoPrompts } from '../data/mockData';
 import { DemoPrompt } from '../types';
 import { validateSearchRequest } from '../utils/validation';
 import { cn } from '@/lib/utils';
+import { useAIStore } from '../stores/aiStore';
 
 interface SearchInputProps {
   onSearch: (query: string, selectedModels: { claude: boolean; grok: boolean; gemini: boolean }) => void;
@@ -210,6 +211,8 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
                 </Button>
               </div>
               
+              <LiveModeToggle isLoading={isLoading} />
+
               <div className="text-xs text-muted-foreground/60 font-mono hidden lg:block">
                 {isFocused && 'Press ⏎ to send, Shift+⏎ for new line'}
               </div>
@@ -269,5 +272,28 @@ const SearchInput = ({ onSearch, isLoading, showDemoPrompts = true, className }:
     </div>
   );
 };
+
+function LiveModeToggle({ isLoading }: { isLoading: boolean }) {
+  const liveMode = useAIStore(s => s.liveMode);
+  const setLiveMode = useAIStore(s => s.setLiveMode);
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={() => setLiveMode(!liveMode)}
+      disabled={isLoading}
+      title="Stream responses token-by-token"
+      className={`bg-white/5 backdrop-blur-sm rounded-xl border transition-colors font-medium text-xs sm:text-sm px-2 sm:px-3 h-7 sm:h-8 ${
+        liveMode
+          ? 'bg-cyan-500/15 text-cyan-200 border-cyan-400/30 hover:bg-cyan-500/20'
+          : 'border-white/10 text-muted-foreground hover:text-white hover:bg-white/10'
+      }`}
+    >
+      <Radio className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${liveMode ? 'animate-pulse' : ''}`} />
+      Live
+    </Button>
+  );
+}
 
 export default SearchInput;

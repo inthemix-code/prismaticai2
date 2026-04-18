@@ -1,12 +1,35 @@
-import { AIResponse, AnalysisData, FusionResult } from '../types';
-import { queryAllModels, getSynthesis, getAnalysisData } from './modelService';
+import { AIResponse, AnalysisData, FusionResult, ModelId, StructuredSynthesis } from '../types';
+import {
+  queryAllModels,
+  queryModel,
+  getSynthesis,
+  getStructuredSynthesis,
+  getAnalysisData,
+  streamModelWithFallback,
+  type QueryOptions,
+  type StreamHandlers,
+} from './modelService';
 
 class APIService {
   async queryAllModels(
     prompt: string,
-    selectedModels: { claude: boolean; grok: boolean; gemini: boolean }
+    selectedModels: { claude: boolean; grok: boolean; gemini: boolean },
+    options: QueryOptions = {}
   ): Promise<AIResponse[]> {
-    return queryAllModels(prompt, selectedModels);
+    return queryAllModels(prompt, selectedModels, options);
+  }
+
+  async queryModel(model: ModelId, prompt: string, options: QueryOptions = {}): Promise<AIResponse> {
+    return queryModel(model, prompt, options);
+  }
+
+  async streamModel(
+    model: ModelId,
+    prompt: string,
+    handlers: StreamHandlers,
+    options: QueryOptions = {}
+  ): Promise<AIResponse> {
+    return streamModelWithFallback(model, prompt, handlers, options);
   }
 
   async getAnalysisData(responses: AIResponse[]): Promise<AnalysisData> {
@@ -15,6 +38,10 @@ class APIService {
 
   async getFusionResultWithPrompt(prompt: string, responses: AIResponse[]): Promise<FusionResult> {
     return getSynthesis(prompt, responses);
+  }
+
+  async getStructuredSynthesis(prompt: string, responses: AIResponse[]): Promise<StructuredSynthesis | null> {
+    return getStructuredSynthesis(prompt, responses);
   }
 }
 

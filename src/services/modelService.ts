@@ -1,4 +1,4 @@
-import { AIResponse, FusionResult } from '../types';
+import { AIResponse, FusionResult, ModelId, StructuredSynthesis } from '../types';
 import { generateMockAnalysisData, generateMockFusionResult } from '../data/mockData';
 import { extractKeyInsights, calculateSourceAttribution } from '../utils/aiSynthesisUtils';
 import { AnalysisData } from '../types';
@@ -34,107 +34,49 @@ async function callEdgeFunction(body: object): Promise<{ success: boolean; data?
     },
     body: JSON.stringify(body),
   });
-
   if (!response.ok) {
     const text = await response.text().catch(() => 'Unknown error');
     throw new Error(`Edge function error ${response.status}: ${text}`);
   }
-
   return response.json();
 }
 
-function buildMockContent(model: 'claude' | 'grok' | 'gemini', prompt: string): string {
+function buildMockContent(model: ModelId, prompt: string): string {
   const preview = prompt.length > 60 ? prompt.slice(0, 60) + '...' : prompt;
-
-  const templates = {
-    claude: `**Claude's Analysis: "${preview}"**
-
-This question invites a carefully reasoned response drawing from multiple perspectives.
-
-**Key Considerations:**
-- Foundational principles and contextual factors at play
-- Current best practices and emerging methodologies
-- Potential risks and mitigation strategies
-- Long-term implications and trajectory
-
-**Analysis:**
-The evidence points toward a nuanced interplay of technical, strategic, and human factors. Successful approaches consistently balance theoretical rigor with practical adaptability.
-
-**Recommendations:**
-1. Begin with a thorough contextual assessment
-2. Apply iterative, feedback-driven implementation
-3. Establish clear metrics for evaluation
-4. Foster cross-functional collaboration throughout`,
-
-    grok: `**Grok's Take: "${preview}"**
-
-Let's cut straight to what actually matters here.
-
-**The Reality:**
-Most conventional approaches miss the underlying dynamics. The real leverage points are where few people are looking:
-
-- Traditional frameworks are increasingly inadequate for current conditions
-- Counterintuitive solutions often outperform consensus approaches
-- The gap between theory and effective practice is wider than acknowledged
-- First-mover advantage compounds over time in this space
-
-**What the Data Shows:**
-We're at an inflection point. The fundamentals have shifted, and the gap between adaptive and rigid approaches is widening.
-
-**Practical Steps:**
-1. Question baseline assumptions before building solutions
-2. Find leverage where small inputs create large outputs
-3. Build rapid feedback loops into every process
-4. Position for the next phase, not the current one`,
-
-    gemini: `**Gemini's Assessment: "${preview}"**
-
-A systematic examination reveals several interconnected dimensions worth exploring.
-
-**Technical Overview:**
-Current research and implementation data indicate a multifaceted landscape shaped by the convergence of multiple disciplines. Best practices are emerging through iterative real-world application.
-
-**Strategic Framework:**
-- Stakeholder mapping and structured engagement protocols
-- Evidence-based iterative development with continuous feedback
-- Comprehensive risk identification and mitigation planning
-- Performance benchmarking and optimization systems
-
-**Research Insights:**
-Academic and industry sources suggest that optimal outcomes require balancing innovation velocity with operational stability. Context-specificity is critical — generic solutions consistently underperform tailored approaches.
-
-**Implementation Pathway:**
-1. Baseline capability and constraint assessment
-2. Pilot design with explicit success criteria
-3. Scaled deployment with integrated monitoring
-4. Continuous improvement through structured retrospectives`,
+  const templates: Record<ModelId, string> = {
+    claude: `**Claude's Analysis: "${preview}"**\n\nThis question invites a carefully reasoned response drawing from multiple perspectives.\n\n**Key Considerations:**\n- Foundational principles and contextual factors at play\n- Current best practices and emerging methodologies\n- Potential risks and mitigation strategies\n- Long-term implications and trajectory\n\n**Recommendations:**\n1. Begin with a thorough contextual assessment\n2. Apply iterative, feedback-driven implementation\n3. Establish clear metrics for evaluation`,
+    grok: `**Grok's Take: "${preview}"**\n\nLet's cut straight to what actually matters here.\n\n**The Reality:**\nMost conventional approaches miss the underlying dynamics. The real leverage points are where few people are looking.\n\n**Practical Steps:**\n1. Question baseline assumptions\n2. Find leverage where small inputs create large outputs\n3. Build rapid feedback loops`,
+    gemini: `**Gemini's Assessment: "${preview}"**\n\nA systematic examination reveals several interconnected dimensions worth exploring.\n\n**Strategic Framework:**\n- Stakeholder mapping and engagement\n- Evidence-based iterative development\n- Risk identification and mitigation\n\n**Implementation Pathway:**\n1. Baseline capability assessment\n2. Pilot design with success criteria\n3. Scaled deployment with monitoring`,
   };
-
   return templates[model];
 }
 
+export interface QueryOptions {
+  systemPersona?: string;
+  memoryFacts?: string[];
+}
+
 export async function queryModel(
-  model: 'claude' | 'grok' | 'gemini',
-  prompt: string
+  model: ModelId,
+  prompt: string,
+  options: QueryOptions = {}
 ): Promise<AIResponse> {
   const startTime = Date.now();
-
   try {
-    const result = await callEdgeFunction({ action: 'query', model, prompt });
-
-    if (result.success && result.data) {
-      return result.data as AIResponse;
-    }
-
+    const result = await callEdgeFunction({
+      action: 'query',
+      model,
+      prompt,
+      systemPersona: options.systemPersona,
+      memoryFacts: options.memoryFacts,
+    });
+    if (result.success && result.data) return result.data as AIResponse;
     throw new Error(result.error ?? 'Edge function returned no data');
   } catch (error) {
     console.error(`${model} query failed, using mock:`, error instanceof Error ? error.message : error);
-
     const [min, max] = MOCK_DELAYS[model];
     await randomDelay(min, max);
-
     const content = buildMockContent(model, prompt);
-
     return {
       id: crypto.randomUUID(),
       platform: model,
@@ -151,16 +93,14 @@ export async function queryModel(
 
 export async function queryAllModels(
   prompt: string,
-  selectedModels: { claude: boolean; grok: boolean; gemini: boolean }
+  selectedModels: { claude: boolean; grok: boolean; gemini: boolean },
+  options: QueryOptions = {}
 ): Promise<AIResponse[]> {
   const models = (['claude', 'grok', 'gemini'] as const).filter(m => selectedModels[m]);
-
-  const results = await Promise.allSettled(models.map(m => queryModel(m, prompt)));
-
+  const results = await Promise.allSettled(models.map(m => queryModel(m, prompt, options)));
   return results.map((result, index) => {
     const model = models[index];
     if (result.status === 'fulfilled') return result.value;
-
     const errorMsg = result.reason instanceof Error ? result.reason.message : 'Unknown error';
     return {
       id: crypto.randomUUID(),
@@ -176,33 +116,156 @@ export async function queryAllModels(
   });
 }
 
-export async function getSynthesis(
+export interface StreamHandlers {
+  onDelta: (text: string) => void;
+  onFirstToken?: () => void;
+  onDone?: () => void;
+  onError?: (message: string) => void;
+}
+
+async function streamInternal(
+  model: ModelId,
   prompt: string,
-  responses: AIResponse[]
-): Promise<FusionResult> {
-  const validResponses = responses.filter(r => r.content && !r.error);
+  handlers: StreamHandlers,
+  options: QueryOptions
+): Promise<string> {
+  const response = await fetch(EDGE_FUNCTION_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${ANON_KEY}`,
+      'Accept': 'text/event-stream',
+    },
+    body: JSON.stringify({
+      action: 'stream',
+      model,
+      prompt,
+      systemPersona: options.systemPersona,
+      memoryFacts: options.memoryFacts,
+    }),
+  });
 
-  if (validResponses.length === 0) {
-    return generateMockFusionResult(responses);
+  if (!response.ok || !response.body) throw new Error(`Stream failed: ${response.status}`);
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let full = '';
+  let firstTokenFired = false;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split('\n\n');
+    buffer = events.pop() ?? '';
+    for (const evt of events) {
+      let eventName = 'message';
+      let dataStr = '';
+      for (const line of evt.split('\n')) {
+        if (line.startsWith('event:')) eventName = line.slice(6).trim();
+        else if (line.startsWith('data:')) dataStr += line.slice(5).trim();
+      }
+      if (!dataStr) continue;
+      try {
+        const payload = JSON.parse(dataStr);
+        if (eventName === 'delta' && payload.text) {
+          if (!firstTokenFired) { firstTokenFired = true; handlers.onFirstToken?.(); }
+          full += payload.text;
+          handlers.onDelta(payload.text);
+        } else if (eventName === 'done') {
+          handlers.onDone?.();
+        } else if (eventName === 'error') {
+          handlers.onError?.(payload.message ?? 'stream error');
+        }
+      } catch { /* ignore */ }
+    }
   }
+  return full;
+}
 
+export async function streamModelWithFallback(
+  model: ModelId,
+  prompt: string,
+  handlers: StreamHandlers,
+  options: QueryOptions = {}
+): Promise<AIResponse> {
+  const startTime = Date.now();
+  let firstTokenMs: number | undefined;
   try {
-    const result = await callEdgeFunction({ action: 'synthesize', prompt, responses: validResponses });
+    const content = await streamInternal(
+      model,
+      prompt,
+      {
+        ...handlers,
+        onFirstToken: () => {
+          firstTokenMs = Date.now() - startTime;
+          handlers.onFirstToken?.();
+        },
+      },
+      options
+    );
+    if (!content) throw new Error('empty stream');
+    const elapsed = (Date.now() - startTime) / 1000;
+    const tokens = content.split(/\s+/).filter(Boolean).length;
+    return {
+      id: crypto.randomUUID(),
+      platform: model,
+      content,
+      confidence: calculateConfidence(content),
+      responseTime: elapsed,
+      wordCount: tokens,
+      loading: false,
+      streaming: false,
+      firstTokenMs,
+      tokensPerSecond: elapsed > 0 ? tokens / elapsed : 0,
+      timestamp: Date.now(),
+    };
+  } catch (err) {
+    console.warn(`[stream] ${model} fallback:`, err instanceof Error ? err.message : err);
+    handlers.onError?.(err instanceof Error ? err.message : 'stream failed');
+    return queryModel(model, prompt, options);
+  }
+}
 
+export async function getSynthesis(prompt: string, responses: AIResponse[]): Promise<FusionResult> {
+  const valid = responses.filter(r => r.content && !r.error);
+  if (valid.length === 0) return generateMockFusionResult(responses);
+  try {
+    const result = await callEdgeFunction({ action: 'synthesize', prompt, responses: valid });
     if (result.success && result.data) {
       const data = result.data as { content: string; confidence: number };
       return {
         content: data.content,
         confidence: data.confidence,
-        sources: calculateSourceAttribution(validResponses),
+        sources: calculateSourceAttribution(valid),
         keyInsights: extractKeyInsights(data.content),
       };
     }
-
     throw new Error(result.error ?? 'Synthesis returned no data');
   } catch (error) {
     console.error('Synthesis failed, using mock:', error instanceof Error ? error.message : error);
-    return generateMockFusionResult(validResponses);
+    return generateMockFusionResult(valid);
+  }
+}
+
+export async function getStructuredSynthesis(
+  prompt: string,
+  responses: AIResponse[]
+): Promise<StructuredSynthesis | null> {
+  const valid = responses.filter(r => r.content && !r.error);
+  if (valid.length === 0) return null;
+  try {
+    const result = await callEdgeFunction({
+      action: 'synthesize_structured',
+      prompt,
+      responses: valid,
+    });
+    if (result.success && result.data) return result.data as StructuredSynthesis;
+    return null;
+  } catch (error) {
+    console.warn('[structured synthesis] failed:', error instanceof Error ? error.message : error);
+    return null;
   }
 }
 

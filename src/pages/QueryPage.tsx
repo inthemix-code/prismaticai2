@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { TrendingUp, ChartBar as BarChart3, Zap, Triangle, Bot, Diamond } from 'lucide-react';
 import SearchInput from '../components/SearchInput';
 import HowItWorks from '../components/HowItWorks';
+import { ProjectsMemoryDrawer } from '../components/ProjectsMemoryDrawer';
 import { useAIStore } from '../stores/aiStore';
 import boltBadge from '../assets/image copy copy copy.png';
 
@@ -33,6 +34,8 @@ const staggerItem = {
 export function QueryPage() {
   const navigate = useNavigate();
   const { startNewConversation } = useAIStore();
+  const loadProjects = useAIStore((s) => s.loadProjects);
+  useEffect(() => { void loadProjects(); }, [loadProjects]);
   const [promptIndex, setPromptIndex] = useState(0);
   const [displayText, setDisplayText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -99,12 +102,15 @@ export function QueryPage() {
           </div>
           <span className="text-white font-semibold text-base tracking-tight">Prismatic</span>
         </div>
-        <button
-          onClick={scrollToSearch}
-          className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors border border-cyan-500/30 hover:border-cyan-400/50 rounded-full px-4 py-1.5 bg-cyan-500/5 hover:bg-cyan-500/10"
-        >
-          Try it now
-        </button>
+        <div className="flex items-center gap-2">
+          <ProjectsMemoryDrawer />
+          <button
+            onClick={scrollToSearch}
+            className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors border border-cyan-500/30 hover:border-cyan-400/50 rounded-full px-4 py-1.5 bg-cyan-500/5 hover:bg-cyan-500/10"
+          >
+            Try it now
+          </button>
+        </div>
       </nav>
 
       {/* Hero */}

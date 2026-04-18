@@ -92,7 +92,9 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
     return `${time.toFixed(1)}s`;
   };
 
-  if (response.loading) {
+  const isStreamingWithContent = response.loading && response.streaming && response.content;
+
+  if (response.loading && !isStreamingWithContent) {
     return (
       <motion.div
         variants={loadingVariants}
@@ -103,11 +105,16 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
           <CardHeader className={cn('pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6', config.lightColor)}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <motion.div 
+                <motion.div
                   animate={pulseAnimation}
-                  className={cn('w-3 h-3 rounded-full', config.color)} 
+                  className={cn('w-3 h-3 rounded-full', config.color)}
                 />
                 <h4 className="text-white text-xs sm:text-sm font-medium">{config.name}</h4>
+                {response.streaming && (
+                  <Badge variant="secondary" className="text-[10px] bg-cyan-950/50 text-cyan-300 border-cyan-800">
+                    Streaming
+                  </Badge>
+                )}
               </div>
               <motion.div
                 animate={{ rotate: 360 }}
@@ -125,13 +132,50 @@ export function AIResponsePanel({ response }: AIResponsePanelProps) {
               >
                 <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 mb-2" />
               </motion.div>
-              <motion.p 
+              <motion.p
                 animate={{ opacity: [0.5, 1, 0.5] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
                 className="text-xs text-gray-400 text-center"
               >
-                Generating response...
+                {response.streaming ? 'Awaiting first token...' : 'Generating response...'}
               </motion.p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  if (isStreamingWithContent) {
+    return (
+      <motion.div variants={loadingVariants} initial="initial" animate="animate">
+        <Card className={cn('h-[320px] sm:h-[400px] flex flex-col bg-gray-900/50 shadow-xl rounded-lg', config.borderColor, 'border')}>
+          <CardHeader className={cn('pb-2 sm:pb-3 flex-shrink-0 p-3 sm:p-6', config.lightColor)}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <motion.div
+                  animate={pulseAnimation}
+                  className={cn('w-3 h-3 rounded-full', config.color)}
+                />
+                <h4 className="text-white text-xs sm:text-sm font-medium">{config.name}</h4>
+                <Badge variant="secondary" className="text-[10px] bg-cyan-950/50 text-cyan-300 border-cyan-800">
+                  Streaming
+                </Badge>
+              </div>
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              >
+                <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+              </motion.div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-hidden p-3 sm:p-4">
+            <div className="h-full overflow-y-auto custom-scrollbar pr-1 sm:pr-2">
+              <div className="ai-response-text beautiful-text text-xs sm:text-sm">
+                <Markdown>{response.content}</Markdown>
+                <span className="inline-block w-[2px] h-3 ml-0.5 bg-cyan-300 animate-pulse align-middle" aria-hidden="true" />
+              </div>
             </div>
           </CardContent>
         </Card>
