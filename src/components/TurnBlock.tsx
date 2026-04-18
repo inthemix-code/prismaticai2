@@ -1,7 +1,7 @@
 import { useState, useEffect, forwardRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquare, ChartBar as BarChart3, Users, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import { MessageSquare, ChartBar as BarChart3, Users, ChevronDown, ChevronUp, Clock, Scale } from 'lucide-react';
 import { ConversationTurn, Conversation } from '../types';
 import { AnalyticsCharts } from './AnalyticsCharts';
 import { FusionPanel } from './FusionPanel';
@@ -45,7 +45,7 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
 ) {
   const [referenceOpen, setReferenceOpen] = useState(!referenceCollapsedDefault && isLatest);
   const [turnCollapsed, setTurnCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'responses'>('responses');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'responses' | 'judge'>('analytics');
 
   useEffect(() => {
     if (autoCollapseOlder && !isLatest && !turn.loading) {
@@ -175,20 +175,6 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
                   onPinFact={(fact) => onPinFact(fact, turn.id)}
                   judgeVerdict={turn.judgeVerdict ?? null}
                 />
-                {turn.judgeVerdict ? (
-                  <JudgeVerdictCard
-                    verdict={turn.judgeVerdict}
-                    turnId={turn.id}
-                    loading={turn.judgeLoading}
-                    evaluatedModels={turn.responses
-                      .filter((r) => r.content && !r.error)
-                      .map((r) => r.platform)}
-                  />
-                ) : turn.judgeLoading ? (
-                  <div className="mt-4">
-                    <JudgeVerdictCardSkeleton />
-                  </div>
-                ) : null}
               </motion.div>
             )}
 
@@ -205,7 +191,7 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
                       Reference
                     </span>
                     <span className="text-xs text-gray-600">
-                      Analytics &amp; individual responses
+                      Analytics, responses &amp; judge verdict
                     </span>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-gray-500 group-hover:text-gray-300 transition-colors">
@@ -228,16 +214,20 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
                       className="overflow-hidden"
                     >
                       <div className="pt-4">
-                        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'analytics' | 'responses')}>
+                        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'analytics' | 'responses' | 'judge')}>
                           <div className="flex items-center justify-between mb-4">
                             <TabsList className="bg-white/[0.03] border border-white/10 backdrop-blur-sm h-8">
+                              <TabsTrigger value="analytics" className="text-xs h-6 px-2.5">
+                                <BarChart3 className="w-3 h-3 mr-1.5" />
+                                Analytics
+                              </TabsTrigger>
                               <TabsTrigger value="responses" className="text-xs h-6 px-2.5">
                                 <Users className="w-3 h-3 mr-1.5" />
                                 Responses
                               </TabsTrigger>
-                              <TabsTrigger value="analytics" className="text-xs h-6 px-2.5">
-                                <BarChart3 className="w-3 h-3 mr-1.5" />
-                                Analytics
+                              <TabsTrigger value="judge" className="text-xs h-6 px-2.5">
+                                <Scale className="w-3 h-3 mr-1.5" />
+                                Judge
                               </TabsTrigger>
                             </TabsList>
                             {activeTab === 'responses' && (
@@ -272,6 +262,25 @@ const TurnBlockInner = forwardRef<HTMLDivElement, TurnBlockProps>(function TurnB
                                 </motion.div>
                               ))}
                             </div>
+                          </TabsContent>
+
+                          <TabsContent value="judge" className="mt-0">
+                            {turn.judgeVerdict ? (
+                              <JudgeVerdictCard
+                                verdict={turn.judgeVerdict}
+                                turnId={turn.id}
+                                loading={turn.judgeLoading}
+                                evaluatedModels={turn.responses
+                                  .filter((r) => r.content && !r.error)
+                                  .map((r) => r.platform)}
+                              />
+                            ) : turn.judgeLoading ? (
+                              <JudgeVerdictCardSkeleton />
+                            ) : (
+                              <div className="text-xs text-gray-500 py-6 text-center border border-dashed border-white/10 rounded-lg">
+                                Judge has not evaluated this turn yet.
+                              </div>
+                            )}
                           </TabsContent>
                         </Tabs>
                       </div>
